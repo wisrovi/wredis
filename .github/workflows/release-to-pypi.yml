@@ -1,0 +1,37 @@
+name: Publish to PyPI on Release
+
+on:
+  release:
+    types: [published]  # Se ejecuta cuando se publica un release en GitHub
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Paso 1: Checkout del código
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Paso 2: Configurar Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    # Paso 3: Instalar herramientas necesarias para publicar en PyPI
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    # Paso 4: Crear el paquete (source y wheel)
+    - name: Build package
+      run: python -m build
+
+    # Paso 5: Publicar en PyPI
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: twine upload dist/*
