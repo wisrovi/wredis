@@ -1,0 +1,47 @@
+name: Pylint
+
+on:
+  push:
+    branches:
+      - main  # Ejecutar solo en la rama 'main'
+  workflow_dispatch:  # Permitir ejecución manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+    steps:
+    # Paso 1: Checkout del código
+    - uses: actions/checkout@v4
+
+    # Paso 2: Configurar Python según la versión de la matriz
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Paso 3: Instalar dependencias
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint
+
+    # Paso 4: Configurar reglas de Pylint (opcional)
+    - name: Create .pylintrc
+      run: |
+        cat <<EOF > .pylintrc
+        [MESSAGES CONTROL]
+        disable=
+            C0114,  # Missing module docstring
+            C0116,  # Missing function or method docstring
+            R0903,  # Too few public methods
+        [FORMAT]
+        max-line-length=100  # Cambia el límite de caracteres por línea
+        EOF
+
+    # Paso 5: Analizar código con pylint
+    - name: Analyse the code with pylint
+      run: |
+        pylint $(git ls-files '*.py')
