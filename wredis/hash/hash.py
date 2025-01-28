@@ -214,3 +214,17 @@ class RedisHashManager:
                 )
         except Exception as e:
             logger.error(f"Error extending TTL for hash '{hash_name}': {e}")
+
+    def delete_all_hash(self, hash_name):
+        """
+        Elimina todos los campos y valores de un hash.
+        :param hash_name: Nombre del hash en Redis.
+        """
+        try:
+            result = self.redis_client.delete(hash_name)  # Elimina todo el hash
+            if result:
+                print(f"Hash '{hash_name}' eliminado completamente.")
+            else:
+                print(f"El hash '{hash_name}' no existe o ya está vacío.")
+        except Exception as e:
+            print(f"Error al eliminar el hash '{hash_name}': {e}")

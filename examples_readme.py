@@ -38,7 +38,7 @@ MODULE_TEMPLATE = """
 
 EXAMPLE_TEMPLATE = """
 - **{file_name}**: {description}
-  ```python
+```python
 {code_snippet}
   ```
 """

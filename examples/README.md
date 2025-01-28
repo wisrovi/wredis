@@ -17,6 +17,9 @@ examples/
     pub_sub/
         consumer.py
         producer.py
+    token/
+        read.py
+        write.py
     queue/
         consumer.py
         producer.py
@@ -29,6 +32,7 @@ examples/
     hash/
         read.py
         write.py
+    .vscode/
 ```
 
 ## How to Use
@@ -42,6 +46,14 @@ examples/
 
 ## Modules and Examples
 
+### .vscode
+
+#### Description
+This module demonstrates specific functionalities.
+
+
+
+
 ### bitmap
 
 #### Description
@@ -49,19 +61,20 @@ This module demonstrates specific functionalities.
 
 
 - **read.py**: Example demonstrating functionality.
-
 ```python
 from wredis.bitmap import RedisBitmapManager
+
+
 bitmap_manager = RedisBitmapManager(host="localhost")
+
 print(bitmap_manager.get_bit("my_bitmap", 0))
 print(bitmap_manager.count_bits("my_bitmap"))
-```
-
+  ```
 
 
 - **write.py**: Example demonstrating functionality.
 ```python
-from a_wredis import RedisBitmapManager
+from wredis.bitmap import RedisBitmapManager
 
 
 bitmap_manager = RedisBitmapManager(host="localhost")
@@ -84,7 +97,7 @@ from wredis.hash import RedisHashManager
 
 if __name__ == "__main__":
     # Crear una instancia de RedisHashManager
-    redis_manager = RedisHashManager(host="localhost")
+    redis_manager = RedisHashManager(host="localhost", verbose=False)
 
     # Leer valores específicos del hash
     user1 = redis_manager.read_hash("my_hash", "user:1")
@@ -408,6 +421,52 @@ stream_manager.add_to_stream("my_stream", {"field2": "value3", "field4": "value4
 
 
 stream_manager.add_to_stream("my_stream_2", {"field1": "value1"})
+  ```
+
+
+
+### token
+
+#### Description
+This module demonstrates specific functionalities.
+
+
+- **read.py**: Example demonstrating functionality.
+```python
+from wredis.token import RedisTokenManager
+
+
+# Create a RedisTokenManager instance with verbose logging disabled
+redis_manager = RedisTokenManager(host="localhost", port=6379, db=0, verbose=False)
+
+# Read data from Redis
+token = "example_token"
+retrieved_data = redis_manager.read_token(token)
+
+if retrieved_data:
+    print(f"Data retrieved for token '{token}': {retrieved_data}")
+else:
+    print(f"No data found for token '{token}'.")
+  ```
+
+
+- **write.py**: Example demonstrating functionality.
+```python
+from wredis.token import RedisTokenManager
+
+
+# Create a RedisTokenManager instance with verbose logging enabled
+redis_manager = RedisTokenManager(host="localhost", port=6379, db=0, verbose=True)
+
+# Write data to Redis
+token = "example_token"
+data = {"name": "Alice", "age": 28, "city": "Paris"}
+ttl = 120  # Set time-to-live to 120 seconds
+
+if redis_manager.write_token(token, data, ttl=ttl):
+    print(f"Token '{token}' written successfully.")
+else:
+    print(f"Failed to write token '{token}'.")
   ```
 
 
