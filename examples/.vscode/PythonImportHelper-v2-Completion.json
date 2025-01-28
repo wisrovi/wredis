@@ -1,0 +1,348 @@
+[
+    {
+        "label": "RedisBitmapManager",
+        "importPath": "wredis.bitmap",
+        "description": "wredis.bitmap",
+        "isExtraImport": true,
+        "detail": "wredis.bitmap",
+        "documentation": {}
+    },
+    {
+        "label": "RedisBitmapManager",
+        "importPath": "wredis.bitmap",
+        "description": "wredis.bitmap",
+        "isExtraImport": true,
+        "detail": "wredis.bitmap",
+        "documentation": {}
+    },
+    {
+        "label": "RedisHashManager",
+        "importPath": "wredis.hash",
+        "description": "wredis.hash",
+        "isExtraImport": true,
+        "detail": "wredis.hash",
+        "documentation": {}
+    },
+    {
+        "label": "RedisHashManager",
+        "importPath": "wredis.hash",
+        "description": "wredis.hash",
+        "isExtraImport": true,
+        "detail": "wredis.hash",
+        "documentation": {}
+    },
+    {
+        "label": "RedisPubSubManager",
+        "importPath": "wredis.pubsub",
+        "description": "wredis.pubsub",
+        "isExtraImport": true,
+        "detail": "wredis.pubsub",
+        "documentation": {}
+    },
+    {
+        "label": "RedisPubSubManager",
+        "importPath": "wredis.pubsub",
+        "description": "wredis.pubsub",
+        "isExtraImport": true,
+        "detail": "wredis.pubsub",
+        "documentation": {}
+    },
+    {
+        "label": "signal",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "signal",
+        "description": "signal",
+        "detail": "signal",
+        "documentation": {}
+    },
+    {
+        "label": "RedisQueueManager",
+        "importPath": "wredis.queue",
+        "description": "wredis.queue",
+        "isExtraImport": true,
+        "detail": "wredis.queue",
+        "documentation": {}
+    },
+    {
+        "label": "RedisQueueManager",
+        "importPath": "wredis.queue",
+        "description": "wredis.queue",
+        "isExtraImport": true,
+        "detail": "wredis.queue",
+        "documentation": {}
+    },
+    {
+        "label": "RedisSetManager",
+        "importPath": "wredis.sets",
+        "description": "wredis.sets",
+        "isExtraImport": true,
+        "detail": "wredis.sets",
+        "documentation": {}
+    },
+    {
+        "label": "RedisSetManager",
+        "importPath": "wredis.sets",
+        "description": "wredis.sets",
+        "isExtraImport": true,
+        "detail": "wredis.sets",
+        "documentation": {}
+    },
+    {
+        "label": "RedisSortedSetManager",
+        "importPath": "wredis.sortedset",
+        "description": "wredis.sortedset",
+        "isExtraImport": true,
+        "detail": "wredis.sortedset",
+        "documentation": {}
+    },
+    {
+        "label": "RedisSortedSetManager",
+        "importPath": "wredis.sortedset",
+        "description": "wredis.sortedset",
+        "isExtraImport": true,
+        "detail": "wredis.sortedset",
+        "documentation": {}
+    },
+    {
+        "label": "RedisStreamManager",
+        "importPath": "wredis.streams",
+        "description": "wredis.streams",
+        "isExtraImport": true,
+        "detail": "wredis.streams",
+        "documentation": {}
+    },
+    {
+        "label": "RedisStreamManager",
+        "importPath": "wredis.streams",
+        "description": "wredis.streams",
+        "isExtraImport": true,
+        "detail": "wredis.streams",
+        "documentation": {}
+    },
+    {
+        "label": "bitmap_manager",
+        "kind": 5,
+        "importPath": "bitmap.read",
+        "description": "bitmap.read",
+        "peekOfCode": "bitmap_manager = RedisBitmapManager(host=\"localhost\")\nprint(bitmap_manager.get_bit(\"my_bitmap\", 0))\nprint(bitmap_manager.count_bits(\"my_bitmap\"))",
+        "detail": "bitmap.read",
+        "documentation": {}
+    },
+    {
+        "label": "bitmap_manager",
+        "kind": 5,
+        "importPath": "bitmap.write",
+        "description": "bitmap.write",
+        "peekOfCode": "bitmap_manager = RedisBitmapManager(host=\"localhost\")\nbitmap_manager.set_bit(key=\"my_bitmap\", offset=5, value=1)",
+        "detail": "bitmap.write",
+        "documentation": {}
+    },
+    {
+        "label": "handle_message",
+        "kind": 2,
+        "importPath": "pub_sub.consumer",
+        "description": "pub_sub.consumer",
+        "peekOfCode": "def handle_message(message):\n    print(f\"[channel_1] Mensaje recibido: {message}\")\n@pubsub_manager.on_message(\"channel_2\")\ndef handle_channel_2(message):\n    print(f\"[channel_2] Mensaje recibido: {message}\")\n# Manejar la señal de interrupción (Ctrl+C) para salir limpiamente\ndef signal_handler(sig, frame):\n    print(\"\\nDeteniendo programa...\")\n    pubsub_manager.stop_listeners()\n    print(\"Programa detenido.\")",
+        "detail": "pub_sub.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "handle_channel_2",
+        "kind": 2,
+        "importPath": "pub_sub.consumer",
+        "description": "pub_sub.consumer",
+        "peekOfCode": "def handle_channel_2(message):\n    print(f\"[channel_2] Mensaje recibido: {message}\")\n# Manejar la señal de interrupción (Ctrl+C) para salir limpiamente\ndef signal_handler(sig, frame):\n    print(\"\\nDeteniendo programa...\")\n    pubsub_manager.stop_listeners()\n    print(\"Programa detenido.\")\n    exit(0)\nsignal.signal(signal.SIGINT, signal_handler)\nsignal.pause()",
+        "detail": "pub_sub.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "signal_handler",
+        "kind": 2,
+        "importPath": "pub_sub.consumer",
+        "description": "pub_sub.consumer",
+        "peekOfCode": "def signal_handler(sig, frame):\n    print(\"\\nDeteniendo programa...\")\n    pubsub_manager.stop_listeners()\n    print(\"Programa detenido.\")\n    exit(0)\nsignal.signal(signal.SIGINT, signal_handler)\nsignal.pause()",
+        "detail": "pub_sub.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "pubsub_manager",
+        "kind": 5,
+        "importPath": "pub_sub.consumer",
+        "description": "pub_sub.consumer",
+        "peekOfCode": "pubsub_manager = RedisPubSubManager(host=\"localhost\", verbose=False)\n@pubsub_manager.on_message(\"channel_1\")\ndef handle_message(message):\n    print(f\"[channel_1] Mensaje recibido: {message}\")\n@pubsub_manager.on_message(\"channel_2\")\ndef handle_channel_2(message):\n    print(f\"[channel_2] Mensaje recibido: {message}\")\n# Manejar la señal de interrupción (Ctrl+C) para salir limpiamente\ndef signal_handler(sig, frame):\n    print(\"\\nDeteniendo programa...\")",
+        "detail": "pub_sub.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "pubsub_manager",
+        "kind": 5,
+        "importPath": "pub_sub.producer",
+        "description": "pub_sub.producer",
+        "peekOfCode": "pubsub_manager = RedisPubSubManager(host=\"localhost\")\npubsub_manager.publish_message(\"channel_1\", \"Hello, Redis!\")\npubsub_manager.publish_message(\"channel_2\", {\"saludo\": \"Hola desde channel_2!\"})",
+        "detail": "pub_sub.producer",
+        "documentation": {}
+    },
+    {
+        "label": "worker",
+        "kind": 2,
+        "importPath": "queue.consumer",
+        "description": "queue.consumer",
+        "peekOfCode": "def worker(record):\n    global conteo_global_queso\n    \"\"\"\n    Procesa un registro de la cola 'queue_1'.\n    \"\"\"\n    print(f\"Procesando de 'queue_1': {record}\")\n@queue_manager.on_message(\"queue:4060\")\ndef worker(record):\n    global conteo_global_queso\n    \"\"\"",
+        "detail": "queue.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "worker",
+        "kind": 2,
+        "importPath": "queue.consumer",
+        "description": "queue.consumer",
+        "peekOfCode": "def worker(record):\n    global conteo_global_queso\n    \"\"\"\n    Procesa un registro de la cola 'queue_1'.\n    \"\"\"\n    print(f\"Procesando de 'queue_1': {record}\")\n@queue_manager.on_message(\"4060\")\ndef worker(record):\n    global conteo_global_queso\n    \"\"\"",
+        "detail": "queue.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "worker",
+        "kind": 2,
+        "importPath": "queue.consumer",
+        "description": "queue.consumer",
+        "peekOfCode": "def worker(record):\n    global conteo_global_queso\n    \"\"\"\n    Procesa un registro de la cola 'queue_1'.\n    \"\"\"\n    print(f\"Procesando de 'queue_1': {record}\")\n# Verificar la longitud de la cola\nqueue_length = queue_manager.get_queue_length(\"tasks\")\nqueue_manager.start()\n# Mantener el programa activo",
+        "detail": "queue.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "queue_manager",
+        "kind": 5,
+        "importPath": "queue.consumer",
+        "description": "queue.consumer",
+        "peekOfCode": "queue_manager = RedisQueueManager(poll_interval=2, host=\"localhost\", verbose=False)\n@queue_manager.on_message(\"4090\")\ndef worker(record):\n    global conteo_global_queso\n    \"\"\"\n    Procesa un registro de la cola 'queue_1'.\n    \"\"\"\n    print(f\"Procesando de 'queue_1': {record}\")\n@queue_manager.on_message(\"queue:4060\")\ndef worker(record):",
+        "detail": "queue.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "queue_length",
+        "kind": 5,
+        "importPath": "queue.consumer",
+        "description": "queue.consumer",
+        "peekOfCode": "queue_length = queue_manager.get_queue_length(\"tasks\")\nqueue_manager.start()\n# Mantener el programa activo\nqueue_manager.wait()",
+        "detail": "queue.consumer",
+        "documentation": {}
+    },
+    {
+        "label": "queue_manager",
+        "kind": 5,
+        "importPath": "queue.producer",
+        "description": "queue.producer",
+        "peekOfCode": "queue_manager = RedisQueueManager(host=\"localhost\")\n# Publicar mensajes en diferentes colas\nqueue_manager.publish(\"4090\", {\"id\": 1, \"task\": \"process_image\", \"status\": \"pending\"})\nqueue_manager.publish(\"4060\", {\"id\": 2, \"task\": \"generate_report\", \"priority\": \"high\"})\nqueue_manager.publish(\n    \"queue:4060\", {\"id\": 3, \"task\": \"process_video\", \"status\": \"pending\"}\n)\nqueue_manager.publish(\"tasks\", {\"task_id\": 3, \"description\": \"Generar reporte\"}, ttl=30)\nqueue_manager.publish(\n    \"tasks\", {\"task_id\": 4, \"description\": \"Actualizar base de datos\"}, ttl=120",
+        "detail": "queue.producer",
+        "documentation": {}
+    },
+    {
+        "label": "set_manager",
+        "kind": 5,
+        "importPath": "sets.read",
+        "description": "sets.read",
+        "peekOfCode": "set_manager = RedisSetManager(host=\"localhost\")\nprint(set_manager.get_set_members(\"my_set\"))",
+        "detail": "sets.read",
+        "documentation": {}
+    },
+    {
+        "label": "set_manager",
+        "kind": 5,
+        "importPath": "sets.write",
+        "description": "sets.write",
+        "peekOfCode": "set_manager = RedisSetManager(host=\"localhost\")\nset_manager.add_to_set(\"my_set\", \"value1\", \"value2\")\nset_manager.add_to_set(\"my_set\", \"value5\", \"value2\")\nset_manager.add_to_set(\"my_set\", \"value1\", \"value8\")",
+        "detail": "sets.write",
+        "documentation": {}
+    },
+    {
+        "label": "sorted_set_manager",
+        "kind": 5,
+        "importPath": "sorted_set.py.read",
+        "description": "sorted_set.py.read",
+        "peekOfCode": "sorted_set_manager = RedisSortedSetManager(host=\"localhost\")\nitems = sorted_set_manager.get_sorted_set(\"my_sorted_set\", with_scores=True)\nitems_reverse = sorted_set_manager.get_sorted_set_reverse(\"my_sorted_set\")\n# Obtener rank y score\nrank = sorted_set_manager.get_rank(\"my_sorted_set\", \"item1\")\nscore = sorted_set_manager.get_score(\"my_sorted_set\", \"item2\")\n# Eliminar un miembro\nsorted_set_manager.remove_from_sorted_set(\"my_sorted_set\", \"item1\")\n# Eliminar todo el conjunto ordenado\n# sorted_set_manager.delete_sorted_set(\"my_sorted_set\")",
+        "detail": "sorted_set.py.read",
+        "documentation": {}
+    },
+    {
+        "label": "items",
+        "kind": 5,
+        "importPath": "sorted_set.py.read",
+        "description": "sorted_set.py.read",
+        "peekOfCode": "items = sorted_set_manager.get_sorted_set(\"my_sorted_set\", with_scores=True)\nitems_reverse = sorted_set_manager.get_sorted_set_reverse(\"my_sorted_set\")\n# Obtener rank y score\nrank = sorted_set_manager.get_rank(\"my_sorted_set\", \"item1\")\nscore = sorted_set_manager.get_score(\"my_sorted_set\", \"item2\")\n# Eliminar un miembro\nsorted_set_manager.remove_from_sorted_set(\"my_sorted_set\", \"item1\")\n# Eliminar todo el conjunto ordenado\n# sorted_set_manager.delete_sorted_set(\"my_sorted_set\")\nprint(items)",
+        "detail": "sorted_set.py.read",
+        "documentation": {}
+    },
+    {
+        "label": "items_reverse",
+        "kind": 5,
+        "importPath": "sorted_set.py.read",
+        "description": "sorted_set.py.read",
+        "peekOfCode": "items_reverse = sorted_set_manager.get_sorted_set_reverse(\"my_sorted_set\")\n# Obtener rank y score\nrank = sorted_set_manager.get_rank(\"my_sorted_set\", \"item1\")\nscore = sorted_set_manager.get_score(\"my_sorted_set\", \"item2\")\n# Eliminar un miembro\nsorted_set_manager.remove_from_sorted_set(\"my_sorted_set\", \"item1\")\n# Eliminar todo el conjunto ordenado\n# sorted_set_manager.delete_sorted_set(\"my_sorted_set\")\nprint(items)\nprint(items_reverse)",
+        "detail": "sorted_set.py.read",
+        "documentation": {}
+    },
+    {
+        "label": "rank",
+        "kind": 5,
+        "importPath": "sorted_set.py.read",
+        "description": "sorted_set.py.read",
+        "peekOfCode": "rank = sorted_set_manager.get_rank(\"my_sorted_set\", \"item1\")\nscore = sorted_set_manager.get_score(\"my_sorted_set\", \"item2\")\n# Eliminar un miembro\nsorted_set_manager.remove_from_sorted_set(\"my_sorted_set\", \"item1\")\n# Eliminar todo el conjunto ordenado\n# sorted_set_manager.delete_sorted_set(\"my_sorted_set\")\nprint(items)\nprint(items_reverse)\nprint(rank)\nprint(score)",
+        "detail": "sorted_set.py.read",
+        "documentation": {}
+    },
+    {
+        "label": "score",
+        "kind": 5,
+        "importPath": "sorted_set.py.read",
+        "description": "sorted_set.py.read",
+        "peekOfCode": "score = sorted_set_manager.get_score(\"my_sorted_set\", \"item2\")\n# Eliminar un miembro\nsorted_set_manager.remove_from_sorted_set(\"my_sorted_set\", \"item1\")\n# Eliminar todo el conjunto ordenado\n# sorted_set_manager.delete_sorted_set(\"my_sorted_set\")\nprint(items)\nprint(items_reverse)\nprint(rank)\nprint(score)",
+        "detail": "sorted_set.py.read",
+        "documentation": {}
+    },
+    {
+        "label": "sorted_set_manager",
+        "kind": 5,
+        "importPath": "sorted_set.py.write",
+        "description": "sorted_set.py.write",
+        "peekOfCode": "sorted_set_manager = RedisSortedSetManager(host=\"localhost\", verbose=False)\nsorted_set_manager.add_to_sorted_set(\"my_sorted_set\", 1, \"item1\")\nsorted_set_manager.add_to_sorted_set(\"my_sorted_set\", 3, \"item3\")\nsorted_set_manager.add_to_sorted_set(\"my_sorted_set\", 2, \"item2\")\nsorted_set_manager.add_to_sorted_set(\"my_sorted_set\", 1, \"item1\")\nsorted_set_manager.add_to_sorted_set(key=\"my_sorted_set\", score=5, member=\"item5\")",
+        "detail": "sorted_set.py.write",
+        "documentation": {}
+    },
+    {
+        "label": "process_message",
+        "kind": 2,
+        "importPath": "streams.consume",
+        "description": "streams.consume",
+        "peekOfCode": "def process_message(data):\n    print(f\"[Consumer 1] Procesando mensaje: {data}\")\n# Registrar el segundo consumidor\n@stream_manager.on_message(\n    stream_name=\"my_stream_2\", group_name=\"my_group\", consumer_name=\"consumer_2\"\n)\ndef process_message_consumer_2(data):\n    print(f\"[Consumer 2] Procesando mensaje: {data}\")\n# Mantener el programa activo para consumir mensajes\nstream_manager.wait()",
+        "detail": "streams.consume",
+        "documentation": {}
+    },
+    {
+        "label": "process_message_consumer_2",
+        "kind": 2,
+        "importPath": "streams.consume",
+        "description": "streams.consume",
+        "peekOfCode": "def process_message_consumer_2(data):\n    print(f\"[Consumer 2] Procesando mensaje: {data}\")\n# Mantener el programa activo para consumir mensajes\nstream_manager.wait()",
+        "detail": "streams.consume",
+        "documentation": {}
+    },
+    {
+        "label": "stream_manager",
+        "kind": 5,
+        "importPath": "streams.consume",
+        "description": "streams.consume",
+        "peekOfCode": "stream_manager = RedisStreamManager(host=\"localhost\", verbose=False)\n# Registrar un consumidor para un stream\n@stream_manager.on_message(\n    stream_name=\"my_stream\", group_name=\"my_group\", consumer_name=\"consumer_1\"\n)\ndef process_message(data):\n    print(f\"[Consumer 1] Procesando mensaje: {data}\")\n# Registrar el segundo consumidor\n@stream_manager.on_message(\n    stream_name=\"my_stream_2\", group_name=\"my_group\", consumer_name=\"consumer_2\"",
+        "detail": "streams.consume",
+        "documentation": {}
+    },
+    {
+        "label": "stream_manager",
+        "kind": 5,
+        "importPath": "streams.producer",
+        "description": "streams.producer",
+        "peekOfCode": "stream_manager = RedisStreamManager(host=\"localhost\")\nstream_manager.add_to_stream(\"my_stream\", {\"field1\": \"value1\"})\nstream_manager.add_to_stream(\"my_stream\", {\"field2\": \"value3\", \"field4\": \"value4\"})\nstream_manager.add_to_stream(\"my_stream_2\", {\"field1\": \"value1\"})",
+        "detail": "streams.producer",
+        "documentation": {}
+    }
+]

@@ -1,18 +1,28 @@
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:
+    # pip install tomli
+    import tomli as tomllib  # Python <3.11
+
 
 from pathlib import Path
 from setuptools import setup, find_packages
+
+with open("pyproject.toml", "rb") as archivo:
+    config_project = tomllib.load(archivo)
 
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="wredis",  # Nombre del paquete en PyPI
-    version="0.1.0",  # Versión inicial
+    name=config_project["project"]["name"],  # Nombre del paquete en PyPI
+    version=config_project["project"]["version"],
     packages=find_packages(),
     install_requires=[
-        "redis",
-        "loguru",
+        "redis>=5.0.0",
+        "loguru>=0.7.0",
+
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -28,10 +38,5 @@ setup(
     author="William Steve Rodriguez Villamizar",
     author_email="wisrovi.rodriguez@gmail.com",
     license="MIT",
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
     python_requires=">=3.6, <3.12",  # Requiere Python >=3.6 y <3.10
 )
