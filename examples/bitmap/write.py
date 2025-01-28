@@ -1,4 +1,6 @@
+
 from wredis.bitmap import RedisBitmapManager
+
 
 
 bitmap_manager = RedisBitmapManager(host="localhost")

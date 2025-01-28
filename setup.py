@@ -4,11 +4,13 @@ except ModuleNotFoundError:
     # pip install tomli
     import tomli as tomllib  # Python <3.11
 
+
 from pathlib import Path
 from setuptools import setup, find_packages
 
 with open("pyproject.toml", "rb") as archivo:
     config_project = tomllib.load(archivo)
+
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -20,6 +22,7 @@ setup(
     install_requires=[
         "redis>=5.0.0",
         "loguru>=0.7.0",
+
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
