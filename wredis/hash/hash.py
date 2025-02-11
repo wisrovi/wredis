@@ -44,7 +44,7 @@ class RedisHashManager:
             getattr(logger, level)(message)
 
     def create_hash(
-        self, hash_name: str, key: str, value: dict | str, ttl: int = -1
+        self, key: str, hash_name: str, value: dict | str, ttl: int = -1
     ) -> None:
         """
         Writes a key-value pair into a Redis hash and optionally sets a TTL.
@@ -57,16 +57,16 @@ class RedisHashManager:
         """
         try:
             json_value = json.dumps(value) if isinstance(value, dict) else value
-            self.redis_client.hset(hash_name, key, json_value)
-            self.log(f"Written to hash '{hash_name}' -> {key}: {value}")
+            self.redis_client.hset(key, hash_name, json_value)
+            self.log(f"Written to hash '{key}' -> {hash_name}: {value}")
 
             if ttl > 0:
-                self.redis_client.expire(hash_name, ttl)
-                self.log(f"Set TTL of {ttl} seconds for hash '{hash_name}'")
+                self.redis_client.expire(key, ttl)
+                self.log(f"Set TTL of {ttl} seconds for hash '{key}'")
         except Exception as e:
-            logger.error(f"Error writing to hash '{hash_name}': {e}")
+            logger.error(f"Error writing to hash '{key}': {e}")
 
-    def read_hash(self, hash_name: str, key: str) -> dict | str | None:
+    def read_hash(self, key: str, hash_name: str) -> dict | str | None:
         """
         Reads a key-value pair from a Redis hash.
 
@@ -78,7 +78,7 @@ class RedisHashManager:
             dict | str | None: The value stored, deserialized from JSON if applicable, or None if not found.
         """
         try:
-            json_value = self.redis_client.hget(hash_name, key)
+            json_value = self.redis_client.hget(key, hash_name)
             if json_value:
                 json_value = json_value.decode()
                 try:
@@ -87,15 +87,15 @@ class RedisHashManager:
                     return json_value
             else:
                 self.log(
-                    f"Field '{key}' does not exist in hash '{hash_name}'.",
+                    f"Field '{hash_name}' does not exist in hash '{key}'.",
                     level="warning",
                 )
                 return None
         except Exception as e:
-            logger.error(f"Error reading from hash '{hash_name}': {e}")
+            logger.error(f"Error reading from hash '{key}': {e}")
             return None
 
-    def update_hash(self, hash_name: str, key: str, new_data: dict) -> None:
+    def update_hash(self, key: str, hash_name: str, new_data: dict) -> None:
         """
         Updates a key-value pair in a Redis hash. If the field does not exist, it adds it.
 
@@ -105,19 +105,19 @@ class RedisHashManager:
             new_data (dict): New data to update the field.
         """
         try:
-            current_value = self.read_hash(hash_name, key)
+            current_value = self.read_hash(key, hash_name)
 
             if isinstance(current_value, dict):
                 current_value.update(new_data)
-                self.create_hash(hash_name, key, current_value)
+                self.create_hash(key, hash_name, current_value)
                 self.log(
-                    f"Updated field '{key}' in hash '{hash_name}': {current_value}"
+                    f"Updated field '{hash_name}' in hash '{key}': {current_value}"
                 )
             else:
-                self.create_hash(hash_name, key, new_data)
-                self.log(f"Added new field '{key}' to hash '{hash_name}': {new_data}")
+                self.create_hash(key, hash_name, new_data)
+                self.log(f"Added new field '{hash_name}' to hash '{key}': {new_data}")
         except Exception as e:
-            logger.error(f"Error updating field '{key}' in hash '{hash_name}': {e}")
+            logger.error(f"Error updating field '{hash_name}' in hash '{key}': {e}")
 
     def delete_hash_field(self, hash_name: str, key: str) -> None:
         """
@@ -228,3 +228,11 @@ class RedisHashManager:
                 print(f"El hash '{hash_name}' no existe o ya está vacío.")
         except Exception as e:
             print(f"Error al eliminar el hash '{hash_name}': {e}")
+
+    def exist(self, hash_name: str) -> bool:
+        """
+        Verifica si un hash existe en Redis.
+        :param hash_name: Nombre del hash en Redis.
+        :return: True si el hash existe, False si no.
+        """
+        return self.redis_client.exists(hash_name) == 1
