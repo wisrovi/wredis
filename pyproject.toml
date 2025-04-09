@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wredis"
-version = "0.2.2"
+version = "0.2.3"
 authors = [
     { name="wisrovi", email="wisrovi.rodriguez@gmail.com" },
 ]
@@ -17,6 +17,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "loguru",
+    "redis",
+]
+
 
 [project.urls]
 "Homepage" = "https://github.com/wisrovi/wredis"

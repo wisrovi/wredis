@@ -44,7 +44,7 @@ class RedisSortedSetManager:
 
     def add_to_sorted_set(
         self, key: str, score: float, member: str, ttl: int = -1
-    ) -> None:
+    ) -> bool:
         """
         Adds an element to the sorted set with its score and optionally sets a TTL.
 
@@ -60,9 +60,13 @@ class RedisSortedSetManager:
 
             if ttl > 0:
                 self.redis_client.expire(key, ttl)
-                self.log(f"Set TTL of {ttl} seconds for sorted set '{key}'")
+                if self.verbose:
+                    self.log(f"Set TTL of {ttl} seconds for sorted set '{key}'")
+            return True
         except Exception as e:
-            logger.error(f"Error adding to sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error adding to sorted set '{key}': {e}")
+            return False
 
     def get_sorted_set(
         self, key: str, start: int = 0, stop: int = -1, with_scores: bool = False
@@ -90,7 +94,8 @@ class RedisSortedSetManager:
             self.log(f"Retrieved elements from sorted set '{key}': {result}")
             return result
         except Exception as e:
-            logger.error(f"Error retrieving elements from sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error retrieving elements from sorted set '{key}': {e}")
             return []
 
     def get_sorted_set_reverse(
@@ -122,9 +127,10 @@ class RedisSortedSetManager:
             )
             return result
         except Exception as e:
-            logger.error(
-                f"Error retrieving elements in reverse from sorted set '{key}': {e}"
-            )
+            if self.verbose:
+                logger.error(
+                    f"Error retrieving elements in reverse from sorted set '{key}': {e}"
+                )
             return []
 
     def remove_from_sorted_set(self, key: str, member: str) -> None:
@@ -138,8 +144,11 @@ class RedisSortedSetManager:
         try:
             self.redis_client.zrem(key, member)
             self.log(f"Removed from sorted set '{key}': {member}")
+            return True
         except Exception as e:
-            logger.error(f"Error removing from sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error removing from sorted set '{key}': {e}")
+            return False
 
     def get_rank(self, key: str, member: str) -> Optional[int]:
         """
@@ -157,9 +166,10 @@ class RedisSortedSetManager:
             self.log(f"Rank of '{member}' in sorted set '{key}': {rank}")
             return rank
         except Exception as e:
-            logger.error(
-                f"Error retrieving rank of '{member}' in sorted set '{key}': {e}"
-            )
+            if self.verbose:
+                logger.error(
+                    f"Error retrieving rank of '{member}' in sorted set '{key}': {e}"
+                )
             return None
 
     def get_score(self, key: str, member: str) -> Optional[float]:
@@ -178,9 +188,10 @@ class RedisSortedSetManager:
             self.log(f"Score of '{member}' in sorted set '{key}': {score}")
             return score
         except Exception as e:
-            logger.error(
-                f"Error retrieving score of '{member}' in sorted set '{key}': {e}"
-            )
+            if self.verbose:
+                logger.error(
+                    f"Error retrieving score of '{member}' in sorted set '{key}': {e}"
+                )
             return None
 
     def delete_sorted_set(self, key: str) -> None:
@@ -193,8 +204,11 @@ class RedisSortedSetManager:
         try:
             self.redis_client.delete(key)
             self.log(f"Deleted entire sorted set '{key}'")
+            return True
         except Exception as e:
-            logger.error(f"Error deleting sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error deleting sorted set '{key}': {e}")
+            return False
 
     def set_ttl(self, key: str, ttl: int) -> None:
         """
@@ -209,9 +223,11 @@ class RedisSortedSetManager:
                 self.redis_client.expire(key, ttl)
                 self.log(f"Set TTL of {ttl} seconds for sorted set '{key}'")
             else:
-                logger.warning(f"Sorted set '{key}' does not exist to set TTL.")
+                if self.verbose:
+                    logger.warning(f"Sorted set '{key}' does not exist to set TTL.")
         except Exception as e:
-            logger.error(f"Error setting TTL for sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error setting TTL for sorted set '{key}': {e}")
 
     def get_ttl(self, key: str) -> Optional[int]:
         """
@@ -233,7 +249,8 @@ class RedisSortedSetManager:
                 self.log(f"TTL for sorted set '{key}' is {ttl} seconds.")
             return ttl
         except Exception as e:
-            logger.error(f"Error retrieving TTL for sorted set '{key}': {e}")
+            if self.verbose:
+                logger.error(f"Error retrieving TTL for sorted set '{key}': {e}")
             return None
 
     def increment_score(self, key: str, increment: float, member: str) -> None:
@@ -250,10 +267,13 @@ class RedisSortedSetManager:
             self.log(
                 f"Incremented score of '{member}' by {increment} in sorted set '{key}'"
             )
+            return True
         except Exception as e:
-            logger.error(
-                f"Error incrementing score of '{member}' in sorted set '{key}': {e}"
-            )
+            if self.verbose:
+                logger.error(
+                    f"Error incrementing score of '{member}' in sorted set '{key}': {e}"
+                )
+            return False
 
     def get_sorted_set_by_score(
         self, key: str, min_score: float, max_score: float, with_scores: bool = False
@@ -281,7 +301,8 @@ class RedisSortedSetManager:
             self.log(f"Retrieved elements by score from sorted set '{key}': {result}")
             return result
         except Exception as e:
-            logger.error(
-                f"Error retrieving elements by score from sorted set '{key}': {e}"
-            )
+            if self.verbose:
+                logger.error(
+                    f"Error retrieving elements by score from sorted set '{key}': {e}"
+                )
             return []
