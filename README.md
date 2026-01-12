@@ -95,6 +95,9 @@ This module allows you to interact with sets in Redis.
 
 This module allows you to interact with sorted sets in Redis.
 
+<img width="1238" height="278" alt="image" src="https://github.com/user-attachments/assets/39733aff-7ebc-49bd-a531-2ca0abfb299c" />
+
+
 ## streams
 
 ### Description
