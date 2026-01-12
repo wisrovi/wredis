@@ -62,6 +62,9 @@ This module allows you to interact with bitmaps in Redis.
 
 This module allows you to interact with hashes in Redis.
 
+<img width="1422" height="648" alt="image" src="https://github.com/user-attachments/assets/463abb86-8d9f-4306-9342-5ddd0ea8ff58" />
+
+
 ## pubsub
 
 ### Description
@@ -74,11 +77,17 @@ This module allows you to interact with the Redis publication and subscription s
 
 This module allows you to interact with queues in Redis.
 
+<img width="924" height="710" alt="image" src="https://github.com/user-attachments/assets/16d0c457-b8bf-43e4-9360-1360db3038ff" />
+
+
 ## sets
 
 ### Description
 
 This module allows you to interact with sets in Redis.
+
+<img width="836" height="496" alt="image" src="https://github.com/user-attachments/assets/9f71e272-6f16-47e0-a81e-6043e0644e8c" />
+
 
 # sortsets
 
