@@ -2,14 +2,16 @@
 
 **WRedis** is a library designed to make interacting with Redis simple and efficient. It offers an intuitive API and useful features to handle connections, basic and advanced operations with Redis.
 
-# Description
+## Description
 
 WRedis simplifies interacting with Redis by providing:
 
-* Easy-to-use methods for common operations (SET, GET, DELETE).
-* Fast and efficient connection to Redis.
-* Support for loguru and log management.
-* Extensible for larger projects.
+- Easy-to-use methods for common operations (SET, GET, DELETE, TTL management).
+- Fast and efficient connection to Redis.
+- Support for loguru and log management.
+- Decorator-based consumer registration for Pub/Sub, Queues, and Streams.
+- Thread-safe parallel consumption for queues and streams.
+- Extensible for larger projects.
 
 ## Installation
 
@@ -19,7 +21,7 @@ To install the library, use `pip`:
 pip install wredis
 ```
 
-Make sure you have Redis installed on your system or that you can access a remote Redis server. You can install Redis locally by following the [official instructions](https://redis.io/download) or use a ```docker-compose.yaml``` like the following:
+Make sure you have Redis installed on your system or that you can access a remote Redis server. You can install Redis locally by following the [official instructions](https://redis.io/download) or use a `docker-compose.yaml` like the following:
 
 ```yaml
 version: "3.3"
@@ -46,84 +48,418 @@ services:
       - redis
 ```
 
-# Description
+## Modules
 
 The **WRedis** library offers a series of modules that facilitate interaction with Redis. The available modules are described below:
 
-## bitmaps
+---
 
-### Description
+## Bitmaps
+
+**Class:** `RedisBitmapManager`
 
 This module allows you to interact with bitmaps in Redis.
 
-## hash
+### Constructor
 
-### Description
+```python
+RedisBitmapManager(host="localhost", port=6379, db=0, verbose=True)
+```
 
-This module allows you to interact with hashes in Redis.
+### Methods
 
-<img width="1422" height="648" alt="image" src="https://github.com/user-attachments/assets/463abb86-8d9f-4306-9342-5ddd0ea8ff58" />
+| Method | Description |
+|--------|-------------|
+| `set_bit(key, offset, value, ttl=-1)` | Sets a bit at a specific position. Optionally sets TTL. |
+| `get_bit(key, offset)` | Retrieves the value of a bit at a specific position (0 or 1). |
+| `count_bits(key)` | Counts the number of bits set to 1 in a bitmap. |
+| `get_ttl(key)` | Retrieves the TTL for a bitmap key. Returns -1 (no TTL), -2 (key doesn't exist), or seconds remaining. |
+| `extend_ttl(key, ttl)` | Extends or sets a new TTL for a bitmap key. |
 
+### Example
 
-## pubsub
+```python
+from wredis.bitmap import RedisBitmapManager
 
-### Description
+bitmap_manager = RedisBitmapManager(host="localhost")
 
-This module allows you to interact with the Redis publication and subscription system.
+# Write
+bitmap_manager.set_bit(key="my_bitmap", offset=5, value=1)
 
-## queue
+# Read
+print(bitmap_manager.get_bit("my_bitmap", 0))
+print(bitmap_manager.count_bits("my_bitmap"))
 
-### Description
+# TTL
+bitmap_manager.set_bit(key="my_bitmap", offset=10, value=1, ttl=300)
+print(bitmap_manager.get_ttl("my_bitmap"))
+bitmap_manager.extend_ttl("my_bitmap", 600)
+```
 
-This module allows you to interact with queues in Redis.
+---
 
-<img width="924" height="710" alt="image" src="https://github.com/user-attachments/assets/16d0c457-b8bf-43e4-9360-1360db3038ff" />
+## Hash
 
+**Class:** `RedisHashManager`
 
-## sets
+This module allows you to interact with hashes in Redis. Supports automatic JSON serialization for dict values.
 
-### Description
+### Constructor
+
+```python
+RedisHashManager(host="localhost", port=6379, db=0, verbose=True)
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `create_hash(hash_name, key, value, ttl=-1)` | Writes a key-value pair into a Redis hash. Dict values are auto-serialized to JSON. |
+| `read_hash(hash_name, key)` | Reads a value from a hash. Auto-deserializes JSON if applicable. Returns `None` if not found. |
+| `update_hash(hash_name, key, new_data)` | Updates a key-value pair. If the field exists and is a dict, merges the data. Otherwise, replaces it. |
+| `delete_hash_field(hash_name, key)` | Deletes a specific field from a hash. |
+| `read_all_hash(hash_name)` | Reads all fields and values from a hash. Returns a dict or `None`. |
+| `get_ttl(hash_name)` | Retrieves the TTL for a hash. Returns -1 (no TTL), -2 (key doesn't exist), or seconds remaining. |
+| `extend_ttl(hash_name, ttl)` | Extends or sets a new TTL for a hash. |
+
+### Example
+
+```python
+from wredis.hash import RedisHashManager
+
+redis_manager = RedisHashManager(host="localhost")
+
+# Create
+redis_manager.create_hash("my_hash", "user:1", {"name": "Alice", "age": 30}, ttl=60)
+redis_manager.create_hash("my_hash", "user:2", {"name": "Bob", "age": 25})
+
+# Read
+user1 = redis_manager.read_hash("my_hash", "user:1")
+print(f"User 1: {user1}")
+
+all_users = redis_manager.read_all_hash("my_hash")
+print(f"All users: {all_users}")
+
+# Update
+redis_manager.update_hash("my_hash", "user:3", {"name": "William", "age": 35, "gender": "male"})
+
+# Delete
+redis_manager.delete_hash_field("my_hash", "user:2")
+
+# TTL
+print(redis_manager.get_ttl("my_hash"))
+redis_manager.extend_ttl("my_hash", 120)
+```
+
+---
+
+## Pub/Sub
+
+**Class:** `RedisPubSubManager`
+
+This module allows you to interact with the Redis publish/subscribe system using a decorator-based API.
+
+### Constructor
+
+```python
+RedisPubSubManager(host="localhost", port=6379, db=0, verbose=True)
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `publish_message(channel, message)` | Publishes a message to a channel. Supports strings and dicts (auto-serialized to JSON). |
+| `on_message(channel)` | Decorator to register a callback function for a specific channel. Starts a listener thread automatically. |
+| `stop_listeners()` | Stops all listener threads. |
+
+### Example
+
+**Producer:**
+
+```python
+from wredis.pubsub import RedisPubSubManager
+
+pubsub_manager = RedisPubSubManager(host="localhost")
+
+pubsub_manager.publish_message("channel_1", "Hello, Redis!")
+pubsub_manager.publish_message("channel_2", {"saludo": "Hola desde channel_2!"})
+```
+
+**Consumer:**
+
+```python
+from wredis.pubsub import RedisPubSubManager
+import signal
+
+pubsub_manager = RedisPubSubManager(host="localhost", verbose=False)
+
+@pubsub_manager.on_message("channel_1")
+def handle_message(message):
+    print(f"[channel_1] Received: {message}")
+
+@pubsub_manager.on_message("channel_2")
+def handle_channel_2(message):
+    print(f"[channel_2] Received: {message}")
+
+def signal_handler(sig, frame):
+    print("\nStopping...")
+    pubsub_manager.stop_listeners()
+    exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.pause()
+```
+
+---
+
+## Queue
+
+**Class:** `RedisQueueManager`
+
+This module allows you to interact with queues in Redis using lists (`RPUSH`/`BRPOP`).
+
+### Constructor
+
+```python
+RedisQueueManager(poll_interval=1, host="localhost", port=6379, db=0, max_retries=3, verbose=True)
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `publish(queue_name, data, ttl=-1)` | Publishes a message (dict) to a queue. Auto-serialized to JSON. Optionally sets TTL on the queue key. |
+| `on_message(queue_name)` | Decorator to register a callback function for a specific queue. |
+| `start()` | Starts parallel consumption threads for all registered queues. |
+| `stop()` | Stops consumption for all queues and joins threads. |
+| `wait()` | Keeps the program running and handles SIGINT for clean shutdown. |
+| `get_queue_length(queue_name)` | Returns the number of elements in a queue. |
+
+### Example
+
+**Producer:**
+
+```python
+from wredis.queue import RedisQueueManager
+
+queue_manager = RedisQueueManager(host="localhost")
+
+queue_manager.publish("tasks", {"id": 1, "task": "process_image", "status": "pending"})
+queue_manager.publish("tasks", {"id": 2, "task": "generate_report", "priority": "high"}, ttl=30)
+```
+
+**Consumer:**
+
+```python
+from wredis.queue import RedisQueueManager
+
+queue_manager = RedisQueueManager(poll_interval=2, host="localhost", verbose=False)
+
+@queue_manager.on_message("tasks")
+def worker(record):
+    print(f"Processing: {record}")
+
+queue_manager.start()
+queue_manager.wait()
+```
+
+> **Note:** Setting a TTL on a queue modifies the TTL of the entire queue key, not individual messages. TTL is measured in seconds.
+
+---
+
+## Sets
+
+**Class:** `RedisSetManager`
 
 This module allows you to interact with sets in Redis.
 
-<img width="836" height="496" alt="image" src="https://github.com/user-attachments/assets/9f71e272-6f16-47e0-a81e-6043e0644e8c" />
+### Constructor
 
+```python
+RedisSetManager(host="localhost", port=6379, db=0, verbose=True)
+```
 
-# sortsets
+### Methods
 
-### Description
+| Method | Description |
+|--------|-------------|
+| `add_to_set(key, *values, ttl=-1)` | Adds one or more elements to a set. Optionally sets TTL. |
+| `get_set_members(key)` | Retrieves all members of a set as a decoded `set`. |
+| `is_member(key, value)` | Checks if an element is a member of the set. Returns `True` or `False`. |
+| `remove_from_set(key, *values)` | Removes one or more elements from a set. |
+| `get_ttl(key)` | Retrieves the TTL for a set. Returns -1 (no TTL), -2 (key doesn't exist), or seconds remaining. |
+| `extend_ttl(key, ttl)` | Extends or sets a new TTL for a set. |
+
+### Example
+
+```python
+from wredis.sets import RedisSetManager
+
+set_manager = RedisSetManager(host="localhost")
+
+# Add
+set_manager.add_to_set("my_set", "value1", "value2")
+set_manager.add_to_set("my_set", "value5", ttl=300)
+
+# Read
+print(set_manager.get_set_members("my_set"))
+print(set_manager.is_member("my_set", "value1"))
+
+# Remove
+set_manager.remove_from_set("my_set", "value2")
+
+# TTL
+print(set_manager.get_ttl("my_set"))
+set_manager.extend_ttl("my_set", 600)
+```
+
+---
+
+## Sorted Sets
+
+**Class:** `RedisSortedSetManager`
 
 This module allows you to interact with sorted sets in Redis.
 
-<img width="1238" height="278" alt="image" src="https://github.com/user-attachments/assets/39733aff-7ebc-49bd-a531-2ca0abfb299c" />
+### Constructor
 
+```python
+RedisSortedSetManager(host="localhost", port=6379, db=0, verbose=True)
+```
 
-## streams
+### Methods
 
-### Description
+| Method | Description |
+|--------|-------------|
+| `add_to_sorted_set(key, score, member, ttl=-1)` | Adds a member with a score. Optionally sets TTL. |
+| `get_sorted_set(key, start=0, stop=-1, with_scores=False)` | Retrieves elements in ascending order. Returns list of members or `(member, score)` tuples. |
+| `get_sorted_set_reverse(key, start=0, stop=-1, with_scores=False)` | Retrieves elements in descending order. |
+| `remove_from_sorted_set(key, member)` | Removes a member from the sorted set. |
+| `get_rank(key, member)` | Retrieves the rank (0-based index) of a member. |
+| `get_score(key, member)` | Retrieves the score of a member. |
+| `delete_sorted_set(key)` | Deletes the entire sorted set. |
+| `set_ttl(key, ttl)` | Sets a TTL for an existing sorted set. |
+| `get_ttl(key)` | Retrieves the TTL for a sorted set. |
+| `increment_score(key, increment, member)` | Increments the score of a member by a given amount. |
+| `get_sorted_set_by_score(key, min_score, max_score, with_scores=False)` | Retrieves members within a specific score range. |
 
-This module allows you to interact with streams in Redis.
+### Example
 
-# License
+```python
+from wredis.sortedset import RedisSortedSetManager
+
+sorted_set_manager = RedisSortedSetManager(host="localhost")
+
+# Add
+sorted_set_manager.add_to_sorted_set("my_sorted_set", 1, "item1")
+sorted_set_manager.add_to_sorted_set("my_sorted_set", 3, "item3")
+sorted_set_manager.add_to_sorted_set("my_sorted_set", 2, "item2")
+
+# Read
+items = sorted_set_manager.get_sorted_set("my_sorted_set", with_scores=True)
+items_reverse = sorted_set_manager.get_sorted_set_reverse("my_sorted_set")
+
+# Rank and score
+rank = sorted_set_manager.get_rank("my_sorted_set", "item1")
+score = sorted_set_manager.get_score("my_sorted_set", "item2")
+
+# Increment score
+sorted_set_manager.increment_score("my_sorted_set", 5, "item1")
+
+# Range by score
+by_score = sorted_set_manager.get_sorted_set_by_score("my_sorted_set", 1, 3, with_scores=True)
+
+# Remove
+sorted_set_manager.remove_from_sorted_set("my_sorted_set", "item1")
+
+# Delete entire sorted set
+# sorted_set_manager.delete_sorted_set("my_sorted_set")
+
+# TTL
+sorted_set_manager.set_ttl("my_sorted_set", 300)
+print(sorted_set_manager.get_ttl("my_sorted_set"))
+```
+
+---
+
+## Streams
+
+**Class:** `RedisStreamManager`
+
+This module allows you to interact with Redis Streams using consumer groups.
+
+### Constructor
+
+```python
+RedisStreamManager(host="localhost", port=6379, db=0, verbose=True)
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `add_to_stream(key, data, ttl=None)` | Adds a message to a stream. Returns the message ID. Optionally sets TTL. |
+| `on_message(stream_name, group_name, consumer_name)` | Decorator to register a consumer for a stream. Creates the consumer group if it doesn't exist. Starts a listener thread. |
+| `read_from_stream(key, count=1, block=None)` | Reads messages from a stream without a registered consumer. |
+| `wait()` | Keeps the program running and handles SIGINT for clean shutdown. |
+
+### Example
+
+**Producer:**
+
+```python
+from wredis.streams import RedisStreamManager
+
+stream_manager = RedisStreamManager(host="localhost")
+
+stream_manager.add_to_stream("my_stream", {"field1": "value1"})
+stream_manager.add_to_stream("my_stream", {"field2": "value3", "field4": "value4"})
+stream_manager.add_to_stream("my_stream_2", {"field1": "value1"})
+```
+
+**Consumer:**
+
+```python
+from wredis.streams import RedisStreamManager
+
+stream_manager = RedisStreamManager(host="localhost", verbose=False)
+
+@stream_manager.on_message(
+    stream_name="my_stream", group_name="my_group", consumer_name="consumer_1"
+)
+def process_message(data):
+    print(f"[Consumer 1] Processing: {data}")
+
+@stream_manager.on_message(
+    stream_name="my_stream_2", group_name="my_group", consumer_name="consumer_2"
+)
+def process_message_consumer_2(data):
+    print(f"[Consumer 2] Processing: {data}")
+
+stream_manager.wait()
+```
+
+---
+
+## License
 
 MIT
 
-This project is licensed under the MIT license. See the ```LICENSE``` file for more details.
+This project is licensed under the MIT license. See the `LICENSE` file for more details.
 
-# Examples
+## Examples
 
-This directory contains a collection of examples that demonstrate the usage of various modules and functionalities in this project. Each subfolder corresponds to a specific module and includes example scripts to help you understand how to use that module.
+This directory contains a collection of examples that demonstrate the usage of various modules and functionalities. Each subfolder corresponds to a specific module and includes example scripts to help you understand how to use that module.
 
-## Directory Structure
-
-The examples are organized as follows:
+### Directory Structure
 
 ```
 examples/
-    sorted_set.py/
+    bitmap/
         read.py
         write.py
-    sets/
+    hash/
         read.py
         write.py
     pub_sub/
@@ -132,394 +468,22 @@ examples/
     queue/
         consumer.py
         producer.py
+    sets/
+        read.py
+        write.py
+    sorted_set.py/
+        read.py
+        write.py
     streams/
         consume.py
         producer.py
-    bitmap/
-        read.py
-        write.py
-    hash/
-        read.py
-        write.py
 ```
 
-## How to Use
+### How to Use
 
-1. Navigate to the module folder of interest, e.g., `examples/module1/`.
-2. Open the `README.md` in that folder to get detailed information about the examples.
-3. Run the scripts directly using:
+1. Navigate to the module folder of interest, e.g., `examples/bitmap/`.
+2. Run the scripts directly using:
    ```bash
-   python example1.py
+   python read.py
+   python write.py
    ```
-
-## Modules and Examples
-
-### bitmap
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **read.py**: Example demonstrating functionality.
-
-```python
-from wredis.bitmap import RedisBitmapManager
-bitmap_manager = RedisBitmapManager(host="localhost")
-print(bitmap_manager.get_bit("my_bitmap", 0))
-print(bitmap_manager.count_bits("my_bitmap"))
-```
-
-
-
-- **write.py**: Example demonstrating functionality.
-```python
-from a_wredis import RedisBitmapManager
-
-
-bitmap_manager = RedisBitmapManager(host="localhost")
-
-bitmap_manager.set_bit(key="my_bitmap", offset=5, value=1)
-  ```
-
-
-
-### hash
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **read.py**: Example demonstrating functionality.
-```python
-from wredis.hash import RedisHashManager
-
-
-if __name__ == "__main__":
-    # Crear una instancia de RedisHashManager
-    redis_manager = RedisHashManager(host="localhost")
-
-    # Leer valores específicos del hash
-    user1 = redis_manager.read_hash("my_hash", "user:1")
-    print(f"Usuario 1: {user1}")
-
-    # Leer todos los campos del hash
-    all_users = redis_manager.read_all_hash("my_hash")
-    print(f"Todos los usuarios: {all_users}")
-
-    # Agregar un nuevo campo si no existe
-    redis_manager.update_hash(
-        "my_hash", "user:3", {"name": "William", "age": 35, "gender": "male"}
-    )
-    
-    # Agregar un nuevo campo si no existe
-    redis_manager.update_hash(
-        "my_hash", "user:5", {"name": "William", "age": 35, "gender": "male"}
-    )
-
-    # Eliminar un campo específico
-    redis_manager.delete_hash_field("my_hash", "user:2")
-
-    # Leer el hash después de eliminar un campo
-    all_users_after_deletion = redis_manager.read_all_hash("my_hash")
-    print(f"Usuarios después de eliminación: {all_users_after_deletion}")
-  ```
-
-
-- **write.py**: Example demonstrating functionality.
-```python
-from wredis.hash import RedisHashManager
-
-
-if __name__ == "__main__":
-    # Crear una instancia de RedisHashManager
-    redis_manager = RedisHashManager(host="localhost")
-
-    # Escribir valores en un hash
-    redis_manager.create_hash("my_hash", "user:1", {"name": "Alice", "age": 30}, ttl=60)
-    redis_manager.create_hash("my_hash", "user:2", {"name": "Bob", "age": 25})
-    redis_manager.create_hash("my_hash", "user:3", {"name": "Bob", "age": 25})
-    redis_manager.create_hash("my_hash", "user:4", {"name": "Bob", "age": 25})
-  ```
-
-
-
-### pub_sub
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **consumer.py**: Example demonstrating functionality.
-```python
-from wredis.pubsub import RedisPubSubManager
-import signal
-
-pubsub_manager = RedisPubSubManager(host="localhost", verbose=False)
-
-
-@pubsub_manager.on_message("channel_1")
-def handle_message(message):
-    print(f"[channel_1] Mensaje recibido: {message}")
-
-
-@pubsub_manager.on_message("channel_2")
-def handle_channel_2(message):
-    print(f"[channel_2] Mensaje recibido: {message}")
-
-
-# Manejar la señal de interrupción (Ctrl+C) para salir limpiamente
-def signal_handler(sig, frame):
-    print("\nDeteniendo programa...")
-    pubsub_manager.stop_listeners()
-    print("Programa detenido.")
-    exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
-
-signal.pause()
-  ```
-
-
-- **producer.py**: Example demonstrating functionality.
-```python
-from wredis.pubsub import RedisPubSubManager
-
-
-pubsub_manager = RedisPubSubManager(host="localhost")
-
-
-pubsub_manager.publish_message("channel_1", "Hello, Redis!")
-
-
-pubsub_manager.publish_message("channel_2", {"saludo": "Hola desde channel_2!"})
-  ```
-
-
-
-### queue
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **consumer.py**: Example demonstrating functionality.
-```python
-from wredis.queue import RedisQueueManager
-
-
-# Crear una instancia del consumidor
-queue_manager = RedisQueueManager(poll_interval=2, host="localhost", verbose=False)
-
-
-@queue_manager.on_message("4090")
-def worker(record):
-
-    global conteo_global_queso
-
-    """
-    Procesa un registro de la cola 'queue_1'.
-    """
-    print(f"Procesando de 'queue_1': {record}")
-
-
-@queue_manager.on_message("queue:4060")
-def worker(record):
-
-    global conteo_global_queso
-
-    """
-    Procesa un registro de la cola 'queue_1'.
-    """
-    print(f"Procesando de 'queue_1': {record}")
-
-
-@queue_manager.on_message("4060")
-def worker(record):
-
-    global conteo_global_queso
-
-    """
-    Procesa un registro de la cola 'queue_1'.
-    """
-    print(f"Procesando de 'queue_1': {record}")
-
-
-# Verificar la longitud de la cola
-queue_length = queue_manager.get_queue_length("tasks")
-
-
-queue_manager.start()
-
-# Mantener el programa activo
-queue_manager.wait()
-  ```
-
-
-- **producer.py**: Example demonstrating functionality.
-```python
-from wredis.queue import RedisQueueManager
-
-
-# Crear una instancia del productor
-queue_manager = RedisQueueManager(host="localhost")
-
-# Publicar mensajes en diferentes colas
-queue_manager.publish("4090", {"id": 1, "task": "process_image", "status": "pending"})
-queue_manager.publish("4060", {"id": 2, "task": "generate_report", "priority": "high"})
-queue_manager.publish(
-    "queue:4060", {"id": 3, "task": "process_video", "status": "pending"}
-)
-
-queue_manager.publish("tasks", {"task_id": 3, "description": "Generar reporte"}, ttl=30)
-queue_manager.publish(
-    "tasks", {"task_id": 4, "description": "Actualizar base de datos"}, ttl=120
-)
-queue_manager.publish(
-    "tasks",
-    {
-        "task_id": 4,
-        "description": {"id": 2, "task": "generate_report", "priority": "high"},
-    },
-    ttl=10,
-)
-
-
-# NOTA: ajusta un TTL modifica el tiempo de toda la cola y no de un mensaje en particular
-# NOTA: el TTL se mide en segundos
-  ```
-
-
-
-### sets
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **read.py**: Example demonstrating functionality.
-```python
-from wredis.sets import RedisSetManager
-
-
-set_manager = RedisSetManager(host="localhost")
-
-
-print(set_manager.get_set_members("my_set"))
-  ```
-
-
-- **write.py**: Example demonstrating functionality.
-```python
-from wredis.sets import RedisSetManager
-
-set_manager = RedisSetManager(host="localhost")
-
-set_manager.add_to_set("my_set", "value1", "value2")
-set_manager.add_to_set("my_set", "value5", "value2")
-set_manager.add_to_set("my_set", "value1", "value8")
-  ```
-
-
-
-### sorted_set.py
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **read.py**: Example demonstrating functionality.
-```python
-from wredis.sortedset import RedisSortedSetManager
-
-
-sorted_set_manager = RedisSortedSetManager(host="localhost")
-
-
-items = sorted_set_manager.get_sorted_set("my_sorted_set", with_scores=True)
-items_reverse = sorted_set_manager.get_sorted_set_reverse("my_sorted_set")
-# Obtener rank y score
-rank = sorted_set_manager.get_rank("my_sorted_set", "item1")
-score = sorted_set_manager.get_score("my_sorted_set", "item2")
-
-# Eliminar un miembro
-sorted_set_manager.remove_from_sorted_set("my_sorted_set", "item1")
-
-# Eliminar todo el conjunto ordenado
-# sorted_set_manager.delete_sorted_set("my_sorted_set")
-
-
-print(items)
-print(items_reverse)
-print(rank)
-print(score)
-  ```
-
-
-- **write.py**: Example demonstrating functionality.
-```python
-from wredis.sortedset import RedisSortedSetManager
-
-
-sorted_set_manager = RedisSortedSetManager(host="localhost", verbose=False)
-
-sorted_set_manager.add_to_sorted_set("my_sorted_set", 1, "item1")
-sorted_set_manager.add_to_sorted_set("my_sorted_set", 3, "item3")
-sorted_set_manager.add_to_sorted_set("my_sorted_set", 2, "item2")
-
-sorted_set_manager.add_to_sorted_set("my_sorted_set", 1, "item1")
-sorted_set_manager.add_to_sorted_set(key="my_sorted_set", score=5, member="item5")
-  ```
-
-
-
-### streams
-
-#### Description
-This module demonstrates specific functionalities.
-
-
-- **consume.py**: Example demonstrating functionality.
-```python
-from wredis.streams import RedisStreamManager
-
-
-stream_manager = RedisStreamManager(host="localhost", verbose=False)
-
-
-# Registrar un consumidor para un stream
-@stream_manager.on_message(
-    stream_name="my_stream", group_name="my_group", consumer_name="consumer_1"
-)
-def process_message(data):
-    print(f"[Consumer 1] Procesando mensaje: {data}")
-
-
-# Registrar el segundo consumidor
-@stream_manager.on_message(
-    stream_name="my_stream_2", group_name="my_group", consumer_name="consumer_2"
-)
-def process_message_consumer_2(data):
-    print(f"[Consumer 2] Procesando mensaje: {data}")
-
-
-# Mantener el programa activo para consumir mensajes
-stream_manager.wait()
-  ```
-
-
-- **producer.py**: Example demonstrating functionality.
-```python
-from wredis.streams import RedisStreamManager
-
-
-stream_manager = RedisStreamManager(host="localhost")
-
-stream_manager.add_to_stream("my_stream", {"field1": "value1"})
-stream_manager.add_to_stream("my_stream", {"field2": "value3", "field4": "value4"})
-
-
-stream_manager.add_to_stream("my_stream_2", {"field1": "value1"})
-  ```
-
-

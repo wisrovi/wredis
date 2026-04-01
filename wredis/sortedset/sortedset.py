@@ -1,11 +1,10 @@
 import redis
 from loguru import logger
-from typing import List, Optional, Union, Tuple
 
 
 class RedisSortedSetManager:
     """
-    Manages Redis sorted sets, allowing operations such as adding, removing, retrieving, and managing TTL for sorted sets.
+    Manages Redis sorted sets: add, remove, retrieve, and manage TTL.
 
     Attributes:
         redis_client (redis.StrictRedis): Redis client instance.
@@ -42,9 +41,7 @@ class RedisSortedSetManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def add_to_sorted_set(
-        self, key: str, score: float, member: str, ttl: int = -1
-    ) -> None:
+    def add_to_sorted_set(self, key: str, score: float, member: str, ttl: int = -1) -> None:
         """
         Adds an element to the sorted set with its score and optionally sets a TTL.
 
@@ -66,18 +63,18 @@ class RedisSortedSetManager:
 
     def get_sorted_set(
         self, key: str, start: int = 0, stop: int = -1, with_scores: bool = False
-    ) -> Union[List[str], List[Tuple[str, float]]]:
+    ) -> list[str] | list[tuple[str, float]]:
         """
-        Retrieves elements from the sorted set in a given range.
+        Retrieves elements from sorted set in a given range.
 
         Args:
-            key (str): Name of the sorted set in Redis.
-            start (int): Starting index of the range.
-            stop (int): Ending index of the range.
-            with_scores (bool): Whether to include scores in the result.
+            key: Name of the sorted set.
+            start: Starting index.
+            stop: Ending index.
+            with_scores: Include scores in result.
 
         Returns:
-            Union[List[str], List[Tuple[str, float]]]: List of members or tuples of (member, score) if with_scores is True.
+            List of members or (member, score) tuples if with_scores is True.
         """
         try:
             result = self.redis_client.zrange(key, start, stop, withscores=with_scores)
@@ -95,36 +92,30 @@ class RedisSortedSetManager:
 
     def get_sorted_set_reverse(
         self, key: str, start: int = 0, stop: int = -1, with_scores: bool = False
-    ) -> Union[List[str], List[Tuple[str, float]]]:
+    ) -> list[str] | list[tuple[str, float]]:
         """
-        Retrieves elements from the sorted set in reverse order within a given range.
+        Retrieves elements from sorted set in reverse order.
 
         Args:
-            key (str): Name of the sorted set in Redis.
-            start (int): Starting index of the range.
-            stop (int): Ending index of the range.
-            with_scores (bool): Whether to include scores in the result.
+            key: Name of the sorted set.
+            start: Starting index.
+            stop: Ending index.
+            with_scores: Include scores in result.
 
         Returns:
-            Union[List[str], List[Tuple[str, float]]]: List of members or tuples of (member, score) if with_scores is True.
+            List of members or (member, score) tuples if with_scores is True.
         """
         try:
-            result = self.redis_client.zrevrange(
-                key, start, stop, withscores=with_scores
-            )
+            result = self.redis_client.zrevrange(key, start, stop, withscores=with_scores)
             if with_scores:
                 result = [(member.decode(), score) for member, score in result]
             else:
                 result = [member.decode() for member in result]
 
-            self.log(
-                f"Retrieved elements in reverse order from sorted set '{key}': {result}"
-            )
+            self.log(f"Retrieved elements in reverse order from sorted set '{key}': {result}")
             return result
         except Exception as e:
-            logger.error(
-                f"Error retrieving elements in reverse from sorted set '{key}': {e}"
-            )
+            logger.error(f"Error retrieving elements in reverse from sorted set '{key}': {e}")
             return []
 
     def remove_from_sorted_set(self, key: str, member: str) -> None:
@@ -141,7 +132,7 @@ class RedisSortedSetManager:
         except Exception as e:
             logger.error(f"Error removing from sorted set '{key}': {e}")
 
-    def get_rank(self, key: str, member: str) -> Optional[int]:
+    def get_rank(self, key: str, member: str) -> int | None:
         """
         Retrieves the rank of a member in the sorted set.
 
@@ -157,12 +148,10 @@ class RedisSortedSetManager:
             self.log(f"Rank of '{member}' in sorted set '{key}': {rank}")
             return rank
         except Exception as e:
-            logger.error(
-                f"Error retrieving rank of '{member}' in sorted set '{key}': {e}"
-            )
+            logger.error(f"Error retrieving rank of '{member}' in sorted set '{key}': {e}")
             return None
 
-    def get_score(self, key: str, member: str) -> Optional[float]:
+    def get_score(self, key: str, member: str) -> float | None:
         """
         Retrieves the score of a member in the sorted set.
 
@@ -178,9 +167,7 @@ class RedisSortedSetManager:
             self.log(f"Score of '{member}' in sorted set '{key}': {score}")
             return score
         except Exception as e:
-            logger.error(
-                f"Error retrieving score of '{member}' in sorted set '{key}': {e}"
-            )
+            logger.error(f"Error retrieving score of '{member}' in sorted set '{key}': {e}")
             return None
 
     def delete_sorted_set(self, key: str) -> None:
@@ -213,7 +200,7 @@ class RedisSortedSetManager:
         except Exception as e:
             logger.error(f"Error setting TTL for sorted set '{key}': {e}")
 
-    def get_ttl(self, key: str) -> Optional[int]:
+    def get_ttl(self, key: str) -> int | None:
         """
         Retrieves the remaining TTL of a sorted set.
 
@@ -247,33 +234,27 @@ class RedisSortedSetManager:
         """
         try:
             self.redis_client.zincrby(key, increment, member)
-            self.log(
-                f"Incremented score of '{member}' by {increment} in sorted set '{key}'"
-            )
+            self.log(f"Incremented score of '{member}' by {increment} in sorted set '{key}'")
         except Exception as e:
-            logger.error(
-                f"Error incrementing score of '{member}' in sorted set '{key}': {e}"
-            )
+            logger.error(f"Error incrementing score of '{member}' in sorted set '{key}': {e}")
 
     def get_sorted_set_by_score(
         self, key: str, min_score: float, max_score: float, with_scores: bool = False
-    ) -> Union[List[str], List[Tuple[str, float]]]:
+    ) -> list[str] | list[tuple[str, float]]:
         """
-        Retrieves members of the sorted set within a specific score range.
+        Retrieves members of sorted set within a specific score range.
 
         Args:
-            key (str): Name of the sorted set in Redis.
-            min_score (float): Minimum score (inclusive).
-            max_score (float): Maximum score (inclusive).
-            with_scores (bool): Whether to include scores in the result.
+            key: Name of the sorted set.
+            min_score: Minimum score (inclusive).
+            max_score: Maximum score (inclusive).
+            with_scores: Include scores in result.
 
         Returns:
-            Union[List[str], List[Tuple[str, float]]]: List of members or tuples of (member, score) if with_scores is True.
+            List of members or (member, score) tuples if with_scores is True.
         """
         try:
-            result = self.redis_client.zrangebyscore(
-                key, min_score, max_score, withscores=with_scores
-            )
+            result = self.redis_client.zrangebyscore(key, min_score, max_score, withscores=with_scores)
             if with_scores:
                 result = [(member.decode(), score) for member, score in result]
             else:
@@ -281,7 +262,5 @@ class RedisSortedSetManager:
             self.log(f"Retrieved elements by score from sorted set '{key}': {result}")
             return result
         except Exception as e:
-            logger.error(
-                f"Error retrieving elements by score from sorted set '{key}': {e}"
-            )
+            logger.error(f"Error retrieving elements by score from sorted set '{key}': {e}")
             return []

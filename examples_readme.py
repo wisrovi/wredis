@@ -47,7 +47,7 @@ EXAMPLE_TEMPLATE = """
 def generate_directory_structure(base_dir):
     """Generates the directory structure in a tree-like format."""
     structure = []
-    for root, dirs, files in os.walk(base_dir):
+    for root, _dirs, files in os.walk(base_dir):
         level = root.replace(base_dir, "").count(os.sep)
         indent = "    " * level
         structure.append(f"{indent}{os.path.basename(root)}/")
@@ -61,7 +61,7 @@ def generate_directory_structure(base_dir):
 def extract_code_snippet(file_path):
     """Extracts the full content of a Python file."""
     try:
-        with open(file_path, "r") as file:
+        with open(file_path) as file:
             content = file.read()
             return content.strip()
     except Exception as e:

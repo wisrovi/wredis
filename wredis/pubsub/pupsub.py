@@ -1,7 +1,10 @@
-import redis
-from threading import Thread
-import signal
+import contextlib
 import json
+import signal
+import sys
+from threading import Thread
+
+import redis
 from loguru import logger
 
 
@@ -116,10 +119,8 @@ class RedisPubSubManager:
                 if message["type"] == "message" and channel in self.subscribers:
                     callback = self.subscribers[channel]
                     data = message["data"].decode()
-                    try:
+                    with contextlib.suppress(json.JSONDecodeError):
                         data = json.loads(data)
-                    except json.JSONDecodeError:
-                        pass
                     callback(data)
 
         thread = Thread(target=listener)
@@ -167,7 +168,7 @@ if __name__ == "__main__":
         logger.info("\nStopping program...")
         pubsub_manager.stop_listeners()
         logger.info("Program stopped.")
-        exit(0)
+        sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
 

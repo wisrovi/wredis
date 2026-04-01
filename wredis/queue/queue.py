@@ -1,7 +1,8 @@
-import redis
 import json
-import threading
 import signal
+import threading
+
+import redis
 from loguru import logger
 
 
