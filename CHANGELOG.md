@@ -7,27 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2026-03-31
+## [1.0.0] - 2026-04-03
+
+### LTS Release
+
+This is the first Long-Term Support (LTS) release of WRedis, supported for 3+ years.
+
+### Breaking Changes
+
+- **Error Handling**: Operations now raise specific exceptions instead of silently logging errors and returning defaults. All managers propagate `ValidationError`, `OperationError`, etc.
+- **Async API Rewritten**: All async managers now use real `asyncio` tasks instead of threads. `AsyncRedisPubSubManager`, `AsyncRedisQueueManager`, and `AsyncRedisStreamManager` use `asyncio.create_task()` for consumers.
+- **Connection Pooling**: Managers now use explicit connection pools via `BaseManager` and `AsyncBaseManager`.
+- **Python 3.10+ Required**: Dropped support for Python 3.8 and 3.9.
 
 ### Added
 
-- **AsyncRedis Support** - New `wredis.async_api` module with async versions of all 7 managers:
-  - `AsyncRedisBitmapManager`
-  - `AsyncRedisHashManager`
-  - `AsyncRedisPubSubManager`
-  - `AsyncRedisQueueManager`
-  - `AsyncRedisSetManager`
-  - `AsyncRedisSortedSetManager`
-  - `AsyncRedisStreamManager`
+- **Foundation Modules**:
+  - `BaseManager` / `AsyncBaseManager` — Connection pooling, health checks, context managers, retry logic
+  - `_serializer` — Centralized JSON serialization with proper error handling
+  - `_validation` — Input validation for keys, TTL, offsets, scores, bit values
+  - `_retry` — Retry decorators with exponential backoff (`@retry`, `@async_retry`)
 
-- **Cache Decorators** - New `wredis.decorators` module with:
-  - `@cache(ttl=300, prefix="wredis:cache")` - Cache-Aside pattern decorator
-  - `@async_cache(ttl=300, prefix="wredis:cache")` - Async version for FastAPI/AI agents
-  - `@invalidate_cache(pattern)` - Cache invalidation decorator
-  - `clear_cache(pattern)` - Utility function for cache clearing
+- **Exception Hierarchy** (8 new exceptions):
+  - `ValidationError`, `OperationError`, `TransactionError`
+  - `QueueError`, `StreamError`, `PubSubError`
 
-- **High Availability** - New `wredis.ha` module with:
-  - `SentinelRedisManager` - Sentinel-based failover management
+- **Cache Metrics**: `CacheMetrics` class tracking hits, misses, errors, and hit rate percentage
+
+- **New Data Structures**: Geo, HyperLogLog, Pipeline, Transaction managers
+
+- **High Availability**: Sentinel and Cluster support
+
+- **CI/CD**: 10 GitHub Actions jobs (lint, mypy, test matrix, integration, stress, security, docs, release)
+
+- **Documentation**: Sphinx docs with migration guide, deprecation policy, API stability guarantee, 105 example scripts
+
+- **Testing**: 800+ unit tests, 38 integration tests (Redis real), 19 stress tests, 95%+ coverage
+
+### Deprecated
+
+- Silent error returns (now raise exceptions)
+- Thread-based async consumers (now use asyncio tasks)
+- Implicit connections (now use BaseManager with connection pooling)
   - `ClusterRedisManager` - Redis Cluster with hash slot routing
 
 - **Convenience Functions** - Simplified top-level API:

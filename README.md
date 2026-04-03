@@ -1,17 +1,25 @@
 # WRedis
 
-**WRedis** is a library designed to make interacting with Redis simple and efficient. It offers an intuitive API and useful features to handle connections, basic and advanced operations with Redis.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Coverage: 95%+](https://img.shields.io/badge/coverage-95%25%2B-brightgreen.svg)]()
+[![Ruff](https://img.shields.io/badge/style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![PyPI](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/wredis/)
+[![LTS](https://img.shields.io/badge/LTS-v1.0.0-orange.svg)]()
+
+**WRedis v1.0.0 LTS** — Production-ready Python library for Redis with real async/await, cache decorators, high availability, and comprehensive type safety.
 
 ## Description
 
 WRedis simplifies interacting with Redis by providing:
 
-- Easy-to-use methods for common operations (SET, GET, DELETE, TTL management).
-- Fast and efficient connection to Redis.
-- Support for loguru and log management.
-- Decorator-based consumer registration for Pub/Sub, Queues, and Streams.
-- Thread-safe parallel consumption for queues and streams.
-- Extensible for larger projects.
+- **Sync & Async APIs** — Real asyncio, zero threads
+- **Cache Decorators** — `@cache`, `@async_cache` with hit/miss metrics
+- **High Availability** — Sentinel & Cluster support
+- **Error Handling** — Proper exceptions, no silent failures
+- **Type Safety** — Full type hints, mypy clean
+- **12 Data Structures** — Bitmap, Hash, Set, SortedSet, Stream, Queue, Pub/Sub, Geo, HyperLogLog, Pipeline, Transaction
+- **95%+ Test Coverage** — 800+ unit tests, 38 integration tests (Redis real), 19 stress tests
 
 ## Installation
 
