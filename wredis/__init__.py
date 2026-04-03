@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any
+
 from wredis.bitmap import RedisBitmapManager
 from wredis.hash import RedisHashManager
 from wredis.pubsub import RedisPubSubManager
@@ -23,7 +26,7 @@ __all__ = [
 
 def publish(
     channel: str,
-    message: str | dict,
+    message: str | dict[str, Any],
     host: str = "localhost",
     port: int = 6379,
     db: int = 0,
@@ -45,7 +48,7 @@ def publish(
 
 def subscribe(
     channel: str,
-    callback: callable,
+    callback: Callable[[Any], None],
     host: str = "localhost",
     port: int = 6379,
     db: int = 0,
@@ -67,7 +70,7 @@ def subscribe(
     manager = RedisPubSubManager(host=host, port=port, db=db, verbose=False)
 
     @manager.on_message(channel)
-    def handler(message):
+    def handler(message):  # type: ignore[misc]
         callback(message)
 
     return manager
@@ -75,7 +78,7 @@ def subscribe(
 
 def enqueue(
     queue_name: str,
-    data: dict,
+    data: dict[str, Any],
     host: str = "localhost",
     port: int = 6379,
     db: int = 0,

@@ -1,20 +1,24 @@
+"""Redis Stream Manager with proper error handling and validation."""
+
 import signal
+import sys
 import threading
 from collections.abc import Callable
+from typing import Any
 
 import redis
-from loguru import logger
+
+from wredis._base import BaseManager
+from wredis._exceptions import StreamError, ValidationError
+from wredis._validation import validate_key
 
 
-class RedisStreamManager:
-    """
-    Manages Redis streams, allowing message publishing and consumption with support for message groups and TTL.
+class RedisStreamManager(BaseManager):
+    """Manages Redis streams with consumer group support.
 
     Attributes:
-        redis_client (redis.StrictRedis): Redis client instance.
-        verbose (bool): Enables detailed logging if True.
-        consumers (Dict): Dictionary of registered consumers for streams.
-        running (bool): Indicates whether the manager is actively consuming messages.
+        consumers: Dictionary of registered stream consumers.
+        running: Whether the manager is actively consuming.
     """
 
     def __init__(
@@ -24,125 +28,121 @@ class RedisStreamManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """
-        Initializes the RedisStreamManager with connection details.
+        """Initialize the RedisStreamManager.
 
         Args:
-            host (str): Hostname of the Redis server.
-            port (int): Port number of the Redis server.
-            db (int): Redis database index.
-            verbose (bool): Enable detailed logging if True.
+            host: Redis hostname.
+            port: Redis port.
+            db: Redis database number.
+            verbose: Enable logging.
         """
-        self.redis_client = redis.StrictRedis(host=host, port=port, db=db)
-        self.verbose = verbose
-        self.consumers: dict[str, dict[str, str]] = {}
+        super().__init__(host=host, port=port, db=db, verbose=verbose)
+        self.consumers: dict[str, dict[str, Any]] = {}
         self.running = False
 
-    def log(self, message: str, level: str = "info") -> None:
-        """
-        Logs a message if verbose mode is enabled.
-
-        Args:
-            message (str): The message to log.
-            level (str): The log level (e.g., "info", "warning", "error").
-        """
-        if self.verbose:
-            getattr(logger, level)(message)
-
     def add_to_stream(self, key: str, data: dict[str, str], ttl: int | None = None) -> str | None:
-        """
-        Adds a message to the stream and optionally sets a TTL for the stream.
+        """Add a message to the stream.
 
         Args:
-            key (str): Name of the stream in Redis.
-            data (Dict[str, str]): Message data to add to the stream.
-            ttl (Optional[int]): Time-to-live for the stream in seconds. If None, no TTL is set.
+            key: Stream name.
+            data: Message data (string key-value pairs).
+            ttl: Optional TTL in seconds.
 
         Returns:
-            Optional[str]: The ID of the added message, or None if an error occurred.
+            Message ID, or None on error.
+
+        Raises:
+            ValidationError: If key is invalid.
+            StreamError: If the operation fails.
         """
+        validate_key(key)
+
         try:
             message_id = self.redis_client.xadd(key, data)
             self.log(f"Added to stream '{key}' with ID {message_id}")
 
             if ttl:
                 self.redis_client.expire(key, ttl)
-                self.log(f"Set TTL of {ttl} seconds for stream '{key}'")
+                self.log(f"Set TTL of {ttl}s for stream '{key}'")
 
             return message_id
-        except Exception as e:
-            logger.error(f"Error adding to stream '{key}': {e}")
-            return None
+        except (ValidationError, StreamError):
+            raise
+        except redis.RedisError as e:
+            raise StreamError(f"Failed to add to stream '{key}': {e}") from e
 
     def on_message(self, stream_name: str, group_name: str, consumer_name: str) -> Callable:
-        """
-        Decorator to register a consumer for a specific stream.
+        """Decorator to register a consumer for a stream.
 
         Args:
-            stream_name (str): Name of the Redis stream.
-            group_name (str): Name of the consumer group.
-            consumer_name (str): Name of the consumer.
+            stream_name: Name of the Redis stream.
+            group_name: Name of the consumer group.
+            consumer_name: Name of the consumer.
 
         Returns:
-            Callable: A decorator that registers the consumer callback function.
+            Decorated callback function.
+
+        Raises:
+            ValidationError: If stream_name is invalid.
+            StreamError: If consumer already registered.
         """
+        validate_key(stream_name)
 
         def decorator(func: Callable) -> Callable:
-            if stream_name not in self.consumers:
-                self.consumers[stream_name] = {
-                    "group_name": group_name,
-                    "consumer_name": consumer_name,
-                    "callback": func,
-                }
-                self._start_listener(stream_name)
-                msg = (
-                    f"Registered consumer for stream '{stream_name}' "
-                    f"with group '{group_name}' and consumer '{consumer_name}'"
-                )
-                self.log(msg)
-            else:
-                logger.warning(f"A consumer is already registered for the stream '{stream_name}'")
+            if stream_name in self.consumers:
+                raise StreamError(f"Consumer already registered for stream '{stream_name}'")
+
+            self.consumers[stream_name] = {
+                "group_name": group_name,
+                "consumer_name": consumer_name,
+                "callback": func,
+            }
+            self._start_listener(stream_name)
+            self.log(
+                f"Registered consumer for stream '{stream_name}' "
+                f"with group '{group_name}' and consumer '{consumer_name}'"
+            )
             return func
 
         return decorator
 
     def _decode_message(self, data: dict[bytes, bytes]) -> dict[str, str]:
-        """
-        Decodes the keys and values of a received message.
+        """Decode raw message data from Redis.
 
         Args:
-            data (Dict[bytes, bytes]): Raw message data from Redis.
+            data: Raw message data (bytes keys and values).
 
         Returns:
-            Dict[str, str]: Decoded message data.
+            Decoded message data.
         """
         return {key.decode(): value.decode() if isinstance(value, bytes) else value for key, value in data.items()}
 
     def _start_listener(self, stream_name: str) -> None:
-        """
-        Starts a thread to listen for messages on a specific stream.
+        """Start a thread to listen for messages on a stream.
 
         Args:
-            stream_name (str): Name of the Redis stream.
+            stream_name: Name of the Redis stream.
+
+        Raises:
+            StreamError: If listener fails to start.
         """
+        consumer_info = self.consumers[stream_name]
+        group_name = consumer_info["group_name"]
+        consumer_name = consumer_info["consumer_name"]
+        callback = consumer_info["callback"]
+
+        try:
+            self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
+        except redis.exceptions.ResponseError:
+            self.log(
+                f"Group '{group_name}' already exists for stream '{stream_name}'",
+                level="warning",
+            )
 
         def listener() -> None:
-            consumer_info = self.consumers[stream_name]
-            group_name = consumer_info["group_name"]
-            consumer_name = consumer_info["consumer_name"]
-            callback = consumer_info["callback"]
-
-            # Create the consumer group if it does not exist
-            try:
-                self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
-            except redis.exceptions.ResponseError:
-                self.log(
-                    f"Group '{group_name}' already exists for stream '{stream_name}'",
-                    level="warning",
-                )
-
-            self.log(f"Listening for messages on stream '{stream_name}'...")
+            self.log(f"Listening for messages on stream '{stream_name}'")
             self.running = True
+
             while self.running:
                 try:
                     messages = self.redis_client.xreadgroup(
@@ -152,56 +152,85 @@ class RedisStreamManager:
                         count=1,
                         block=1000,
                     )
-                    for stream, entries in messages:
-                        for message_id, data in entries:
-                            decoded_data = self._decode_message(data)
-                            self.log(f"Message received from stream '{stream}': {decoded_data}")
-                            callback(decoded_data)
-                            self.redis_client.xack(stream_name, group_name, message_id)
+                    if messages:
+                        for stream, entries in messages:
+                            for message_id, data in entries:
+                                decoded_data = self._decode_message(data)
+                                self.log(f"Message from stream '{stream}': {decoded_data}")
+                                callback(decoded_data)
+                                self.redis_client.xack(stream_name, group_name, message_id)
+                except redis.RedisError as e:
+                    self.log(
+                        f"Redis error on stream '{stream_name}': {e}",
+                        level="error",
+                    )
                 except Exception as e:
-                    logger.error(f"Error reading from stream '{stream_name}': {e}")
+                    self.log(
+                        f"Unexpected error on stream '{stream_name}': {e}",
+                        level="error",
+                    )
 
-        thread = threading.Thread(target=listener)
-        thread.daemon = True
-        thread.start()
+        thread = threading.Thread(target=listener, daemon=True)
+        try:
+            thread.start()
+        except RuntimeError as e:
+            raise StreamError(f"Failed to start listener for stream '{stream_name}': {e}") from e
 
     def read_from_stream(self, key: str, count: int = 1, block: int | None = None) -> list:
-        """
-        Reads messages from the stream without a registered consumer.
+        """Read messages from a stream without a registered consumer.
 
         Args:
-            key (str): Name of the stream in Redis.
-            count (int): Number of messages to read.
-            block (Optional[int]): Time in milliseconds to block if no messages are available.
+            key: Stream name.
+            count: Number of messages to read.
+            block: Time in milliseconds to block if no messages available.
 
         Returns:
-            list: List of decoded messages from the stream.
+            List of decoded messages.
+
+        Raises:
+            ValidationError: If key is invalid.
+            StreamError: If reading fails.
         """
+        validate_key(key)
+
         try:
             messages = self.redis_client.xread({key: "$"}, count=count, block=block)
-            decoded_messages = [
-                {
-                    "stream": stream.decode(),
-                    "entries": [
-                        {"id": entry_id.decode(), "data": self._decode_message(data)} for entry_id, data in entries
-                    ],
-                }
-                for stream, entries in messages
-            ]
-            self.log(f"Messages read from stream '{key}': {decoded_messages}")
+            decoded_messages = (
+                [
+                    {
+                        "stream": stream.decode(),
+                        "entries": [
+                            {
+                                "id": entry_id.decode(),
+                                "data": self._decode_message(data),
+                            }
+                            for entry_id, data in entries
+                        ],
+                    }
+                    for stream, entries in messages
+                ]
+                if messages
+                else []
+            )
+            self.log(f"Read {len(decoded_messages)} messages from stream '{key}'")
             return decoded_messages
-        except Exception as e:
-            logger.error(f"Error reading messages from stream '{key}': {e}")
-            return []
+        except (ValidationError, StreamError):
+            raise
+        except redis.RedisError as e:
+            raise StreamError(f"Failed to read from stream '{key}': {e}") from e
+
+    def stop_consumers(self) -> None:
+        """Stop all stream consumers."""
+        self.running = False
+        self.consumers.clear()
+        self.log("All stream consumers stopped")
 
     def wait(self) -> None:
-        """
-        Keeps the program active and handles interrupt signals to stop consumers cleanly.
-        """
+        """Keep the program running until SIGINT."""
 
-        def signal_handler(sig: int, frame: object | None) -> None:
-            logger.info("Stopping consumers...")
-            self.running = False
+        def signal_handler(sig, frame):
+            self.log("Stopping stream consumers")
+            self.stop_consumers()
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.pause()

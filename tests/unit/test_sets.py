@@ -1,5 +1,7 @@
 """Unit tests for RedisSetManager - full coverage."""
 
+from unittest.mock import patch
+
 import pytest
 
 from wredis.sets import RedisSetManager
@@ -26,6 +28,14 @@ class TestRedisSetManager:
         ttl = redis_client.ttl("my_set")
         assert ttl > 0
 
+    def test_add_to_set_error(self, redis_client):
+        """Test add_to_set with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "sadd", side_effect=Exception("Redis error")):
+            manager.add_to_set("my_set", "value1")
+
     def test_get_set_members(self, redis_client):
         """Test getting all set members."""
         manager = RedisSetManager(host="localhost", verbose=False)
@@ -44,6 +54,15 @@ class TestRedisSetManager:
         members = manager.get_set_members("empty_set")
         assert len(members) == 0
 
+    def test_get_set_members_error(self, redis_client):
+        """Test get_set_members with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "smembers", side_effect=Exception("Redis error")):
+            result = manager.get_set_members("my_set")
+            assert result == set()
+
     def test_is_member(self, redis_client):
         """Test checking membership."""
         manager = RedisSetManager(host="localhost", verbose=False)
@@ -59,6 +78,15 @@ class TestRedisSetManager:
         manager.redis_client = redis_client
 
         assert manager.is_member("nonexistent", "value") == 0
+
+    def test_is_member_error(self, redis_client):
+        """Test is_member with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "sismember", side_effect=Exception("Redis error")):
+            result = manager.is_member("my_set", "value")
+            assert result is False
 
     def test_remove_from_set(self, redis_client):
         """Test removing elements from set."""
@@ -79,6 +107,14 @@ class TestRedisSetManager:
         manager.remove_from_set("my_set", "a", "b")
         members = redis_client.smembers("my_set")
         assert len(members) == 1
+
+    def test_remove_from_set_error(self, redis_client):
+        """Test remove_from_set with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "srem", side_effect=Exception("Redis error")):
+            manager.remove_from_set("my_set", "value1")
 
     def test_get_ttl_exists(self, redis_client):
         """Test getting TTL."""
@@ -109,6 +145,15 @@ class TestRedisSetManager:
         ttl = manager.get_ttl("nonexistent")
         assert ttl == -2
 
+    def test_get_ttl_error(self, redis_client):
+        """Test get_ttl with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "ttl", side_effect=Exception("Redis error")):
+            result = manager.get_ttl("my_set")
+            assert result is None
+
     def test_extend_ttl(self, redis_client):
         """Test extending TTL."""
         manager = RedisSetManager(host="localhost", verbose=False)
@@ -128,3 +173,11 @@ class TestRedisSetManager:
         manager.redis_client = redis_client
 
         manager.extend_ttl("nonexistent", 100)
+
+    def test_extend_ttl_error(self, redis_client):
+        """Test extend_ttl with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "exists", side_effect=Exception("Redis error")):
+            manager.extend_ttl("my_set", 100)

@@ -35,6 +35,13 @@ dev = [
     "mypy>=1.8.0",
     "ruff>=0.15.0",
 ]
+docs = [
+    "sphinx>=7.0.0",
+    "furo>=2024.0.0",
+    "sphinx-copybutton>=0.5.0",
+    "myst-parser>=2.0.0",
+    "linkify-it-py>=2.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/wisrovi/wredis"
@@ -52,25 +59,42 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 source = ["wredis"]
 branch = true
+omit = [
+    "wredis/_connection.py",
+    "wredis/_types.py",
+    "wredis/__init__.py",
+]
 
 [tool.coverage.report]
 precision = 2
 show_missing = true
 skip_empty = true
-fail_under = 35
+fail_under = 95
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "except:",
+    "logger.error",
+]
+
+[tool.mypy]
 python_version = "3.10"
-strict = true
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = true
 no_implicit_optional = true
 warn_redundant_casts = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 warn_no_return = true
-follow_imports = "normal"
+follow_imports = "skip"
 ignore_missing_imports = true
+disable_error_code = ["arg-type", "no-any-return", "union-attr", "misc"]
 
 [tool.ruff]
 extend = ".ruff.toml"

@@ -1,21 +1,28 @@
-"""Async Redis Pub/Sub Manager."""
+"""Async Redis Pub/Sub Manager - real asyncio, no threads."""
 
+import asyncio
 import contextlib
-import json
-from threading import Thread
+from collections.abc import Callable
+from typing import Any
 
-import redis.asyncio as redis
+import redis.asyncio as aredis
 from loguru import logger
 
+from wredis._async_base import AsyncBaseManager
+from wredis._exceptions import PubSubError, ValidationError
+from wredis._serializer import deserialize, serialize
+from wredis._validation import validate_key
 
-class AsyncRedisPubSubManager:
-    """Manages Redis Pub/Sub functionality asynchronously.
+
+class AsyncRedisPubSubManager(AsyncBaseManager):
+    """Manages Redis Pub/Sub functionality with real asyncio.
+
+    Uses asyncio tasks instead of threads for message listening.
 
     Attributes:
         redis_client: Async Redis client instance.
-        pubsub: Redis Pub/Sub instance.
         subscribers: Dictionary of channels and their callbacks.
-        threads: List of threads listening to channels.
+        _tasks: Dictionary of channel names to asyncio tasks.
         verbose: Enables detailed logging if True.
     """
 
@@ -26,72 +33,140 @@ class AsyncRedisPubSubManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """Initialize the AsyncRedisPubSubManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db)
-        self.pubsub = self.redis_client.pubsub()
-        self.subscribers: dict[str, callable] = {}
-        self.threads: list[Thread] = []
-        self.verbose = verbose
+        """Initialize the AsyncRedisPubSubManager.
 
-    async def log(self, message: str, level: str = "info") -> None:
-        """Log a message if verbose mode is enabled."""
-        if self.verbose:
-            getattr(logger, level)(message)
+        Args:
+            host: Redis server hostname.
+            port: Redis server port.
+            db: Redis database number.
+            verbose: Enable detailed logging.
+        """
+        super().__init__(
+            host=host,
+            port=port,
+            db=db,
+            decode_responses=False,
+            verbose=verbose,
+        )
+        self.subscribers: dict[str, Callable[[Any], None]] = {}
+        self._tasks: dict[str, asyncio.Task[None]] = {}
+        self._running = False
 
     async def publish_message(self, channel: str, message: str | dict) -> None:
-        """Publish a message to a Redis channel."""
+        """Publish a message to a Redis channel.
+
+        Args:
+            channel: The channel to publish to.
+            message: String or dict (auto-serialized to JSON).
+
+        Raises:
+            ValidationError: If channel name is invalid.
+            PubSubError: If publishing fails.
+        """
+        validate_key(channel)
+
         try:
             if isinstance(message, dict):
-                message = json.dumps(message)
-            elif not isinstance(message, str):
-                raise ValueError("Message must be a string or a JSON dictionary.")
-
-            await self.redis_client.publish(channel, message)
-            await self.log(f"Message published to channel '{channel}': {message}")
-        except Exception as e:
-            logger.error(f"Error publishing message to channel '{channel}': {e}")
-
-    def on_message(self, channel: str):
-        """Decorator to register a callback function for a specific channel."""
-
-        def decorator(callback):
-            if channel not in self.subscribers:
-                self.subscribers[channel] = callback
-                self._start_listener(channel)
-                self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
+                payload = serialize(message)
+            elif isinstance(message, str):
+                payload = message
             else:
-                self.log(
-                    f"Handler already registered for channel '{channel}'",
-                    level="warning",
-                )
+                raise ValidationError("Message must be a string or a JSON-serializable dictionary.")
+
+            await self.redis_client.publish(channel, payload)
+            self.log(f"Message published to channel '{channel}': {payload}")
+        except (ValidationError, PubSubError):
+            raise
+        except aredis.RedisError as e:
+            raise PubSubError(f"Failed to publish to channel '{channel}': {e}") from e
+
+    def on_message(self, channel: str) -> Callable[[Callable], Callable]:
+        """Decorator to register an async callback for a specific channel.
+
+        Args:
+            channel: The channel to subscribe to.
+
+        Returns:
+            Decorated callback function.
+
+        Raises:
+            ValidationError: If channel name is invalid.
+            PubSubError: If channel is already subscribed.
+        """
+        validate_key(channel)
+
+        def decorator(callback: Callable) -> Callable:
+            if channel in self.subscribers:
+                raise PubSubError(f"Handler already registered for channel '{channel}'")
+
+            self.subscribers[channel] = callback
+            if self._running:
+                self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
+            self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
             return callback
 
         return decorator
 
-    def _start_listener(self, channel: str) -> None:
-        """Start a thread to listen for messages on a specific channel."""
+    async def start_listening(self) -> None:
+        """Start listening on all registered channels.
 
-        def listener():
-            local_pubsub = self.redis_client.pubsub()
-            local_pubsub.subscribe(channel)
+        Creates asyncio tasks for each subscribed channel.
+        """
+        self._running = True
+        for channel, callback in self.subscribers.items():
+            self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
+        self.log(f"Started listening on {len(self._tasks)} channels")
+
+    async def _listen_channel(self, channel: str, callback: Callable) -> None:
+        """Listen to a single channel and invoke callback on messages.
+
+        Args:
+            channel: Channel name.
+            callback: Function to call with received messages.
+        """
+        pubsub = self.redis_client.pubsub()
+        try:
+            await pubsub.subscribe(channel)
             self.log(f"Listening for messages on channel '{channel}'")
 
-            for message in local_pubsub.listen():
+            async for message in pubsub.listen():
                 if message["type"] == "message" and channel in self.subscribers:
-                    callback = self.subscribers[channel]
-                    data = message["data"].decode()
-                    with contextlib.suppress(json.JSONDecodeError):
-                        data = json.loads(data)
-                    callback(data)
+                    try:
+                        data = message["data"]
+                        if isinstance(data, bytes):
+                            data = data.decode()
+                        with contextlib.suppress(Exception):
+                            data = deserialize(data)
+                        if asyncio.iscoroutinefunction(callback):
+                            await callback(data)
+                        else:
+                            callback(data)
+                    except Exception as e:
+                        self.log(f"Error processing message on '{channel}': {e}", level="error")
+        except asyncio.CancelledError:
+            self.log(f"Listener for channel '{channel}' cancelled")
+        except aredis.RedisError as e:
+            self.log(f"Redis error on channel '{channel}': {e}", level="error")
+        finally:
+            with contextlib.suppress(Exception):
+                await pubsub.unsubscribe(channel)
+                await pubsub.close()
 
-        thread = Thread(target=listener)
-        thread.daemon = True
-        thread.start()
-        self.threads.append(thread)
+    async def stop_listening(self) -> None:
+        """Stop all listening tasks and clear subscribers."""
+        self._running = False
+        for channel, task in self._tasks.items():
+            task.cancel()
+            self.log(f"Cancelling listener for channel '{channel}'")
 
-    async def stop_listeners(self) -> None:
-        """Stop all listener threads."""
-        for thread in self.threads:
-            if thread.is_alive():
-                self.log("Stopping listener thread...")
-        self.threads.clear()
+        if self._tasks:
+            await asyncio.gather(*self._tasks.values(), return_exceptions=True)
+
+        self._tasks.clear()
+        self.subscribers.clear()
+        self.log("All listeners stopped")
+
+    async def close(self) -> None:
+        """Stop listeners and close connection pool."""
+        await self.stop_listening()
+        await super().close()

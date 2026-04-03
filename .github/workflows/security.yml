@@ -1,0 +1,86 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install pip-audit bandit
+
+      - name: Run pip-audit for dependency vulnerabilities
+        run: |
+          pip-audit --format=columns --fail-on-vuln
+
+      - name: Run bandit for Python security issues
+        run: |
+          bandit -r wredis -f json -o bandit-report.json || true
+          bandit -r wredis -ll -ii
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          SECRETS_FOUND=0
+          PATTERNS=(
+            "password\s*=\s*['\"][^'\"]+['\"]"
+            "api_key\s*=\s*['\"][^'\"]+['\"]"
+            "secret_key\s*=\s*['\"][^'\"]+['\"]"
+            "token\s*=\s*['\"][^'\"]+['\"]"
+            "aws_secret_access_key\s*=\s*['\"][^'\"]+['\"]"
+            "private_key\s*=\s*['\"][^'\"]+['\"]"
+          )
+          for pattern in "${PATTERNS[@]}"; do
+            MATCHES=$(grep -rn --include="*.py" -E "$pattern" wredis/ tests/ || true)
+            if [ -n "$MATCHES" ]; then
+              echo "Potential hardcoded secret found:"
+              echo "$MATCHES"
+              SECRETS_FOUND=1
+            fi
+          done
+          if [ "$SECRETS_FOUND" -eq 1 ]; then
+            echo "::error::Hardcoded secrets detected in codebase"
+            exit 1
+          fi
+          echo "No hardcoded secrets found."
+
+      - name: Check for exposed credentials in code
+        run: |
+          echo "Scanning for exposed credentials..."
+          CREDENTIALS_FOUND=0
+          PATTERNS=(
+            "AKIA[0-9A-Z]{16}"
+            "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36,}"
+            "-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----"
+            "xoxb-[0-9]{10,}-[0-9]{10,}-[A-Za-z0-9]{24,}"
+            "sk-[A-Za-z0-9]{20,}"
+          )
+          for pattern in "${PATTERNS[@]}"; do
+            MATCHES=$(grep -rn --include="*.py" -E "$pattern" wredis/ tests/ || true)
+            if [ -n "$MATCHES" ]; then
+              echo "Potential exposed credential found:"
+              echo "$MATCHES"
+              CREDENTIALS_FOUND=1
+            fi
+          done
+          if [ "$CREDENTIALS_FOUND" -eq 1 ]; then
+            echo "::error::Exposed credentials detected in codebase"
+            exit 1
+          fi
+          echo "No exposed credentials found."

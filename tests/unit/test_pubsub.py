@@ -1,7 +1,10 @@
 """Unit tests for RedisPubSubManager - full coverage."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
+from wredis._exceptions import PubSubError, ValidationError
 from wredis.pubsub import RedisPubSubManager
 
 
@@ -22,12 +25,29 @@ class TestRedisPubSubManager:
 
         manager.publish_message("my_channel", {"key": "value"})
 
-    def test_publish_message_int(self, redis_client):
-        """Test publishing an int message."""
+    def test_publish_message_int_raises(self, redis_client):
+        """Test publishing an int message raises ValidationError."""
         manager = RedisPubSubManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        manager.publish_message("my_channel", 123)
+        with pytest.raises(ValidationError):
+            manager.publish_message("my_channel", 123)
+
+    def test_publish_message_invalid_raises(self, redis_client):
+        """Test publishing an invalid message type raises ValidationError."""
+        manager = RedisPubSubManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with pytest.raises(ValidationError):
+            manager.publish_message("my_channel", [1, 2, 3])
+
+    def test_publish_message_error(self, redis_client):
+        """Test publish_message with error handling."""
+        manager = RedisPubSubManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "publish", side_effect=Exception("Redis error")), pytest.raises(PubSubError):
+            manager.publish_message("channel", "msg")
 
     def test_on_message(self, redis_client):
         """Test registering a message handler."""
@@ -60,9 +80,11 @@ class TestRedisPubSubManager:
         """Test stopping all listeners."""
         manager = RedisPubSubManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
+        manager.subscribers["ch1"] = lambda x: x
+        manager.subscribers["ch2"] = lambda x: x
 
-        manager.threads = []
         manager.stop_listeners()
+        assert len(manager.subscribers) == 0
 
     def test_log_info(self, redis_client):
         """Test logging with info level."""
@@ -84,3 +106,15 @@ class TestRedisPubSubManager:
         manager.redis_client = redis_client
 
         manager.log("Test error", "error")
+
+    def test_on_message_already_registered_raises(self, redis_client):
+        """Test registering same channel twice raises PubSubError."""
+        manager = RedisPubSubManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        @manager.on_message("my_channel")
+        def handler(msg):
+            pass
+
+        with pytest.raises(PubSubError):
+            manager.on_message("my_channel")(lambda x: x)

@@ -92,9 +92,7 @@ class RedisSetManager:
         """
         try:
             result = self.redis_client.sismember(key, value)
-            self.log(
-                f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'"
-            )
+            self.log(f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'")
             return result
         except Exception as e:
             logger.error(f"Error checking membership in set '{key}': {e}")

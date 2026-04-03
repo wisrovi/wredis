@@ -1,5 +1,7 @@
 """Unit tests for RedisPipelineManager."""
 
+from unittest.mock import patch
+
 import pytest
 
 from wredis.pipeline import RedisPipelineManager
@@ -28,6 +30,23 @@ class TestRedisPipelineManager:
         assert results[2] == b"value1"
         assert results[3] == b"value2"
 
+    def test_execute_commands_empty(self, redis_client):
+        """Test executing empty command list."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        results = manager.execute_commands([])
+        assert results == []
+
+    def test_execute_commands_error(self, redis_client):
+        """Test execute_commands with error handling."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+            result = manager.execute_commands([("set", ["k", "v"])])
+            assert result == []
+
     def test_set_get(self, redis_client):
         """Test set and get in pipeline."""
         manager = RedisPipelineManager(host="localhost", verbose=False)
@@ -37,6 +56,15 @@ class TestRedisPipelineManager:
 
         assert result == b"myvalue"
         assert redis_client.get("mykey") == b"myvalue"
+
+    def test_set_get_error(self, redis_client):
+        """Test set_get with error handling."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+            result = manager.set_get("key", "value")
+            assert result is None
 
     def test_mget_pipeline(self, redis_client):
         """Test mget in pipeline."""
@@ -52,6 +80,23 @@ class TestRedisPipelineManager:
         assert results[1] == b"value2"
         assert results[2] is None
 
+    def test_mget_pipeline_empty(self, redis_client):
+        """Test mget with no keys."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        results = manager.mget_pipeline()
+        assert results == []
+
+    def test_mget_pipeline_error(self, redis_client):
+        """Test mget_pipeline with error handling."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+            result = manager.mget_pipeline("key")
+            assert result == []
+
     def test_mset_pipeline(self, redis_client):
         """Test mset in pipeline."""
         manager = RedisPipelineManager(host="localhost", verbose=False)
@@ -64,6 +109,23 @@ class TestRedisPipelineManager:
         assert redis_client.get("key1") == b"value1"
         assert redis_client.get("key2") == b"value2"
         assert redis_client.get("key3") == b"value3"
+
+    def test_mset_pipeline_empty(self, redis_client):
+        """Test mset with empty mapping."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        result = manager.mset_pipeline({})
+        assert result is True
+
+    def test_mset_pipeline_error(self, redis_client):
+        """Test mset_pipeline with error handling."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+            result = manager.mset_pipeline({"k": "v"})
+            assert result is False
 
     def test_delete_keys(self, redis_client):
         """Test deleting multiple keys in pipeline."""
@@ -88,3 +150,12 @@ class TestRedisPipelineManager:
 
         deleted = manager.delete_keys("nonexistent1", "nonexistent2")
         assert deleted == 0
+
+    def test_delete_keys_error(self, redis_client):
+        """Test delete_keys with error handling."""
+        manager = RedisPipelineManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+            result = manager.delete_keys("key")
+            assert result == 0

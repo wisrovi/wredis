@@ -1,25 +1,29 @@
-"""Async Redis Queue Manager."""
+"""Async Redis Queue Manager - real asyncio, no threads."""
 
 import asyncio
 import json
-import signal
-import threading
+from collections.abc import Callable
+from typing import Any
 
-import redis.asyncio as redis
-from loguru import logger
+import redis.asyncio as aredis
+
+from wredis._async_base import AsyncBaseManager
+from wredis._exceptions import QueueError, ValidationError
+from wredis._serializer import serialize
+from wredis._validation import validate_key, validate_ttl
 
 
-class AsyncRedisQueueManager:
-    """Manages Redis queue operations asynchronously.
+class AsyncRedisQueueManager(AsyncBaseManager):
+    """Manages Redis queue operations with real asyncio tasks.
+
+    Uses asyncio.create_task() instead of threads for consumers.
 
     Attributes:
-        poll_interval: Interval in seconds to poll queues.
-        redis_client: Async Redis client instance.
+        poll_interval: Seconds between polls for empty queues.
         callbacks: Mapping of queue names to callback functions.
-        threads: List of threads handling queue consumption.
-        running: Indicates whether queue consumption is active.
-        max_retries: Maximum number of retries in case of errors.
-        verbose: Enables detailed logging if True.
+        _tasks: Dict of queue names to asyncio tasks.
+        running: Whether consumption is active.
+        max_retries: Maximum retries on error.
     """
 
     def __init__(
@@ -31,35 +35,54 @@ class AsyncRedisQueueManager:
         max_retries: int = 3,
         verbose: bool = True,
     ):
-        """Initialize the AsyncRedisQueueManager."""
+        """Initialize the AsyncRedisQueueManager.
+
+        Args:
+            poll_interval: Seconds between polls.
+            host: Redis hostname.
+            port: Redis port.
+            db: Redis database number.
+            max_retries: Maximum retries on error.
+            verbose: Enable logging.
+        """
+        super().__init__(host=host, port=port, db=db, verbose=verbose)
         self.poll_interval = poll_interval
-        self.redis_client = redis.Redis(host=host, port=port, db=db)
-        self.callbacks: dict[str, callable] = {}
-        self.threads: list[threading.Thread] = []
+        self.callbacks: dict[str, Callable[[Any], None]] = {}
+        self._tasks: dict[str, asyncio.Task[None]] = {}
         self.running = False
         self.max_retries = max_retries
-        self.verbose = verbose
 
-    async def log(self, message: str, level: str = "info") -> None:
-        """Log a message if verbose mode is enabled."""
-        if self.verbose:
-            getattr(logger, level)(message)
+    def on_message(self, queue_name: str) -> Callable[[Callable], Callable]:
+        """Decorator to register a callback for a queue.
 
-    def on_message(self, queue_name: str):
-        """Decorator to register a callback for a specific queue."""
+        Args:
+            queue_name: Name of the Redis queue.
 
-        def decorator(func):
-            if queue_name not in self.callbacks:
-                self.callbacks[queue_name] = func
-            else:
-                raise ValueError(f"A callback is already registered for the queue '{queue_name}'")
+        Returns:
+            Decorated callback function.
+
+        Raises:
+            ValidationError: If queue name is invalid.
+            QueueError: If callback already registered.
+        """
+        validate_key(queue_name)
+
+        def decorator(func: Callable) -> Callable:
+            if queue_name in self.callbacks:
+                raise QueueError(f"Callback already registered for queue '{queue_name}'")
+            self.callbacks[queue_name] = func
             return func
 
         return decorator
 
-    async def _consume_queue(self, queue_name: str, callback) -> None:
-        """Consume elements from a specific Redis queue."""
-        self.log(f"Starting consumer for queue '{queue_name}'...")
+    async def _consume_queue(self, queue_name: str, callback: Callable) -> None:
+        """Consume elements from a queue using asyncio.
+
+        Args:
+            queue_name: Name of the queue.
+            callback: Function to process messages.
+        """
+        self.log(f"Starting async consumer for queue '{queue_name}'")
         retries = 0
 
         while self.running:
@@ -67,82 +90,116 @@ class AsyncRedisQueueManager:
                 item = await self.redis_client.brpop(queue_name, timeout=self.poll_interval)
                 if item:
                     data = json.loads(item[1])
-                    await self.log(f"Consumed from '{queue_name}': {data}")
-                    callback(data)
+                    self.log(f"Consumed from '{queue_name}': {data}")
+                    if asyncio.iscoroutinefunction(callback):
+                        await callback(data)
+                    else:
+                        callback(data)
+                    retries = 0
             except json.JSONDecodeError as e:
-                await self.log(
-                    f"Error decoding JSON from queue '{queue_name}': {e}",
-                    level="error",
-                )
-            except Exception as e:
-                await self.log(f"Error consuming from queue '{queue_name}': {e}", level="error")
+                self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    await self.log(
-                        f"Maximum retry attempts reached for queue '{queue_name}'.",
-                        level="error",
-                    )
+                    self.log(f"Max retries for queue '{queue_name}'", level="error")
                     break
+            except aredis.RedisError as e:
+                self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
+                retries += 1
+                if retries >= self.max_retries:
+                    self.log(f"Max retries for queue '{queue_name}'", level="error")
+                    break
+            except asyncio.CancelledError:
+                self.log(f"Consumer for queue '{queue_name}' cancelled")
+                break
 
     async def start(self) -> None:
-        """Start parallel consumption for all registered queues."""
+        """Start parallel async consumption for all registered queues.
+
+        Raises:
+            QueueError: If no callbacks registered.
+        """
         if self.running:
-            await self.log("Consumption is already running.", level="warning")
+            self.log("Consumption already running", level="warning")
             return
 
+        if not self.callbacks:
+            raise QueueError("No callbacks registered. Use @on_message decorator first.")
+
         self.running = True
-        self.threads = []
+        self._tasks = {}
 
         for queue_name, callback in self.callbacks.items():
-            thread = threading.Thread(
-                target=lambda q=queue_name, c=callback: asyncio.create_task(self._consume_queue(q, c))
-            )
-            thread.daemon = True
-            self.threads.append(thread)
-            thread.start()
-            await self.log(f"Thread started for queue '{queue_name}'.")
+            self._tasks[queue_name] = asyncio.create_task(self._consume_queue(queue_name, callback))
+            self.log(f"Task started for queue '{queue_name}'")
 
     async def stop(self) -> None:
-        """Stop consumption for all queues."""
+        """Stop all consumption tasks."""
         if not self.running:
-            await self.log("Consumption is already stopped.", level="warning")
+            self.log("Consumption already stopped", level="warning")
             return
 
         self.running = False
-        for thread in self.threads:
-            if thread.is_alive():
-                thread.join()
-        await self.log("All threads have been stopped.")
+        for queue_name, task in self._tasks.items():
+            task.cancel()
+            self.log(f"Cancelling consumer for queue '{queue_name}'")
+
+        if self._tasks:
+            await asyncio.gather(*self._tasks.values(), return_exceptions=True)
+
+        self._tasks.clear()
+        self.log("All queue consumers stopped")
 
     async def publish(self, queue_name: str, data: dict, ttl: int = -1) -> None:
-        """Publish a message to a Redis queue."""
+        """Publish a message to a Redis queue.
+
+        Args:
+            queue_name: Name of the queue.
+            data: Message data (dict, serialized to JSON).
+            ttl: Optional TTL in seconds.
+
+        Raises:
+            ValidationError: If queue_name or ttl is invalid.
+            QueueError: If publishing fails.
+        """
+        validate_key(queue_name)
+        validate_ttl(ttl)
+
         try:
-            json_data = json.dumps(data)
+            json_data = serialize(data)
             await self.redis_client.rpush(queue_name, json_data)
-            await self.log(f"Published to queue '{queue_name}': {data}")
+            self.log(f"Published to queue '{queue_name}': {data}")
 
             if ttl > 0:
                 await self.redis_client.expire(queue_name, ttl)
-                await self.log(f"Set TTL of {ttl} seconds for queue '{queue_name}'")
-        except Exception as e:
-            await self.log(f"Error publishing to queue '{queue_name}': {e}", level="error")
+                self.log(f"Set TTL of {ttl}s for queue '{queue_name}'")
+        except (ValidationError, QueueError):
+            raise
+        except aredis.RedisError as e:
+            raise QueueError(f"Failed to publish to queue '{queue_name}': {e}") from e
 
     async def get_queue_length(self, queue_name: str) -> int:
-        """Retrieve the length of a Redis queue."""
+        """Get the length of a queue.
+
+        Args:
+            queue_name: Name of the queue.
+
+        Returns:
+            Number of elements in the queue.
+
+        Raises:
+            ValidationError: If queue_name is invalid.
+            QueueError: If the operation fails.
+        """
+        validate_key(queue_name)
+
         try:
             length = await self.redis_client.llen(queue_name)
-            await self.log(f"Length of queue '{queue_name}': {length}")
+            self.log(f"Queue '{queue_name}' length: {length}")
             return length
-        except Exception as e:
-            await self.log(f"Error retrieving length of queue '{queue_name}': {e}", level="error")
-            return 0
+        except aredis.RedisError as e:
+            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
 
-    async def wait(self) -> None:
-        """Keep the program running."""
-
-        def signal_handler(sig, frame):
-            self.log("\nStopping consumption due to user interruption...")
-            asyncio.create_task(self.stop())
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.pause()
+    async def close(self) -> None:
+        """Stop consumers and close connection pool."""
+        await self.stop()
+        await super().close()

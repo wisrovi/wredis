@@ -1,22 +1,26 @@
-"""Async Redis Stream Manager."""
+"""Async Redis Stream Manager - real asyncio, no threads."""
 
 import asyncio
-import signal
-import threading
 from collections.abc import Callable
+from typing import Any
 
-import redis.asyncio as redis
-from loguru import logger
+import redis.asyncio as aredis
+
+from wredis._async_base import AsyncBaseManager
+from wredis._exceptions import StreamError, ValidationError
+from wredis._serializer import deserialize, serialize
+from wredis._validation import validate_key
 
 
-class AsyncRedisStreamManager:
-    """Manages Redis streams asynchronously with consumer groups.
+class AsyncRedisStreamManager(AsyncBaseManager):
+    """Manages Redis streams asynchronously with real asyncio tasks.
+
+    Uses asyncio.create_task() instead of threads for consumers.
 
     Attributes:
-        redis_client: Async Redis client instance.
-        verbose: Enables detailed logging if True.
-        consumers: Dictionary of registered consumers.
-        running: Indicates whether the manager is actively consuming.
+        consumers: Dictionary of registered stream consumers.
+        _tasks: Dict of stream names to asyncio tasks.
+        running: Whether the manager is actively consuming.
     """
 
     def __init__(
@@ -26,172 +30,208 @@ class AsyncRedisStreamManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """Initialize the AsyncRedisStreamManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db)
-        self.verbose = verbose
-        self.consumers: dict[str, dict[str, str | Callable]] = {}
+        """Initialize the AsyncRedisStreamManager.
+
+        Args:
+            host: Redis hostname.
+            port: Redis port.
+            db: Redis database number.
+            verbose: Enable logging.
+        """
+        super().__init__(host=host, port=port, db=db, verbose=verbose)
+        self.consumers: dict[str, dict[str, Any]] = {}
+        self._tasks: dict[str, asyncio.Task[None]] = {}
         self.running = False
 
-    async def log(self, message: str, level: str = "info") -> None:
-        """Log a message if verbose mode is enabled."""
-        if self.verbose:
-            getattr(logger, level)(message)
-
     async def add_to_stream(self, key: str, data: dict[str, str], ttl: int | None = None) -> str | None:
-        """Add a message to the stream."""
+        """Add a message to the stream.
+
+        Args:
+            key: Stream name.
+            data: Message data.
+            ttl: Optional TTL in seconds.
+
+        Returns:
+            Message ID, or None on error.
+
+        Raises:
+            ValidationError: If key is invalid.
+            StreamError: If the operation fails.
+        """
+        validate_key(key)
+
         try:
             message_id = await self.redis_client.xadd(key, data)
-            await self.log(f"Added to stream '{key}' with ID {message_id}")
+            self.log(f"Added to stream '{key}' with ID {message_id}")
 
             if ttl:
                 await self.redis_client.expire(key, ttl)
-                await self.log(f"Set TTL of {ttl} seconds for stream '{key}'")
+                self.log(f"Set TTL of {ttl}s for stream '{key}'")
 
             return message_id
-        except Exception as e:
-            logger.error(f"Error adding to stream '{key}': {e}")
-            return None
+        except (ValidationError, StreamError):
+            raise
+        except aredis.RedisError as e:
+            raise StreamError(f"Failed to add to stream '{key}': {e}") from e
 
     def on_message(self, stream_name: str, group_name: str, consumer_name: str) -> Callable:
-        """Decorator to register a consumer for a stream."""
+        """Decorator to register an async consumer for a stream.
+
+        Args:
+            stream_name: Name of the Redis stream.
+            group_name: Name of the consumer group.
+            consumer_name: Name of the consumer.
+
+        Returns:
+            Decorated callback function.
+
+        Raises:
+            ValidationError: If stream_name is invalid.
+            StreamError: If consumer already registered.
+        """
+        validate_key(stream_name)
 
         def decorator(func: Callable) -> Callable:
-            if stream_name not in self.consumers:
-                self.consumers[stream_name] = {
-                    "group_name": group_name,
-                    "consumer_name": consumer_name,
-                    "callback": func,
-                }
-                self._start_listener(stream_name)
-                logger.info(
-                    f"Registered consumer for stream '{stream_name}' "
-                    f"with group '{group_name}' and consumer '{consumer_name}'"
-                )
-            else:
-                logger.warning(f"A consumer is already registered for the stream '{stream_name}'")
+            if stream_name in self.consumers:
+                raise StreamError(f"Consumer already registered for stream '{stream_name}'")
+
+            self.consumers[stream_name] = {
+                "group_name": group_name,
+                "consumer_name": consumer_name,
+                "callback": func,
+            }
+            if self.running:
+                self._tasks[stream_name] = asyncio.create_task(self._listen_stream(stream_name))
+            self.log(
+                f"Registered consumer for stream '{stream_name}' "
+                f"with group '{group_name}' and consumer '{consumer_name}'"
+            )
             return func
 
         return decorator
 
-    async def _decode_message(self, data: dict[bytes, bytes]) -> dict[str, str]:
-        """Decode the keys and values of a received message."""
-        return {key.decode(): value.decode() if isinstance(value, bytes) else value for key, value in data.items()}
-
-    def _start_listener(self, stream_name: str) -> None:
-        """Start a thread to listen for messages on a specific stream."""
-
-        def listener() -> None:
+    async def start_listening(self) -> None:
+        """Start listening on all registered streams."""
+        self.running = True
+        for stream_name in self.consumers:
             consumer_info = self.consumers[stream_name]
             group_name = consumer_info["group_name"]
-            consumer_name = consumer_info["consumer_name"]
-            callback = consumer_info["callback"]
 
-            # Create consumer group if it does not exist
             try:
-                asyncio.get_event_loop().run_until_complete(
-                    self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
-                )
-            except redis.exceptions.ResponseError:
+                await self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
+            except aredis.exceptions.ResponseError:
                 self.log(
                     f"Group '{group_name}' already exists for stream '{stream_name}'",
                     level="warning",
                 )
 
-            self.log(f"Listening for messages on stream '{stream_name}'...")
-            self.running = True
+            self._tasks[stream_name] = asyncio.create_task(self._listen_stream(stream_name))
+        self.log(f"Started listening on {len(self._tasks)} streams")
+
+    async def _listen_stream(self, stream_name: str) -> None:
+        """Listen to a single stream and process messages.
+
+        Args:
+            stream_name: Name of the stream.
+        """
+        consumer_info = self.consumers[stream_name]
+        group_name = consumer_info["group_name"]
+        consumer_name = consumer_info["consumer_name"]
+        callback = consumer_info["callback"]
+
+        self.log(f"Listening for messages on stream '{stream_name}'")
+
+        try:
             while self.running:
                 try:
-                    messages = asyncio.get_event_loop().run_until_complete(
-                        self.redis_client.xreadgroup(
-                            group_name,
-                            consumer_name,
-                            streams={stream_name: ">"},
-                            count=1,
-                            block=1000,
-                        )
+                    messages = await self.redis_client.xreadgroup(
+                        group_name,
+                        consumer_name,
+                        streams={stream_name: ">"},
+                        count=1,
+                        block=1000,
                     )
-                    for stream, entries in messages:
-                        for message_id, data in entries:
-                            decoded_data = asyncio.get_event_loop().run_until_complete(self._decode_message(data))
-                            logger.info(f"Message received from stream '{stream}': {decoded_data}")
-                            callback(decoded_data)
-                            asyncio.get_event_loop().run_until_complete(
-                                self.redis_client.xack(stream_name, group_name, message_id)
-                            )
-                except Exception as e:
-                    logger.error(f"Error reading from stream '{stream_name}': {e}")
-
-        thread = threading.Thread(target=listener)
-        thread.daemon = True
-        thread.start()
+                    if messages:
+                        for stream, entries in messages:
+                            for message_id, data in entries:
+                                decoded_data = {
+                                    k.decode(): v.decode() if isinstance(v, bytes) else v for k, v in data.items()
+                                }
+                                self.log(f"Message from stream '{stream}': {decoded_data}")
+                                if asyncio.iscoroutinefunction(callback):
+                                    await callback(decoded_data)
+                                else:
+                                    callback(decoded_data)
+                                await self.redis_client.xack(stream_name, group_name, message_id)
+                except aredis.RedisError as e:
+                    self.log(f"Redis error on stream '{stream_name}': {e}", level="error")
+                    await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            self.log(f"Listener for stream '{stream_name}' cancelled")
+        except Exception as e:
+            self.log(f"Unexpected error on stream '{stream_name}': {e}", level="error")
 
     async def read_from_stream(self, key: str, count: int = 1, block: int | None = None) -> list:
-        """Read messages from the stream without a registered consumer."""
+        """Read messages from a stream without a registered consumer.
+
+        Args:
+            key: Stream name.
+            count: Number of messages to read.
+            block: Time in milliseconds to block.
+
+        Returns:
+            List of decoded messages.
+
+        Raises:
+            ValidationError: If key is invalid.
+            StreamError: If reading fails.
+        """
+        validate_key(key)
+
         try:
             messages = await self.redis_client.xread({key: "$"}, count=count, block=block)
-            decoded_messages = [
-                {
-                    "stream": stream.decode(),
-                    "entries": [
-                        {
-                            "id": entry_id.decode(),
-                            "data": await self._decode_message(data),
-                        }
-                        for entry_id, data in entries
-                    ],
-                }
-                for stream, entries in messages
-            ]
-            await self.log(f"Messages read from stream '{key}': {decoded_messages}")
+            decoded_messages = (
+                [
+                    {
+                        "stream": stream.decode() if isinstance(stream, bytes) else stream,
+                        "entries": [
+                            {
+                                "id": entry_id.decode() if isinstance(entry_id, bytes) else entry_id,
+                                "data": {
+                                    k.decode() if isinstance(k, bytes) else k: v.decode() if isinstance(v, bytes) else v
+                                    for k, v in data.items()
+                                },
+                            }
+                            for entry_id, data in entries
+                        ],
+                    }
+                    for stream, entries in messages
+                ]
+                if messages
+                else []
+            )
+            self.log(f"Read {len(decoded_messages)} messages from stream '{key}'")
             return decoded_messages
-        except Exception as e:
-            logger.error(f"Error reading messages from stream '{key}': {e}")
-            return []
+        except (ValidationError, StreamError):
+            raise
+        except aredis.RedisError as e:
+            raise StreamError(f"Failed to read from stream '{key}': {e}") from e
 
-    async def wait(self) -> None:
-        """Keep the program active and handle interrupt signals."""
+    async def stop_listening(self) -> None:
+        """Stop all stream consumers."""
+        self.running = False
+        for stream_name, task in self._tasks.items():
+            task.cancel()
+            self.log(f"Cancelling listener for stream '{stream_name}'")
 
-        def signal_handler(sig: int, frame) -> None:
-            logger.info("Stopping consumers...")
-            self.running = False
+        if self._tasks:
+            await asyncio.gather(*self._tasks.values(), return_exceptions=True)
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.pause()
+        self._tasks.clear()
+        self.consumers.clear()
+        self.log("All stream consumers stopped")
 
-    async def set_json(self, key: str, value: dict | list, ttl: int = -1) -> None:
-        """Set a JSON value in Redis."""
-        import json
-
-        try:
-            json_value = json.dumps(value)
-            await self.redis_client.set(key, json_value)
-            await self.log(f"Set JSON value for key '{key}'.")
-
-            if ttl > 0:
-                await self.redis_client.expire(key, ttl)
-                await self.log(f"Set TTL of {ttl} seconds for '{key}'.")
-        except Exception as e:
-            logger.error(f"Error setting JSON for key '{key}': {e}")
-
-    async def get_json(self, key: str) -> dict | list | None:
-        """Get and deserialize a JSON value from Redis."""
-        import json
-
-        try:
-            value = await self.redis_client.get(key)
-            if value:
-                return json.loads(value)
-            return None
-        except Exception as e:
-            logger.error(f"Error getting JSON for key '{key}': {e}")
-            return None
-
-    async def delete_key(self, key: str) -> bool:
-        """Delete a key from Redis."""
-        try:
-            result = await self.redis_client.delete(key)
-            await self.log(f"Deleted key '{key}': {result > 0}")
-            return result > 0
-        except Exception as e:
-            logger.error(f"Error deleting key '{key}': {e}")
-            return False
+    async def close(self) -> None:
+        """Stop consumers and close connection pool."""
+        await self.stop_listening()
+        await super().close()

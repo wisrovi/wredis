@@ -1,24 +1,29 @@
+"""Redis Queue Manager with proper error handling and validation."""
+
 import json
 import signal
+import sys
 import threading
+from collections.abc import Callable
+from typing import Any
 
 import redis
-from loguru import logger
+
+from wredis._base import BaseManager
+from wredis._exceptions import QueueError, ValidationError
+from wredis._serializer import serialize
+from wredis._validation import validate_key, validate_ttl
 
 
-class RedisQueueManager:
-    """
-    Manages Redis queue operations, including publishing messages, consuming queues,
-    and managing TTL (Time-to-Live) for queue keys.
+class RedisQueueManager(BaseManager):
+    """Manages Redis queue operations with thread-based consumers.
 
     Attributes:
-        poll_interval (int): Interval (in seconds) to poll queues for messages.
-        redis_client (redis.StrictRedis): Redis client instance.
-        callbacks (dict): Mapping of queue names to their respective callback functions.
-        threads (list): List of threads handling queue consumption.
-        running (bool): Indicates whether queue consumption is active.
-        max_retries (int): Maximum number of retries in case of errors.
-        verbose (bool): Enables detailed logging if True.
+        poll_interval: Interval in seconds to poll queues.
+        callbacks: Mapping of queue names to callback functions.
+        _threads: List of consumer threads.
+        running: Whether consumption is active.
+        max_retries: Maximum retries on error.
     """
 
     def __init__(
@@ -30,67 +35,54 @@ class RedisQueueManager:
         max_retries: int = 3,
         verbose: bool = True,
     ) -> None:
-        """
-        Initializes the RedisQueueManager with connection details.
+        """Initialize the RedisQueueManager.
 
         Args:
-            poll_interval (int): Interval (in seconds) to poll queues.
-            host (str): Hostname of the Redis server.
-            port (int): Port number of the Redis server.
-            db (int): Redis database index.
-            max_retries (int): Maximum number of retries in case of errors.
-            verbose (bool): Enable detailed logging if True.
+            poll_interval: Seconds between polls for empty queues.
+            host: Redis hostname.
+            port: Redis port.
+            db: Redis database number.
+            max_retries: Maximum retries on error.
+            verbose: Enable logging.
         """
+        super().__init__(host=host, port=port, db=db, verbose=verbose)
         self.poll_interval = poll_interval
-        self.redis_client = redis.StrictRedis(host=host, port=port, db=db)
-        self.callbacks = {}
-        self.threads = []
+        self.callbacks: dict[str, Callable[..., Any]] = {}
+        self._threads: list[threading.Thread] = []
         self.running = False
         self.max_retries = max_retries
-        self.verbose = verbose
-
-    def log(self, message: str, level: str = "info") -> None:
-        """
-        Logs a message if verbose mode is enabled.
-
-        Args:
-            message (str): The message to log.
-            level (str): The log level (e.g., "info", "warning", "error").
-        """
-        if self.verbose:
-            getattr(logger, level)(message)
 
     def on_message(self, queue_name: str):
-        """
-        Decorator to register a callback function for a specific Redis queue.
+        """Decorator to register a callback for a queue.
 
         Args:
-            queue_name (str): The name of the Redis queue.
+            queue_name: Name of the Redis queue.
 
         Returns:
-            Callable: The decorated callback function.
+            Decorated callback function.
+
+        Raises:
+            ValidationError: If queue name is invalid.
+            QueueError: If callback already registered.
         """
+        validate_key(queue_name)
 
         def decorator(func):
-            if queue_name not in self.callbacks:
-                self.callbacks[queue_name] = func
-            else:
-                raise ValueError(
-                    f"A callback is already registered for the queue '{queue_name}'"
-                )
+            if queue_name in self.callbacks:
+                raise QueueError(f"Callback already registered for queue '{queue_name}'")
+            self.callbacks[queue_name] = func
             return func
 
         return decorator
 
     def _consume_queue(self, queue_name: str, callback) -> None:
-        """
-        Consumes elements from a specific Redis queue and executes its callback.
+        """Consume elements from a queue and execute callback.
 
         Args:
-            queue_name (str): The name of the Redis queue.
-            callback (Callable): The callback function to process queue messages.
+            queue_name: Name of the queue.
+            callback: Function to process messages.
         """
-        self.log(f"Starting consumer for queue '{queue_name}'...")
+        self.log(f"Starting consumer for queue '{queue_name}'")
         retries = 0
 
         while self.running:
@@ -100,106 +92,110 @@ class RedisQueueManager:
                     data = json.loads(item[1])
                     self.log(f"Consumed from '{queue_name}': {data}")
                     callback(data)
-                else:
-                    pass  # Queue is empty
+                    retries = 0
             except json.JSONDecodeError as e:
-                self.log(
-                    f"Error decoding JSON from queue '{queue_name}': {e}",
-                    level="error",
-                )
-            except Exception as e:
-                self.log(
-                    f"Error consuming from queue '{queue_name}': {e}", level="error"
-                )
+                self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(
-                        f"Maximum retry attempts reached for queue '{queue_name}'.",
-                        level="error",
-                    )
+                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
+                    break
+            except redis.RedisError as e:
+                self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
+                retries += 1
+                if retries >= self.max_retries:
+                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
                     break
 
     def start(self) -> None:
-        """
-        Starts parallel consumption for all registered queues.
+        """Start parallel consumption for all registered queues.
+
+        Raises:
+            QueueError: If no callbacks registered.
         """
         if self.running:
-            self.log("Consumption is already running.", level="warning")
+            self.log("Consumption already running", level="warning")
             return
 
+        if not self.callbacks:
+            raise QueueError("No callbacks registered. Use @on_message decorator first.")
+
         self.running = True
-        self.threads = []
+        self._threads = []
 
         for queue_name, callback in self.callbacks.items():
-            thread = threading.Thread(
-                target=self._consume_queue, args=(queue_name, callback)
-            )
-            thread.daemon = True
-            self.threads.append(thread)
+            thread = threading.Thread(target=self._consume_queue, args=(queue_name, callback), daemon=True)
+            self._threads.append(thread)
             thread.start()
-            self.log(f"Thread started for queue '{queue_name}'.")
+            self.log(f"Thread started for queue '{queue_name}'")
 
     def stop(self) -> None:
-        """
-        Stops consumption for all queues and their threads.
-        """
+        """Stop consumption and join all threads."""
         if not self.running:
-            self.log("Consumption is already stopped.", level="warning")
+            self.log("Consumption already stopped", level="warning")
             return
 
         self.running = False
-        for thread in self.threads:
+        for thread in self._threads:
             if thread.is_alive():
-                thread.join()
-        self.log("All threads have been stopped.")
+                thread.join(timeout=5)
+        self._threads.clear()
+        self.log("All queue consumers stopped")
 
     def publish(self, queue_name: str, data: dict, ttl: int = -1) -> None:
-        """
-        Publishes a message to a Redis queue with an optional TTL.
+        """Publish a message to a Redis queue.
 
         Args:
-            queue_name (str): The name of the Redis queue.
-            data (dict): The message to publish, serialized to JSON.
-            ttl (int): Time-to-live for the message in seconds. If -1, no TTL is set.
+            queue_name: Name of the queue.
+            data: Message data (dict, serialized to JSON).
+            ttl: Optional TTL in seconds.
+
+        Raises:
+            ValidationError: If queue_name or ttl is invalid.
+            QueueError: If publishing fails.
         """
+        validate_key(queue_name)
+        validate_ttl(ttl)
+
         try:
-            json_data = json.dumps(data)
+            json_data = serialize(data)
             self.redis_client.rpush(queue_name, json_data)
             self.log(f"Published to queue '{queue_name}': {data}")
 
             if ttl > 0:
                 self.redis_client.expire(queue_name, ttl)
-                self.log(f"Set TTL of {ttl} seconds for queue '{queue_name}'")
+                self.log(f"Set TTL of {ttl}s for queue '{queue_name}'")
+        except (ValidationError, QueueError):
+            raise
         except Exception as e:
-            self.log(f"Error publishing to queue '{queue_name}': {e}", level="error")
+            raise QueueError(f"Failed to publish to queue '{queue_name}': {e}") from e
 
     def get_queue_length(self, queue_name: str) -> int:
-        """
-        Retrieves the length of a Redis queue.
+        """Get the length of a queue.
 
         Args:
-            queue_name (str): The name of the Redis queue.
+            queue_name: Name of the queue.
 
         Returns:
-            int: The number of elements in the queue.
+            Number of elements in the queue.
+
+        Raises:
+            ValidationError: If queue_name is invalid.
+            QueueError: If the operation fails.
         """
+        validate_key(queue_name)
+
         try:
             length = self.redis_client.llen(queue_name)
-            self.log(f"Length of queue '{queue_name}': {length}")
+            self.log(f"Queue '{queue_name}' length: {length}")
             return length
-        except Exception as e:
-            self.log(
-                f"Error retrieving length of queue '{queue_name}': {e}", level="error"
-            )
-            return 0
+        except redis.RedisError as e:
+            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
 
     def wait(self) -> None:
-        """
-        Keeps the program running while consumption is active without using while True.
-        """
+        """Keep the program running until SIGINT."""
 
         def signal_handler(sig, frame):
-            self.log("\nStopping consumption due to user interruption...")
+            self.log("Stopping due to user interruption")
             self.stop()
 
         signal.signal(signal.SIGINT, signal_handler)

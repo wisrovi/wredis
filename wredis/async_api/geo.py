@@ -59,7 +59,7 @@ class AsyncRedisGeoManager:
                 else:
                     positions.append(None)
             await self.log(f"Positions: {positions}")
-            return positions
+            return positions  # type: ignore[return-value]
         except Exception as e:
             logger.error(f"Error getting positions: {e}")
             return []

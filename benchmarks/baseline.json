@@ -1,0 +1,263 @@
+{
+    "metadata": {
+        "generated_at": "2026-04-03T00:00:00Z",
+        "wredis_version": "1.0.0",
+        "python_version": "3.10",
+        "redis_backend": "fakeredis (in-memory)",
+        "iterations": 1000,
+        "host": "localhost",
+        "port": 6379
+    },
+    "benchmarks": {
+        "bitmap": {
+            "set_bit": {
+                "sync_time_ms": 82.9,
+                "async_time_ms": null,
+                "ops_per_sec": 12060,
+                "iterations": 1000
+            },
+            "get_bit": {
+                "sync_time_ms": 92.5,
+                "async_time_ms": null,
+                "ops_per_sec": 10816,
+                "iterations": 1000
+            },
+            "count_bits": {
+                "sync_time_ms": 79.2,
+                "async_time_ms": null,
+                "ops_per_sec": 12624,
+                "iterations": 1000
+            }
+        },
+        "hash": {
+            "create_hash": {
+                "sync_time_ms": 97.6,
+                "async_time_ms": 141.5,
+                "ops_per_sec": 10245,
+                "iterations": 1000
+            },
+            "read_hash": {
+                "sync_time_ms": 76.6,
+                "async_time_ms": 121.0,
+                "ops_per_sec": 13061,
+                "iterations": 1000
+            },
+            "read_all_hash": {
+                "sync_time_ms": 83.9,
+                "async_time_ms": 87.3,
+                "ops_per_sec": 11915,
+                "iterations": 200
+            }
+        },
+        "sets": {
+            "add_to_set": {
+                "sync_time_ms": 107.5,
+                "async_time_ms": null,
+                "ops_per_sec": 9298,
+                "iterations": 1000
+            },
+            "is_member": {
+                "sync_time_ms": 73.0,
+                "async_time_ms": null,
+                "ops_per_sec": 13695,
+                "iterations": 1000
+            },
+            "get_members": {
+                "sync_time_ms": 77.6,
+                "async_time_ms": null,
+                "ops_per_sec": 12893,
+                "iterations": 200
+            }
+        },
+        "sortedset": {
+            "add": {
+                "sync_time_ms": 91.2,
+                "async_time_ms": null,
+                "ops_per_sec": 10959,
+                "iterations": 1000
+            },
+            "get": {
+                "sync_time_ms": 97.3,
+                "async_time_ms": null,
+                "ops_per_sec": 10282,
+                "iterations": 200
+            },
+            "get_score": {
+                "sync_time_ms": 66.3,
+                "async_time_ms": null,
+                "ops_per_sec": 15085,
+                "iterations": 1000
+            }
+        },
+        "pipeline": {
+            "single_set": {
+                "sync_time_ms": 79.5,
+                "async_time_ms": null,
+                "ops_per_sec": 12571,
+                "iterations": 1000
+            },
+            "mset_pipeline_batch_100": {
+                "sync_time_ms": 5096.9,
+                "async_time_ms": null,
+                "ops_per_sec": 196,
+                "iterations": 100
+            },
+            "mget_pipeline_batch_100": {
+                "sync_time_ms": 8453.0,
+                "async_time_ms": null,
+                "ops_per_sec": 118,
+                "iterations": 100
+            }
+        },
+        "transaction": {
+            "execute_transaction": {
+                "sync_time_ms": 161.1,
+                "async_time_ms": null,
+                "ops_per_sec": 6206,
+                "iterations": 1000
+            },
+            "set_if_not_exists": {
+                "sync_time_ms": 85.1,
+                "async_time_ms": null,
+                "ops_per_sec": 11753,
+                "iterations": 1000
+            },
+            "increment_atomic": {
+                "sync_time_ms": 71.5,
+                "async_time_ms": null,
+                "ops_per_sec": 13995,
+                "iterations": 1000
+            }
+        },
+        "geo": {
+            "add_location": {
+                "sync_time_ms": 106.2,
+                "async_time_ms": null,
+                "ops_per_sec": 9420,
+                "iterations": 500
+            },
+            "get_distance": {
+                "sync_time_ms": 102.4,
+                "async_time_ms": null,
+                "ops_per_sec": 9768,
+                "iterations": 500
+            }
+        },
+        "hyperloglog": {
+            "add": {
+                "sync_time_ms": 163.5,
+                "async_time_ms": null,
+                "ops_per_sec": 6117,
+                "iterations": 1000
+            },
+            "count": {
+                "sync_time_ms": 274.5,
+                "async_time_ms": null,
+                "ops_per_sec": 3643,
+                "iterations": 1000
+            }
+        },
+        "pubsub": {
+            "publish_message": {
+                "sync_time_ms": 72.4,
+                "async_time_ms": null,
+                "ops_per_sec": 13805,
+                "iterations": 1000
+            }
+        },
+        "queue": {
+            "publish": {
+                "sync_time_ms": 72.0,
+                "async_time_ms": null,
+                "ops_per_sec": 13878,
+                "iterations": 1000
+            },
+            "get_queue_length": {
+                "sync_time_ms": 58.2,
+                "async_time_ms": null,
+                "ops_per_sec": 17194,
+                "iterations": 1000
+            }
+        },
+        "streams": {
+            "add_to_stream": {
+                "sync_time_ms": 87.4,
+                "async_time_ms": null,
+                "ops_per_sec": 11439,
+                "iterations": 500
+            }
+        },
+        "cache": {
+            "raw_function_call": {
+                "sync_time_ms": 0.1,
+                "async_time_ms": null,
+                "ops_per_sec": 8586124,
+                "iterations": 10000
+            },
+            "cache_miss": {
+                "sync_time_ms": 66.3,
+                "async_time_ms": null,
+                "ops_per_sec": 15085,
+                "iterations": 1000
+            },
+            "cache_hit": {
+                "sync_time_ms": 69.8,
+                "async_time_ms": null,
+                "ops_per_sec": 14336,
+                "iterations": 1000
+            }
+        },
+        "connection_pool": {
+            "pool_size_1": {
+                "sync_time_ms": 83.6,
+                "async_time_ms": null,
+                "ops_per_sec": 11965,
+                "iterations": 1000
+            },
+            "pool_size_5": {
+                "sync_time_ms": 93.0,
+                "async_time_ms": null,
+                "ops_per_sec": 10757,
+                "iterations": 1000
+            },
+            "pool_size_10": {
+                "sync_time_ms": 79.1,
+                "async_time_ms": null,
+                "ops_per_sec": 12647,
+                "iterations": 1000
+            },
+            "pool_size_50": {
+                "sync_time_ms": 86.5,
+                "async_time_ms": null,
+                "ops_per_sec": 11562,
+                "iterations": 1000
+            }
+        },
+        "direct_vs_wrapper": {
+            "direct_redis_py_set": {
+                "sync_time_ms": 80.0,
+                "async_time_ms": null,
+                "ops_per_sec": 12499,
+                "iterations": 1000
+            },
+            "wredis_wrapper_create_hash": {
+                "sync_time_ms": 105.8,
+                "async_time_ms": null,
+                "ops_per_sec": 9456,
+                "iterations": 1000
+            },
+            "direct_redis_py_sadd": {
+                "sync_time_ms": 76.9,
+                "async_time_ms": null,
+                "ops_per_sec": 13007,
+                "iterations": 1000
+            },
+            "wredis_wrapper_add_to_set": {
+                "sync_time_ms": 86.7,
+                "async_time_ms": null,
+                "ops_per_sec": 11530,
+                "iterations": 1000
+            }
+        }
+    }
+}

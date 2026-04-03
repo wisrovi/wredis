@@ -1,0 +1,327 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check wredis/ tests/
+
+      - name: Ruff format check
+        run: ruff format --check wredis/ tests/
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install mypy types-redis
+
+      - name: Install project
+        run: pip install -e .
+
+      - name: Run mypy
+        run: python -m mypy wredis/ --ignore-missing-imports
+
+  test-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" pytest pytest-cov
+
+      - name: Run unit tests with coverage
+        run: pytest tests/unit --cov=wredis --cov-report=xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: warn
+
+  test-integration:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" pytest pytest-cov
+
+      - name: Run integration tests
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: pytest tests/integration --cov=wredis --cov-append --cov-report=xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration
+          path: coverage.xml
+          if-no-files-found: warn
+
+  test-stress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" pytest pytest-timeout
+
+      - name: Run stress tests
+        run: pytest tests/stress --timeout=5
+
+  test-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" pytest
+
+      - name: Run example tests
+        run: pytest examples/test/
+
+  coverage-report:
+    needs: [test-unit, test-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install coverage
+
+      - name: Download unit coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-unit-*
+          path: coverage-reports/unit
+          merge-multiple: true
+
+      - name: Download integration coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-integration
+          path: coverage-reports/integration
+
+      - name: Combine coverage reports
+        run: |
+          coverage combine coverage-reports/unit/coverage.xml coverage-reports/integration/coverage.xml || true
+          coverage report --fail-under=95
+          coverage xml
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          COVERAGE=$(coverage report | tail -n 1 | grep -oP '\d+%')
+          echo "## Coverage Report" > coverage-comment.md
+          echo "" >> coverage-comment.md
+          echo "\`\`\`" >> coverage-comment.md
+          coverage report >> coverage-comment.md
+          echo "\`\`\`" >> coverage-comment.md
+          echo "" >> coverage-comment.md
+          echo "**Total Coverage: ${COVERAGE}**" >> coverage-comment.md
+          cat coverage-comment.md
+
+      - name: Upload combined coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-combined
+          path: coverage.xml
+          if-no-files-found: warn
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e . pip-audit bandit
+
+      - name: Run pip-audit
+        run: pip-audit --format=markdown
+
+      - name: Run bandit
+        run: bandit -r wredis/ -ll
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          PATTERNS=(
+            "password\s*=\s*['\"][^'\"]+['\"]"
+            "api_key\s*=\s*['\"][^'\"]+['\"]"
+            "token\s*=\s*['\"][^'\"]+['\"]"
+            "secret\s*=\s*['\"][^'\"]+['\"]"
+            "AWS_SECRET_ACCESS_KEY"
+            "PRIVATE_KEY"
+          )
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            if grep -rPn "$pattern" wredis/ --include="*.py" --exclude-dir=__pycache__ 2>/dev/null; then
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" -eq 1 ]; then
+            echo "::error::Potential hardcoded secrets detected"
+            exit 1
+          fi
+          echo "No hardcoded secrets detected"
+
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[docs]" sphinx
+
+      - name: Build documentation
+        run: sphinx-build -b html docs/ docs/_build/html
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html/
+          if-no-files-found: warn
+
+  release:
+    needs: [lint, typecheck, test-unit, test-integration, test-stress, test-examples, security, docs-build]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install build dependencies
+        run: pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: twine upload dist/*
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -A1 "^${TAG}$" | tail -n1)
+          if [ "$PREVIOUS_TAG" = "$TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" "$TAG")
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" "$PREVIOUS_TAG".."$TAG")
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Changelog
+
+            ${{ steps.changelog.outputs.changelog }}
+          files: dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
