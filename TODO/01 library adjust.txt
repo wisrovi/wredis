@@ -1,0 +1,23 @@
+algunos ejemplos usan en la importacion algo como:
+
+import redis.asyncio
+from wredis._async_base import AsyncBaseManager
+from wredis.async_api import AsyncRedisPipelineManager
+from wredis.async_api import AsyncRedisPubSubManager
+from wredis.async_api import AsyncRedisGeoManager
+from wredis.async_api import AsyncRedisBitmapManager
+
+
+otros:
+from wredis.decorators import async_cache
+
+import redis
+from wredis._base import BaseManager
+
+
+en varios ejemplos se usan las importaciones de redis junto con alguna de wredis, y aqui hay varias cosas que quiero:
+- si es de algo asincrono debe ser from wredis.async import xxxx o si es sincrono debe ser from wredis.sync import xxxx o el decorador from wredis import cache y asi, 
+- los ejemplos deben ser algo simple, cortos y eficientes y que muestre el poder de la libreria no una combinacion entre las importaciones de redis y wredis, solo wredis, y dentro de la libreria resolver todo, haciendo simple el ejemplo, y q la libreria resuelva los complicado del codigo, si necesitas ajustar la libreria para que esto sea asi, cual seria el plan?
+- el usuario debe hacer la importacion correspondiente y de una aplicar el ejemplo, en pocas lineas, y ver de una su utilidad
+
+
