@@ -1,9 +1,10 @@
 import asyncio
-from wredis.async_api import AsyncRedisPubSubManager
+
+from wredis.aio import RedisPubSubManager
 
 
 async def main():
-    manager = AsyncRedisPubSubManager(host="localhost")
+    manager = RedisPubSubManager(host="localhost")
     await manager.publish_message("channel_1", "Hello, Redis!")
     await manager.publish_message("channel_2", {"saludo": "Hola desde channel_2!"})
 

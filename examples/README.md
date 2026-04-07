@@ -1,143 +1,171 @@
-# Ejemplos de WRedis
+# WRedis Examples
 
-## 📁 Estructura de Ejemplos
+Practical examples demonstrating how to use `wredis` library for Redis operations in Python.
+
+## Quick Start
+
+```bash
+# Install dependencies
+pip install wredis redis
+
+# Make sure Redis is running
+redis-server
+
+# Run all examples
+pytest examples/test/test_all_examples.py -v
+
+# Run a specific example
+python examples/sync/base/01_basic_init/example.py
+```
+
+## Clean Import API
+
+All examples use consistent imports from `wredis.sync` or `wredis.aio`:
+
+```python
+# Sync operations
+from wredis.sync import (
+    BaseManager,
+    RedisHashManager,
+    RedisBitmapManager,
+    RedisQueueManager,
+    cache,
+    CacheMetrics,
+)
+
+# Async operations  
+from wredis.aio import (
+    AsyncBaseManager,
+    AsyncRedisHashManager,
+    AsyncRedisQueueManager,
+    async_cache,
+    CacheMetrics,
+)
+```
+
+## Structure
 
 ```
 examples/
-├── sync/                    # Ejemplos síncronos
-│   ├── basic/              # Operacion basica con Redis
-│   │   ├── hash/          # Operaciones con hashes
-│   │   ├── pubsub/        # Publicacion y suscripcion
-│   │   ├── streams/       # Redis Streams
-│   │   ├── queue/        # Colas de mensajes
-│   │   ├── sorted_set/  # Conjuntos ordenados
-│   │   ├── sets/        # Conjuntos
-│   │   ├── bitmap/      # Bitmaps
-│   │   ├── cache/       # Decoradores de cache
-│   │   ├── geo/         # Operaciones geograficas
-│   │   └── hyperloglog/ # HyperLogLog
-│   ├── sentinel/         # Alta disponibilidad con Sentinel
-│   │   ├── hash/
-│   │   ├── pubsub/
-│   │   ├── streams/
-│   │   ├── queue/
-│   │   └── connection/
-│   └── cluster/          # Redis Cluster
-│       ├── hash/
-│       ├── pubsub/
-│       ├── streams/
-│       ├── queue/
-│       └── pipeline/
+├── async/                      # Async examples
+│   ├── base/                   # AsyncBaseManager examples (15)
+│   ├── bitmap/                 # Bitmap operations (2)
+│   ├── cache/                  # Cache decorators (1)
+│   ├── cluster/                # Redis Cluster (1)
+│   ├── geo/                    # Geographic operations (2)
+│   ├── hash/                   # Hash operations (2)
+│   ├── hyperloglog/            # HyperLogLog (2)
+│   ├── pipeline/               # Pipeline operations (2)
+│   ├── pubsub/                 # Pub/Sub (2)
+│   ├── queue/                  # Queue operations (2)
+│   ├── sentinel/               # Redis Sentinel (1)
+│   ├── sets/                   # Set operations (2)
+│   ├── sorted_set/             # Sorted set operations (2)
+│   ├── streams/                # Redis Streams (2)
+│   └── transaction/            # Transactions (2)
 │
-├── async/                  # Ejemplos asíncronos
-│   ├── basic/            # Operacion basica async
-│   ├── sentinel/         # Sentinel async
-│   └── cluster/         # Cluster async
+├── sync/                       # Sync examples
+│   ├── base/                   # BaseManager examples (15)
+│   ├── bitmap/                 # Bitmap operations (3)
+│   ├── cache/                  # Cache metrics examples (15)
+│   ├── cluster/                # Redis Cluster (1)
+│   ├── exceptions/             # Error handling (15)
+│   ├── geo/                    # Geographic operations (2)
+│   ├── hash/                   # Hash operations (6)
+│   ├── hyperloglog/            # HyperLogLog (2)
+│   ├── pipeline/               # Pipeline operations (2)
+│   ├── pubsub/                 # Pub/Sub (4)
+│   ├── queue/                  # Queue operations (2)
+│   ├── retry/                  # Retry patterns (15)
+│   ├── sentinel/               # Redis Sentinel (1)
+│   ├── serializer/             # Serialization (15)
+│   ├── sets/                   # Set operations (3)
+│   ├── sorted_set/             # Sorted set operations (3)
+│   ├── streams/                # Redis Streams (2)
+│   ├── transaction/            # Transactions (2)
+│   └── validation/             # Input validation (15)
 │
-└── test/                 # Tests de ejemplos (coverage 100%)
-    ├── conftest.py
-    ├── test_sync_*.py
-    └── test_async_*.py
+└── test/                      # Test suite
+    ├── conftest.py            # Pytest fixtures
+    └── test_all_examples.py   # Auto-discovers and runs all examples
 ```
 
-## 🎯 Cómo Usar Esta Guía
+## Examples by Category
 
-### 1. Encuentra tu caso de uso
+### Async Operations
 
-| Necesidad | Carpeta |
-|----------|---------|
-| Operaciones básicas con Redis | `sync/basic/` |
-| Alta disponibilidad (Sentinel) | `sync/sentinel/` |
-| Redis Cluster | `sync/cluster/` |
-| Código async (FastAPI, AI) | `async/` |
+| Category | Examples | Description |
+|----------|----------|-------------|
+| [base/](async/base/) | 15 | AsyncBaseManager with async/await |
+| [bitmap/](async/bitmap/) | 2 | Bitmap operations |
+| [cache/](async/cache/) | 1 | Async cache decorators |
+| [cluster/](async/cluster/) | 1 | Redis Cluster support |
+| [geo/](async/geo/) | 2 | Geographic queries |
+| [hash/](async/hash/) | 2 | Hash operations |
+| [hyperloglog/](async/hyperloglog/) | 2 | HyperLogLog |
+| [pipeline/](async/pipeline/) | 2 | Pipeline operations |
+| [pubsub/](async/pubsub/) | 2 | Pub/Sub messaging |
+| [queue/](async/queue/) | 2 | Message queues |
+| [sentinel/](async/sentinel/) | 1 | Sentinel HA |
+| [sets/](async/sets/) | 2 | Set operations |
+| [sorted_set/](async/sorted_set/) | 2 | Sorted sets |
+| [streams/](async/streams/) | 2 | Redis Streams |
+| [transaction/](async/transaction/) | 2 | Transactions |
 
-### 2. Selecciona la funcionalidad
+### Sync Operations
 
-| Funcionalidad | Descripción |
-|--------------|-------------|
-| `hash/` | Almacenamiento key-value |
-| `pubsub/` | Mensajería pub/sub |
-| `streams/` | Streams de Redis |
-| `queue/` | Colas de mensajes |
-| `sorted_set/` | Conjuntos ordenados |
-| `sets/` | Conjuntos |
-| `bitmap/` | Bitmaps |
-| `cache/` | Decoradores de caché |
+| Category | Examples | Description |
+|----------|----------|-------------|
+| [base/](sync/base/) | 15 | BaseManager basics |
+| [bitmap/](sync/bitmap/) | 3 | Bitmap operations |
+| [cache/](sync/cache/) | 15 | Cache metrics & decorators |
+| [cluster/](sync/cluster/) | 1 | Redis Cluster |
+| [exceptions/](sync/exceptions/) | 15 | Error handling |
+| [geo/](sync/geo/) | 2 | Geographic queries |
+| [hash/](sync/hash/) | 6 | Hash CRUD operations |
+| [hyperloglog/](sync/hyperloglog/) | 2 | HyperLogLog |
+| [pipeline/](sync/pipeline/) | 2 | Pipeline operations |
+| [pubsub/](sync/pubsub/) | 4 | Pub/Sub messaging |
+| [queue/](sync/queue/) | 2 | Message queues |
+| [retry/](sync/retry/) | 15 | Retry patterns |
+| [sentinel/](sync/sentinel/) | 1 | Sentinel HA |
+| [serializer/](sync/serializer/) | 15 | Data serialization |
+| [sets/](sync/sets/) | 3 | Set operations |
+| [sorted_set/](sync/sorted_set/) | 3 | Sorted sets |
+| [streams/](sync/streams/) | 2 | Redis Streams |
+| [transaction/](sync/transaction/) | 2 | Transactions |
+| [validation/](sync/validation/) | 15 | Input validation |
 
-### 3. Ejecuta el ejemplo
+## Running Tests
+
+### Run all examples as tests
+```bash
+pytest examples/test/test_all_examples.py -v
+```
+
+### Run specific category
+```bash
+pytest examples/test/test_all_examples.py -v -k "sync/base"
+pytest examples/test/test_all_examples.py -v -k "async/base"
+```
+
+### Run single example manually
+```bash
+python examples/sync/base/01_basic_init/example.py
+```
+
+## Each Example Contains
+
+- **README.md** - Description, Mermaid diagram, when to use, code, run instructions
+- **example.py** - Ready-to-run code that you can copy and adapt
+
+## Requirements
 
 ```bash
-# Ejecutar un ejemplo
-cd examples/sync/basic/hash
-python 01_create.py
-
-# Ejecutar todos los ejemplos de una carpeta
-for f in *.py; do python "$f"; done
+pip install wredis redis
 ```
 
-## 📋 Ejemplos por Nivel
-
-### Nivel 1: Básico (01-05)
-- `01_*.py` - Crear/Insertar
-- `02_*.py` - Leer
-- `03_*.py` - Actualizar
-- `04_*.py` - Eliminar
-- `05_*.py` - TTL/Expiracion
-
-### Nivel 2: Intermedio (06-10)
-- `06_*.py` - JSON/Serializacion
-- `07_*.py` - Operaciones batch
-- `08_*.py` - Patrones
-- `09_*.py` - Migracion
-- `10_*.py` - Mejores practicas
-
-### Nivel 3: Avanzado (11-20)
-- `11_*.py` - Transacciones
-- `12_*.py` - Pipelines
-- `13_*.py` - Rendimiento
-- `14_*.py` - Debugging
-- `15-20_*.py` - Casos especiales
-
-## 🧪 Tests
-
+Make sure Redis is running:
 ```bash
-# Ejecutar todos los tests
-cd examples/test
-pytest -v --cov=../../wredis --cov-report=html
-
-# Coverage 100%
-pytest --cov=../../wredis --cov-fail-under=100
+redis-server
 ```
-
-## 📚 Documentación
-
-Cada carpeta contiene un `README.md` con:
-- Descripcion de la funcionalidad
-- Diagrama de arquitectura (Mermaid)
-- Requisitos previos
-- Explicacion de cada ejemplo
-
-## 🚀 Inicio Rapido
-
-```python
-# Ejemplo basico - Crear un hash
-from wredis.hash import RedisHashManager
-
-manager = RedisHashManager(host="localhost")
-manager.create_hash("mi_hash", "mi_clave", {"dato": "valor"})
-
-# Leer el dato
-resultado = manager.read_hash("mi_hash", "mi_clave")
-print(resultado)  # {'dato': 'valor'}
-```
-
-## ⚠️ Requisitos
-
-- Python 3.10+
-- Redis ejecutandose en localhost:6379
-- `pip install wredis`
-
-## 📞 Soporte
-
-- GitHub Issues: https://github.com/wisrovi/wredis/issues
-- Documentacion: https://wisrovi.github.io/wredis/

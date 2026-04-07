@@ -71,7 +71,9 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
             elif isinstance(message, str):
                 payload = message
             else:
-                raise ValidationError("Message must be a string or a JSON-serializable dictionary.")
+                raise ValidationError(
+                    "Message must be a string or a JSON-serializable dictionary."
+                )
 
             await self.redis_client.publish(channel, payload)
             self.log(f"Message published to channel '{channel}': {payload}")
@@ -101,8 +103,12 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
 
             self.subscribers[channel] = callback
             if self._running:
-                self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
-            self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
+                self._tasks[channel] = asyncio.create_task(
+                    self._listen_channel(channel, callback)
+                )
+            self.log(
+                f"Subscribed to channel '{channel}' with handler '{callback.__name__}'"
+            )
             return callback
 
         return decorator
@@ -114,7 +120,9 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
         """
         self._running = True
         for channel, callback in self.subscribers.items():
-            self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
+            self._tasks[channel] = asyncio.create_task(
+                self._listen_channel(channel, callback)
+            )
         self.log(f"Started listening on {len(self._tasks)} channels")
 
     async def _listen_channel(self, channel: str, callback: Callable) -> None:
@@ -142,7 +150,10 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
                         else:
                             callback(data)
                     except Exception as e:
-                        self.log(f"Error processing message on '{channel}': {e}", level="error")
+                        self.log(
+                            f"Error processing message on '{channel}': {e}",
+                            level="error",
+                        )
         except asyncio.CancelledError:
             self.log(f"Listener for channel '{channel}' cancelled")
         except aredis.RedisError as e:

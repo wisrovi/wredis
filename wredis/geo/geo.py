@@ -22,7 +22,9 @@ class RedisGeoManager:
         verbose: bool = True,
     ):
         """Initialize the RedisGeoManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.redis_client = redis.Redis(
+            host=host, port=port, db=db, decode_responses=True
+        )
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
@@ -30,7 +32,9 @@ class RedisGeoManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def add_location(self, key: str, location: str, longitude: float, latitude: float) -> None:
+    def add_location(
+        self, key: str, location: str, longitude: float, latitude: float
+    ) -> None:
         """Add a location to a geo key.
 
         Args:
@@ -45,7 +49,9 @@ class RedisGeoManager:
         except Exception as e:
             logger.error(f"Error adding location to key '{key}': {e}")
 
-    def get_distance(self, key: str, location1: str, location2: str, unit: str = "km") -> float | None:
+    def get_distance(
+        self, key: str, location1: str, location2: str, unit: str = "km"
+    ) -> float | None:
         """Get distance between two locations.
 
         Args:
@@ -65,7 +71,9 @@ class RedisGeoManager:
             logger.error(f"Error getting distance: {e}")
             return None
 
-    def get_positions(self, key: str, *locations: str) -> list[tuple[str, float, float] | None]:
+    def get_positions(
+        self, key: str, *locations: str
+    ) -> list[tuple[str, float, float] | None]:
         """Get positions of locations.
 
         Args:
@@ -90,7 +98,13 @@ class RedisGeoManager:
             return []
 
     def search_nearby(
-        self, key: str, longitude: float, latitude: float, radius: float, unit: str = "km", count: int = 10
+        self,
+        key: str,
+        longitude: float,
+        latitude: float,
+        radius: float,
+        unit: str = "km",
+        count: int = 10,
     ) -> list[str]:
         """Search for locations within radius.
 
@@ -106,7 +120,9 @@ class RedisGeoManager:
             List of location names.
         """
         try:
-            results = self.redis_client.georadius(key, longitude, latitude, radius, unit=unit, count=count)
+            results = self.redis_client.georadius(
+                key, longitude, latitude, radius, unit=unit, count=count
+            )
             self.log(f"Found {len(results)} locations within {radius} {unit}")
             return results
         except Exception as e:
@@ -114,7 +130,13 @@ class RedisGeoManager:
             return []
 
     def search_nearby_with_distance(
-        self, key: str, longitude: float, latitude: float, radius: float, unit: str = "km", count: int = 10
+        self,
+        key: str,
+        longitude: float,
+        latitude: float,
+        radius: float,
+        unit: str = "km",
+        count: int = 10,
     ) -> list[tuple[str, float]]:
         """Search for locations within radius with distance.
 

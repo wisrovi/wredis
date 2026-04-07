@@ -69,14 +69,18 @@ class RedisPubSubManager(BaseManager):
             elif isinstance(message, str):
                 payload = message
             else:
-                raise ValidationError("Message must be a string or a JSON-serializable dictionary.")
+                raise ValidationError(
+                    "Message must be a string or a JSON-serializable dictionary."
+                )
 
             self._execute("publish", channel, payload)
             self.log(f"Message published to channel '{channel}': {payload}")
         except (ValidationError, PubSubError):
             raise
         except Exception as e:
-            raise PubSubError(f"Error publishing message to channel '{channel}': {e}") from e
+            raise PubSubError(
+                f"Error publishing message to channel '{channel}': {e}"
+            ) from e
 
     def on_message(self, channel: str):
         """Decorator to register a callback function for a specific Redis channel.
@@ -99,7 +103,9 @@ class RedisPubSubManager(BaseManager):
 
             self.subscribers[channel] = callback
             self._start_listener(channel)
-            self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
+            self.log(
+                f"Subscribed to channel '{channel}' with handler '{callback.__name__}'"
+            )
             return callback
 
         return decorator
@@ -156,7 +162,9 @@ class RedisPubSubManager(BaseManager):
         try:
             thread.start()
         except RuntimeError as e:
-            raise PubSubError(f"Failed to start listener for channel '{channel}': {e}") from e
+            raise PubSubError(
+                f"Failed to start listener for channel '{channel}': {e}"
+            ) from e
 
     def stop_listeners(self) -> None:
         """Stop all listener threads and unsubscribe from all channels."""

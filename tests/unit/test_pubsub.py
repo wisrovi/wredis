@@ -46,7 +46,10 @@ class TestRedisPubSubManager:
         manager = RedisPubSubManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "publish", side_effect=Exception("Redis error")), pytest.raises(PubSubError):
+        with (
+            patch.object(redis_client, "publish", side_effect=Exception("Redis error")),
+            pytest.raises(PubSubError),
+        ):
             manager.publish_message("channel", "msg")
 
     def test_on_message(self, redis_client):

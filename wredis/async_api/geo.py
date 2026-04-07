@@ -22,7 +22,9 @@ class AsyncRedisGeoManager:
         verbose: bool = True,
     ):
         """Initialize the AsyncRedisGeoManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.redis_client = redis.Redis(
+            host=host, port=port, db=db, decode_responses=True
+        )
         self.verbose = verbose
 
     async def log(self, message: str, level: str = "info") -> None:
@@ -30,7 +32,9 @@ class AsyncRedisGeoManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    async def add_location(self, key: str, location: str, longitude: float, latitude: float) -> None:
+    async def add_location(
+        self, key: str, location: str, longitude: float, latitude: float
+    ) -> None:
         """Add a location to a geo key."""
         try:
             await self.redis_client.geoadd(key, (longitude, latitude, location))
@@ -38,17 +42,25 @@ class AsyncRedisGeoManager:
         except Exception as e:
             logger.error(f"Error adding location to key '{key}': {e}")
 
-    async def get_distance(self, key: str, location1: str, location2: str, unit: str = "km") -> float | None:
+    async def get_distance(
+        self, key: str, location1: str, location2: str, unit: str = "km"
+    ) -> float | None:
         """Get distance between two locations."""
         try:
-            distance = await self.redis_client.geodist(key, location1, location2, unit=unit)
-            await self.log(f"Distance between {location1} and {location2}: {distance} {unit}")
+            distance = await self.redis_client.geodist(
+                key, location1, location2, unit=unit
+            )
+            await self.log(
+                f"Distance between {location1} and {location2}: {distance} {unit}"
+            )
             return distance
         except Exception as e:
             logger.error(f"Error getting distance: {e}")
             return None
 
-    async def get_positions(self, key: str, *locations: str) -> list[tuple[str, float, float] | None]:
+    async def get_positions(
+        self, key: str, *locations: str
+    ) -> list[tuple[str, float, float] | None]:
         """Get positions of locations."""
         try:
             results = await self.redis_client.geopos(key, *locations)
@@ -65,11 +77,19 @@ class AsyncRedisGeoManager:
             return []
 
     async def search_nearby(
-        self, key: str, longitude: float, latitude: float, radius: float, unit: str = "km", count: int = 10
+        self,
+        key: str,
+        longitude: float,
+        latitude: float,
+        radius: float,
+        unit: str = "km",
+        count: int = 10,
     ) -> list[str]:
         """Search for locations within radius."""
         try:
-            results = await self.redis_client.georadius(key, longitude, latitude, radius, unit=unit, count=count)
+            results = await self.redis_client.georadius(
+                key, longitude, latitude, radius, unit=unit, count=count
+            )
             await self.log(f"Found {len(results)} locations within {radius} {unit}")
             return results
         except Exception as e:
@@ -77,7 +97,13 @@ class AsyncRedisGeoManager:
             return []
 
     async def search_nearby_with_distance(
-        self, key: str, longitude: float, latitude: float, radius: float, unit: str = "km", count: int = 10
+        self,
+        key: str,
+        longitude: float,
+        latitude: float,
+        radius: float,
+        unit: str = "km",
+        count: int = 10,
     ) -> list[tuple[str, float]]:
         """Search for locations within radius with distance."""
         try:

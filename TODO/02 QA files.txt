@@ -1,7 +1,0 @@
-todos los archivos del proyecto, deben estar en perfecto ingles, nada de importaciones sin usar, black e isort aplicados, con docstring-google, con el pylint de al menos 9.5, tipado, con errores de ruff en 0, etc..... que la calidad de todos los acrivhos de python sea perfecta, y los archivos que no son de python perfectos tambien..... 
-
-los archivos que no se necesiten, deben borrarse, por ejemplo: examples_readme.py y no se cuales mas...... la carpeta benchmarks no se para que sirve....... 
-
-si hay archivos redudantes, tambien se deben borrar, dando prioridad de mantenerse aquellos que sigan la estructura inicial definida, si tienes dudas me lo preguntas
-
-recuerda que todos los ejemplos deben funcionar y el coverage minimo es del 95%

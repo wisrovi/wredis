@@ -44,7 +44,9 @@ class TestBaseManager:
     def test_health_check_failure(self):
         """Test health check with broken connection."""
         manager = BaseManager(verbose=False)
-        manager.redis_client = redis.StrictRedis(host="invalid", port=9999, socket_timeout=0.1)
+        manager.redis_client = redis.StrictRedis(
+            host="invalid", port=9999, socket_timeout=0.1
+        )
         with pytest.raises(OperationError):
             manager.health_check()
 
@@ -65,7 +67,9 @@ class TestBaseManager:
     def test_execute_failure(self):
         """Test execute with failing operation."""
         manager = BaseManager(verbose=False)
-        manager.redis_client = redis.StrictRedis(host="invalid", port=9999, socket_timeout=0.1)
+        manager.redis_client = redis.StrictRedis(
+            host="invalid", port=9999, socket_timeout=0.1
+        )
         with pytest.raises(OperationError):
             manager._execute("get", "key")
 

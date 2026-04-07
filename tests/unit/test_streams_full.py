@@ -54,7 +54,9 @@ class TestListenerGenericException:
             "callback": lambda x: None,
         }
 
-        stream_manager.redis_client.xgroup_create("mystream", "mygroup", id="0", mkstream=True)
+        stream_manager.redis_client.xgroup_create(
+            "mystream", "mygroup", id="0", mkstream=True
+        )
 
         call_count = [0]
 
@@ -105,14 +107,19 @@ class TestReadFromStreamDecodedMessages:
                 [(b"1-0", {b"field1": b"value1", b"field2": b"value2"})],
             )
         ]
-        with patch.object(stream_manager.redis_client, "xread", return_value=mock_result):
+        with patch.object(
+            stream_manager.redis_client, "xread", return_value=mock_result
+        ):
             messages = stream_manager.read_from_stream("mystream", count=1, block=0)
 
         assert len(messages) == 1
         assert messages[0]["stream"] == "mystream"
         assert len(messages[0]["entries"]) == 1
         assert messages[0]["entries"][0]["id"] == "1-0"
-        assert messages[0]["entries"][0]["data"] == {"field1": "value1", "field2": "value2"}
+        assert messages[0]["entries"][0]["data"] == {
+            "field1": "value1",
+            "field2": "value2",
+        }
 
     def test_read_from_stream_returns_empty_list_no_messages(self, stream_manager):
         """Test read_from_stream returns empty list when no new messages."""
@@ -131,7 +138,9 @@ class TestReadFromStreamDecodedMessages:
                 ],
             )
         ]
-        with patch.object(stream_manager.redis_client, "xread", return_value=mock_result):
+        with patch.object(
+            stream_manager.redis_client, "xread", return_value=mock_result
+        ):
             messages = stream_manager.read_from_stream("mystream", count=2, block=0)
 
         assert len(messages) == 1
@@ -140,7 +149,9 @@ class TestReadFromStreamDecodedMessages:
     def test_read_from_stream_decodes_stream_name(self, stream_manager):
         """Test read_from_stream properly decodes stream name."""
         mock_result = [(b"myteststream", [(b"1-0", {b"key": b"val"})])]
-        with patch.object(stream_manager.redis_client, "xread", return_value=mock_result):
+        with patch.object(
+            stream_manager.redis_client, "xread", return_value=mock_result
+        ):
             messages = stream_manager.read_from_stream("myteststream", count=1, block=0)
 
         assert messages[0]["stream"] == "myteststream"
@@ -148,7 +159,9 @@ class TestReadFromStreamDecodedMessages:
     def test_read_from_stream_decodes_entry_id(self, stream_manager):
         """Test read_from_stream properly decodes entry IDs."""
         mock_result = [(b"mystream", [(b"1234567890-0", {b"k": b"v"})])]
-        with patch.object(stream_manager.redis_client, "xread", return_value=mock_result):
+        with patch.object(
+            stream_manager.redis_client, "xread", return_value=mock_result
+        ):
             messages = stream_manager.read_from_stream("mystream", count=1, block=0)
 
         entry_id = messages[0]["entries"][0]["id"]
@@ -158,7 +171,9 @@ class TestReadFromStreamDecodedMessages:
     def test_read_from_stream_decodes_message_data(self, stream_manager):
         """Test read_from_stream properly decodes message data."""
         mock_result = [(b"mystream", [(b"1-0", {b"name": b"test", b"count": b"42"})])]
-        with patch.object(stream_manager.redis_client, "xread", return_value=mock_result):
+        with patch.object(
+            stream_manager.redis_client, "xread", return_value=mock_result
+        ):
             messages = stream_manager.read_from_stream("mystream", count=1, block=0)
 
         data = messages[0]["entries"][0]["data"]
@@ -168,7 +183,9 @@ class TestReadFromStreamDecodedMessages:
 class TestReadFromStreamValidationError:
     """Target line 218: re-raise ValidationError/StreamError in read_from_stream."""
 
-    def test_read_from_stream_re_raises_validation_error_empty_key(self, stream_manager):
+    def test_read_from_stream_re_raises_validation_error_empty_key(
+        self, stream_manager
+    ):
         """Test read_from_stream re-raises ValidationError for empty key."""
         with pytest.raises(ValidationError, match="Redis key cannot be empty"):
             stream_manager.read_from_stream("", count=1)
@@ -185,7 +202,9 @@ class TestWait:
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_registers_sigint_handler(self, mock_pause, mock_signal, stream_manager):
+    def test_wait_registers_sigint_handler(
+        self, mock_pause, mock_signal, stream_manager
+    ):
         """Test wait() registers a SIGINT handler and calls signal.pause()."""
         stream_manager.wait()
 
@@ -196,7 +215,9 @@ class TestWait:
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_signal_handler_calls_stop_consumers(self, mock_pause, mock_signal, stream_manager):
+    def test_wait_signal_handler_calls_stop_consumers(
+        self, mock_pause, mock_signal, stream_manager
+    ):
         """Test the SIGINT handler inside wait() calls stop_consumers()."""
 
         def capture_handler(sig, handler_func):
@@ -204,19 +225,26 @@ class TestWait:
 
         mock_signal.side_effect = capture_handler
 
-        with patch.object(stream_manager, "stop_consumers", wraps=stream_manager.stop_consumers) as mock_stop:
+        with patch.object(
+            stream_manager, "stop_consumers", wraps=stream_manager.stop_consumers
+        ) as mock_stop:
             stream_manager.wait()
             mock_stop.assert_called_once()
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_signal_handler_logs_stopping(self, mock_pause, mock_signal, stream_manager):
+    def test_wait_signal_handler_logs_stopping(
+        self, mock_pause, mock_signal, stream_manager
+    ):
         """Test the SIGINT handler logs 'Stopping stream consumers'."""
         stream_manager.wait()
 
         mock_signal.assert_called_once()
         handler_func = mock_signal.call_args[0][1]
 
-        with patch.object(stream_manager, "log") as mock_log, patch.object(stream_manager, "stop_consumers"):
+        with (
+            patch.object(stream_manager, "log") as mock_log,
+            patch.object(stream_manager, "stop_consumers"),
+        ):
             handler_func(signal.SIGINT, None)
             mock_log.assert_called_with("Stopping stream consumers")

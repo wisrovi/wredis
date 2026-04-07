@@ -59,7 +59,9 @@ class TestRedisSetManager:
         manager = RedisSetManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "smembers", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "smembers", side_effect=Exception("Redis error")
+        ):
             result = manager.get_set_members("my_set")
             assert result == set()
 
@@ -84,7 +86,9 @@ class TestRedisSetManager:
         manager = RedisSetManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "sismember", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "sismember", side_effect=Exception("Redis error")
+        ):
             result = manager.is_member("my_set", "value")
             assert result is False
 

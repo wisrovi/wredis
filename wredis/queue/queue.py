@@ -69,7 +69,9 @@ class RedisQueueManager(BaseManager):
 
         def decorator(func):
             if queue_name in self.callbacks:
-                raise QueueError(f"Callback already registered for queue '{queue_name}'")
+                raise QueueError(
+                    f"Callback already registered for queue '{queue_name}'"
+                )
             self.callbacks[queue_name] = func
             return func
 
@@ -97,13 +99,17 @@ class RedisQueueManager(BaseManager):
                 self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
+                    self.log(
+                        f"Max retries reached for queue '{queue_name}'", level="error"
+                    )
                     break
             except redis.RedisError as e:
                 self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
+                    self.log(
+                        f"Max retries reached for queue '{queue_name}'", level="error"
+                    )
                     break
 
     def start(self) -> None:
@@ -117,13 +123,17 @@ class RedisQueueManager(BaseManager):
             return
 
         if not self.callbacks:
-            raise QueueError("No callbacks registered. Use @on_message decorator first.")
+            raise QueueError(
+                "No callbacks registered. Use @on_message decorator first."
+            )
 
         self.running = True
         self._threads = []
 
         for queue_name, callback in self.callbacks.items():
-            thread = threading.Thread(target=self._consume_queue, args=(queue_name, callback), daemon=True)
+            thread = threading.Thread(
+                target=self._consume_queue, args=(queue_name, callback), daemon=True
+            )
             self._threads.append(thread)
             thread.start()
             self.log(f"Thread started for queue '{queue_name}'")
@@ -189,7 +199,9 @@ class RedisQueueManager(BaseManager):
             self.log(f"Queue '{queue_name}' length: {length}")
             return length
         except redis.RedisError as e:
-            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
+            raise QueueError(
+                f"Failed to get length of queue '{queue_name}': {e}"
+            ) from e
 
     def wait(self) -> None:
         """Keep the program running until SIGINT."""

@@ -1,10 +1,13 @@
 import asyncio
-from wredis.async_api import AsyncRedisStreamManager
+
+from wredis.aio import RedisStreamManager
 
 
 async def main():
-    manager = AsyncRedisStreamManager(host="localhost")
-    msg_id = await manager.add_to_stream("my_stream", {"event": "user_login", "user": "alice"})
+    manager = RedisStreamManager(host="localhost")
+    msg_id = await manager.add_to_stream(
+        "my_stream", {"event": "user_login", "user": "alice"}
+    )
     print(f"Message ID: {msg_id}")
     await manager.add_to_stream("my_stream", {"event": "user_logout", "user": "bob"})
 

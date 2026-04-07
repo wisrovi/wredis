@@ -40,7 +40,9 @@ class RedisStreamManager(BaseManager):
         self.consumers: dict[str, dict[str, Any]] = {}
         self.running = False
 
-    def add_to_stream(self, key: str, data: dict[str, str], ttl: int | None = None) -> str | None:
+    def add_to_stream(
+        self, key: str, data: dict[str, str], ttl: int | None = None
+    ) -> str | None:
         """Add a message to the stream.
 
         Args:
@@ -71,7 +73,9 @@ class RedisStreamManager(BaseManager):
         except redis.RedisError as e:
             raise StreamError(f"Failed to add to stream '{key}': {e}") from e
 
-    def on_message(self, stream_name: str, group_name: str, consumer_name: str) -> Callable:
+    def on_message(
+        self, stream_name: str, group_name: str, consumer_name: str
+    ) -> Callable:
         """Decorator to register a consumer for a stream.
 
         Args:
@@ -90,7 +94,9 @@ class RedisStreamManager(BaseManager):
 
         def decorator(func: Callable) -> Callable:
             if stream_name in self.consumers:
-                raise StreamError(f"Consumer already registered for stream '{stream_name}'")
+                raise StreamError(
+                    f"Consumer already registered for stream '{stream_name}'"
+                )
 
             self.consumers[stream_name] = {
                 "group_name": group_name,
@@ -115,7 +121,10 @@ class RedisStreamManager(BaseManager):
         Returns:
             Decoded message data.
         """
-        return {key.decode(): value.decode() if isinstance(value, bytes) else value for key, value in data.items()}
+        return {
+            key.decode(): value.decode() if isinstance(value, bytes) else value
+            for key, value in data.items()
+        }
 
     def _start_listener(self, stream_name: str) -> None:
         """Start a thread to listen for messages on a stream.
@@ -132,7 +141,9 @@ class RedisStreamManager(BaseManager):
         callback = consumer_info["callback"]
 
         try:
-            self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
+            self.redis_client.xgroup_create(
+                stream_name, group_name, id="0", mkstream=True
+            )
         except redis.exceptions.ResponseError:
             self.log(
                 f"Group '{group_name}' already exists for stream '{stream_name}'",
@@ -156,9 +167,13 @@ class RedisStreamManager(BaseManager):
                         for stream, entries in messages:
                             for message_id, data in entries:
                                 decoded_data = self._decode_message(data)
-                                self.log(f"Message from stream '{stream}': {decoded_data}")
+                                self.log(
+                                    f"Message from stream '{stream}': {decoded_data}"
+                                )
                                 callback(decoded_data)
-                                self.redis_client.xack(stream_name, group_name, message_id)
+                                self.redis_client.xack(
+                                    stream_name, group_name, message_id
+                                )
                 except redis.RedisError as e:
                     self.log(
                         f"Redis error on stream '{stream_name}': {e}",
@@ -174,9 +189,13 @@ class RedisStreamManager(BaseManager):
         try:
             thread.start()
         except RuntimeError as e:
-            raise StreamError(f"Failed to start listener for stream '{stream_name}': {e}") from e
+            raise StreamError(
+                f"Failed to start listener for stream '{stream_name}': {e}"
+            ) from e
 
-    def read_from_stream(self, key: str, count: int = 1, block: int | None = None) -> list:
+    def read_from_stream(
+        self, key: str, count: int = 1, block: int | None = None
+    ) -> list:
         """Read messages from a stream without a registered consumer.
 
         Args:

@@ -78,7 +78,9 @@ class TestSentinelRedisManagerInit:
     @patch("wredis.ha.sentinel.redis.Sentinel")
     def test_init_connection_error(self, mock_sentinel_cls):
         """Test initialization raises SentinelError on connection failure."""
-        mock_sentinel_cls.side_effect = redis.exceptions.ConnectionError("Connection refused")
+        mock_sentinel_cls.side_effect = redis.exceptions.ConnectionError(
+            "Connection refused"
+        )
 
         with pytest.raises(SentinelError, match="Failed to connect to Sentinel"):
             SentinelRedisManager(sentinel_nodes=SENTINEL_NODES)
@@ -181,7 +183,10 @@ class TestSentinelRedisManagerGetMaster:
         """Test get_master raises SentinelError on failure."""
         mock_sentinel = MagicMock()
         mock_master = MagicMock()
-        mock_sentinel.master_for.side_effect = [mock_master, Exception("Master unavailable")]
+        mock_sentinel.master_for.side_effect = [
+            mock_master,
+            Exception("Master unavailable"),
+        ]
         mock_sentinel_cls.return_value = mock_sentinel
 
         manager = SentinelRedisManager(sentinel_nodes=SENTINEL_NODES)
@@ -262,7 +267,10 @@ class TestSentinelRedisManagerIsMaster:
         """Test is_master returns False on exception."""
         mock_sentinel = MagicMock()
         mock_master = MagicMock()
-        mock_sentinel.master_for.side_effect = [mock_master, Exception("Connection lost")]
+        mock_sentinel.master_for.side_effect = [
+            mock_master,
+            Exception("Connection lost"),
+        ]
         mock_sentinel_cls.return_value = mock_sentinel
 
         manager = SentinelRedisManager(sentinel_nodes=SENTINEL_NODES)

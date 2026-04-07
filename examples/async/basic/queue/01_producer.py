@@ -1,9 +1,10 @@
 import asyncio
-from wredis.async_api import AsyncRedisQueueManager
+
+from wredis.aio import RedisQueueManager
 
 
 async def main():
-    manager = AsyncRedisQueueManager(host="localhost")
+    manager = RedisQueueManager(host="localhost")
     await manager.publish("tasks", {"task_id": 1, "description": "Process order"})
     await manager.publish("tasks", {"task_id": 2, "description": "Send email"}, ttl=60)
     await manager.publish("priority", {"task_id": 3, "priority": "high"})

@@ -1,3 +1,24 @@
+"""wredis - Simple and powerful Redis library for Python.
+
+Quick Start:
+    # Sync
+    from wredis.sync import RedisHashManager
+
+    manager = RedisHashManager()
+    manager.set("user:1", {"name": "Alice"})
+    user = manager.get("user:1")
+
+    # Async
+    from wredis.aioredis import AsyncRedisHashManager
+
+    async def main():
+        manager = AsyncRedisHashManager()
+        await manager.set("user:1", {"name": "Alice"})
+        user = await manager.get("user:1")
+
+For more: from wredis.sync import * or from wredis.aioredis import *
+"""
+
 from collections.abc import Callable
 from typing import Any
 

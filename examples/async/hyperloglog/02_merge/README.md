@@ -1,0 +1,41 @@
+# HyperLogLog - Merge
+
+## Description
+Demonstrates merging multiple HyperLogLog structures to calculate the union of unique elements across multiple datasets.
+
+## Code
+
+```python
+import asyncio
+from wredis.async_api import AsyncRedisHyperLogLogManager
+
+
+async def main():
+    hll = AsyncRedisHyperLogLogManager(host="localhost")
+    await hll.add("day1", "user1", "user2", "user3")
+    await hll.add("day2", "user3", "user4", "user5")
+    await hll.add("day3", "user1", "user5", "user6")
+
+    await hll.merge("total", "day1", "day2", "day3")
+
+    total = await hll.count("total")
+    print(f"Total unique: {total}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Run
+
+```bash
+python example.py
+```
+
+## Diagram
+
+```mermaid
+graph LR
+    A[Async Function] --> B[AsyncRedisHyperLogLogManager]
+    B --> C[Redis HyperLogLog]
+```

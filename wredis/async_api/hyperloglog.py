@@ -20,7 +20,9 @@ class AsyncRedisHyperLogLogManager:
         verbose: bool = True,
     ):
         """Initialize the AsyncRedisHyperLogLogManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.redis_client = redis.Redis(
+            host=host, port=port, db=db, decode_responses=True
+        )
         self.verbose = verbose
 
     async def log(self, message: str, level: str = "info") -> None:

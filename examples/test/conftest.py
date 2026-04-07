@@ -100,12 +100,20 @@ def cache_decorator():
 
 
 @pytest.fixture(autouse=True)
-def cleanup_redis(hash_manager, bitmap_manager, set_manager, sorted_set_manager, queue_manager):
+def cleanup_redis(
+    hash_manager, bitmap_manager, set_manager, sorted_set_manager, queue_manager
+):
     """Cleanup Redis after each test."""
     yield
     # Cleanup
     try:
-        for key in ["test:hash", "test:bitmap", "test:set", "test:sorted", "test:queue"]:
+        for key in [
+            "test:hash",
+            "test:bitmap",
+            "test:set",
+            "test:sorted",
+            "test:queue",
+        ]:
             try:
                 hash_manager.redis_client.delete(key)
             except Exception:

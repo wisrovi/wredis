@@ -1,9 +1,10 @@
 import asyncio
-from wredis.async_api import AsyncRedisTransactionManager
+
+from wredis.aio import RedisTransactionManager
 
 
 async def main():
-    txn = AsyncRedisTransactionManager(host="localhost")
+    txn = RedisTransactionManager(host="localhost")
 
     set_result = await txn.set_if_not_exists("lock:process_1", "locked", ttl=60)
     print(f"Lock acquired: {set_result}")

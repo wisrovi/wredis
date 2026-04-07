@@ -25,11 +25,7 @@ ignore = [
     "PLE1142",
     "RUF010",
     "F401",
-]
-exclude = [
-    "examples_readme.py",
-    "readme.py",
-    "examples/",
+    "PLR2004",
 ]
 
 [lint.isort]
