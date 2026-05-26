@@ -8,6 +8,7 @@ from collections.abc import Callable
 from typing import Any
 
 import redis
+import gzip
 
 from wredis._base import BaseManager
 from wredis._exceptions import QueueError, ValidationError
@@ -33,6 +34,7 @@ class RedisQueueManager(BaseManager):
         port: int = 6379,
         db: int = 0,
         max_retries: int = 3,
+        compress: bool = False,
         verbose: bool = True,
     ) -> None:
         """Initialize the RedisQueueManager.
@@ -51,6 +53,7 @@ class RedisQueueManager(BaseManager):
         self._threads: list[threading.Thread] = []
         self.running = False
         self.max_retries = max_retries
+        self.compress = compress
 
     def on_message(self, queue_name: str):
         """Decorator to register a callback for a queue.
@@ -91,7 +94,10 @@ class RedisQueueManager(BaseManager):
             try:
                 item = self.redis_client.brpop(queue_name, timeout=self.poll_interval)
                 if item:
-                    data = json.loads(item[1])
+                    raw = item[1]
+                    if self.compress:
+                        raw = gzip.decompress(raw).decode("utf-8")
+                    data = json.loads(raw)
                     self.log(f"Consumed from '{queue_name}': {data}")
                     callback(data)
                     retries = 0
@@ -168,6 +174,10 @@ class RedisQueueManager(BaseManager):
 
         try:
             json_data = serialize(data)
+            if self.compress:
+                # use gzip compression for large messages
+                json_data = gzip.compress(json_data.encode("utf-8"))
+
             self.redis_client.rpush(queue_name, json_data)
             self.log(f"Published to queue '{queue_name}': {data}")
 
