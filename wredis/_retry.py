@@ -16,7 +16,10 @@ def retry(
     max_attempts: int = 3,
     delay: float = 0.1,
     backoff: float = 2.0,
-    exceptions: tuple[type[Exception], ...] = (redis.ConnectionError, redis.TimeoutError),
+    exceptions: tuple[type[Exception], ...] = (
+        redis.ConnectionError,
+        redis.TimeoutError,
+    ),
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Retry decorator with exponential backoff.
 
@@ -58,7 +61,10 @@ def async_retry(
     max_attempts: int = 3,
     delay: float = 0.1,
     backoff: float = 2.0,
-    exceptions: tuple[type[Exception], ...] = (redis.ConnectionError, redis.TimeoutError),
+    exceptions: tuple[type[Exception], ...] = (
+        redis.ConnectionError,
+        redis.TimeoutError,
+    ),
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Async retry decorator with exponential backoff.
 

@@ -56,7 +56,9 @@ class TestRedisStreamManagerAddToStream:
     def test_add_to_stream_redis_error(self, stream_manager):
         """Test add_to_stream raises StreamError on Redis failure."""
         original_xadd = stream_manager.redis_client.xadd
-        stream_manager.redis_client.xadd = MagicMock(side_effect=redis.RedisError("Redis error"))
+        stream_manager.redis_client.xadd = MagicMock(
+            side_effect=redis.RedisError("Redis error")
+        )
 
         with pytest.raises(StreamError, match="Failed to add to stream"):
             stream_manager.add_to_stream("mystream", {"field": "value"})
@@ -126,7 +128,9 @@ class TestRedisStreamManagerReadFromStream:
         """Test reading from a stream with blocking."""
         stream_manager.add_to_stream("mystream", {"field": "value"})
 
-        messages = stream_manager.redis_client.xread({"mystream": "0"}, count=1, block=0)
+        messages = stream_manager.redis_client.xread(
+            {"mystream": "0"}, count=1, block=0
+        )
 
         assert messages is not None
         assert len(messages) == 1
@@ -147,7 +151,9 @@ class TestRedisStreamManagerReadFromStream:
     def test_read_from_stream_redis_error(self, stream_manager):
         """Test read_from_stream raises StreamError on Redis failure."""
         original_xread = stream_manager.redis_client.xread
-        stream_manager.redis_client.xread = MagicMock(side_effect=redis.RedisError("Redis error"))
+        stream_manager.redis_client.xread = MagicMock(
+            side_effect=redis.RedisError("Redis error")
+        )
 
         with pytest.raises(StreamError, match="Failed to read from stream"):
             stream_manager.read_from_stream("mystream", count=1)
@@ -189,7 +195,9 @@ class TestRedisStreamManagerStartListener:
     def test_start_listener_existing_group(self, stream_manager):
         """Test _start_listener handles existing group gracefully."""
         stream_manager.redis_client.xadd("mystream", {"field": "value"})
-        stream_manager.redis_client.xgroup_create("mystream", "mygroup", id="0", mkstream=True)
+        stream_manager.redis_client.xgroup_create(
+            "mystream", "mygroup", id="0", mkstream=True
+        )
 
         @stream_manager.on_message("mystream", "mygroup", "consumer1")
         def handler(data):
@@ -226,7 +234,9 @@ class TestStreamIntegration:
         received = []
 
         stream_manager.redis_client.xadd("teststream", {"data": "hello"})
-        stream_manager.redis_client.xgroup_create("teststream", "testgroup", id="0", mkstream=True)
+        stream_manager.redis_client.xgroup_create(
+            "teststream", "testgroup", id="0", mkstream=True
+        )
 
         @stream_manager.on_message("teststream", "testgroup", "testconsumer")
         def handler(data):

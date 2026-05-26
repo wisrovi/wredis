@@ -1,9 +1,10 @@
 import asyncio
 import signal
 import sys
-from wredis.async_api import AsyncRedisPubSubManager
 
-manager = AsyncRedisPubSubManager(host="localhost", verbose=False)
+from wredis.aio import RedisPubSubManager
+
+manager = RedisPubSubManager(host="localhost", verbose=False)
 
 
 @manager.on_message("channel_1")

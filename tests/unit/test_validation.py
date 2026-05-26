@@ -3,13 +3,7 @@
 import pytest
 
 from wredis._exceptions import ValidationError
-from wredis._validation import (
-    validate_bit_value,
-    validate_key,
-    validate_offset,
-    validate_score,
-    validate_ttl,
-)
+from wredis._validation import validate_bit_value, validate_key, validate_offset, validate_score, validate_ttl
 
 
 class TestValidation:

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Clean Import API**: New consistent module structure:
+  - `from wredis.sync import ...` - for all sync operations
+  - `from wredis.aio import ...` - for all async operations
+  - `from wredis import cache` - for cache decorator
+
+- **Examples Reorganization**: All 164 examples restructured to a consistent format:
+  - Each example now has its own folder (e.g., `examples/sync/base/01_basic_init/`)
+  - Each folder contains `example.py` and `README.md`
+  - READMEs include Mermaid diagrams, descriptions, and run instructions
+  - Tests can now run all examples: `pytest examples/test/test_all_examples.py`
+
+- **Examples Categories** (new structure):
+  - `async/base/` - 15 AsyncBaseManager examples
+  - `sync/base/` - 15 BaseManager examples  
+  - `sync/cache/` - 15 Cache metrics examples
+  - `sync/exceptions/` - 15 Error handling examples
+  - `sync/retry/` - 15 Retry pattern examples
+  - `sync/serializer/` - 15 Serialization examples
+  - `sync/validation/` - 15 Validation examples
+  - Plus: bitmap, geo, hash, hyperloglog, pipeline, pubsub, queue, sets, sorted_set, streams, transaction, cluster, sentinel
+
+### Changed
+
+- Removed `fakeredis` from all examples (now use real Redis)
+- Examples README files updated to English with Mermaid diagrams
+- Examples now use `from wredis.sync import ...` or `from wredis.aio import ...`
+- Simplified async examples - no manual redis client creation needed
+
+### Fixed
+
+- Example tests now properly skip long-running processes (pubsub subscribers, queue consumers)
+- AsyncBaseManager now creates connections correctly without manual injection
+
+
 ## [1.0.0] - 2026-04-03
 
 ### LTS Release

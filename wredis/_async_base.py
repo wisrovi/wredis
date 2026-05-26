@@ -44,7 +44,8 @@ class AsyncBaseManager:
             decode_responses: Decode responses to strings.
             verbose: Enable detailed logging.
         """
-        self._pool = aredis.ConnectionPool(
+        # Create client directly - this works better with redis 7.0+
+        self.redis_client = aredis.Redis(
             host=host,
             port=port,
             db=db,
@@ -53,10 +54,9 @@ class AsyncBaseManager:
             socket_timeout=socket_timeout,
             socket_connect_timeout=socket_timeout,
             retry_on_timeout=True,
-            max_connections=max_connections,
             decode_responses=decode_responses,
+            max_connections=max_connections,
         )
-        self.redis_client = aredis.Redis(connection_pool=self._pool)
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
@@ -107,9 +107,9 @@ class AsyncBaseManager:
         ) from last_exception
 
     async def close(self) -> None:
-        """Close the connection pool."""
-        await self._pool.disconnect()
-        self.log("Connection pool closed")
+        """Close the Redis connection."""
+        await self.redis_client.aclose()
+        self.log("Connection closed")
 
     async def __aenter__(self) -> "AsyncBaseManager":
         return self

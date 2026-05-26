@@ -8,6 +8,7 @@ from collections.abc import Callable
 from typing import Any
 
 import redis
+import gzip
 
 from wredis._base import BaseManager
 from wredis._exceptions import QueueError, ValidationError
@@ -33,6 +34,7 @@ class RedisQueueManager(BaseManager):
         port: int = 6379,
         db: int = 0,
         max_retries: int = 3,
+        compress: bool = False,
         verbose: bool = True,
     ) -> None:
         """Initialize the RedisQueueManager.
@@ -51,6 +53,7 @@ class RedisQueueManager(BaseManager):
         self._threads: list[threading.Thread] = []
         self.running = False
         self.max_retries = max_retries
+        self.compress = compress
 
     def on_message(self, queue_name: str):
         """Decorator to register a callback for a queue.
@@ -69,7 +72,9 @@ class RedisQueueManager(BaseManager):
 
         def decorator(func):
             if queue_name in self.callbacks:
-                raise QueueError(f"Callback already registered for queue '{queue_name}'")
+                raise QueueError(
+                    f"Callback already registered for queue '{queue_name}'"
+                )
             self.callbacks[queue_name] = func
             return func
 
@@ -89,7 +94,10 @@ class RedisQueueManager(BaseManager):
             try:
                 item = self.redis_client.brpop(queue_name, timeout=self.poll_interval)
                 if item:
-                    data = json.loads(item[1])
+                    raw = item[1]
+                    if self.compress:
+                        raw = gzip.decompress(raw).decode("utf-8")
+                    data = json.loads(raw)
                     self.log(f"Consumed from '{queue_name}': {data}")
                     callback(data)
                     retries = 0
@@ -97,13 +105,17 @@ class RedisQueueManager(BaseManager):
                 self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
+                    self.log(
+                        f"Max retries reached for queue '{queue_name}'", level="error"
+                    )
                     break
             except redis.RedisError as e:
                 self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries reached for queue '{queue_name}'", level="error")
+                    self.log(
+                        f"Max retries reached for queue '{queue_name}'", level="error"
+                    )
                     break
 
     def start(self) -> None:
@@ -117,13 +129,17 @@ class RedisQueueManager(BaseManager):
             return
 
         if not self.callbacks:
-            raise QueueError("No callbacks registered. Use @on_message decorator first.")
+            raise QueueError(
+                "No callbacks registered. Use @on_message decorator first."
+            )
 
         self.running = True
         self._threads = []
 
         for queue_name, callback in self.callbacks.items():
-            thread = threading.Thread(target=self._consume_queue, args=(queue_name, callback), daemon=True)
+            thread = threading.Thread(
+                target=self._consume_queue, args=(queue_name, callback), daemon=True
+            )
             self._threads.append(thread)
             thread.start()
             self.log(f"Thread started for queue '{queue_name}'")
@@ -158,6 +174,10 @@ class RedisQueueManager(BaseManager):
 
         try:
             json_data = serialize(data)
+            if self.compress:
+                # use gzip compression for large messages
+                json_data = gzip.compress(json_data.encode("utf-8"))
+
             self.redis_client.rpush(queue_name, json_data)
             self.log(f"Published to queue '{queue_name}': {data}")
 
@@ -189,7 +209,9 @@ class RedisQueueManager(BaseManager):
             self.log(f"Queue '{queue_name}' length: {length}")
             return length
         except redis.RedisError as e:
-            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
+            raise QueueError(
+                f"Failed to get length of queue '{queue_name}': {e}"
+            ) from e
 
     def wait(self) -> None:
         """Keep the program running until SIGINT."""

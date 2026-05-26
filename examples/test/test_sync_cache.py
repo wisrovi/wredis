@@ -32,8 +32,9 @@ def test_cache_with_dict():
 
 def test_cache_ttl():
     """Test cache TTL."""
-    from wredis.decorators import cache
     import time
+
+    from wredis.decorators import cache
 
     @cache(ttl=1, prefix="test")
     def slow_function():

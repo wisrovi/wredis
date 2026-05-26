@@ -1,11 +1,12 @@
 """Async Hash Example - Read"""
 
 import asyncio
-from wredis.async_api import AsyncRedisHashManager
+
+from wredis.aio import RedisHashManager
 
 
 async def main():
-    manager = AsyncRedisHashManager(host="localhost")
+    manager = RedisHashManager(host="localhost")
 
     user1 = await manager.read_hash("my_hash", "user:1")
     all_users = await manager.read_all_hash("my_hash")

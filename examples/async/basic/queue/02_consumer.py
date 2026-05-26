@@ -1,7 +1,8 @@
 import asyncio
-from wredis.async_api import AsyncRedisQueueManager
 
-manager = AsyncRedisQueueManager(poll_interval=2, host="localhost", verbose=False)
+from wredis.aio import RedisQueueManager
+
+manager = RedisQueueManager(poll_interval=2, host="localhost", verbose=False)
 
 
 @manager.on_message("tasks")

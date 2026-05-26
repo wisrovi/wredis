@@ -42,7 +42,9 @@ class TestRedisTransactionManager:
         manager = RedisTransactionManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
+        ):
             result = manager.execute_transaction([("set", ["k", "v"])])
             assert result is None
 
@@ -89,7 +91,9 @@ class TestRedisTransactionManager:
         manager = RedisTransactionManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "set", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "set", side_effect=Exception("Redis error")
+        ):
             result = manager.set_if_not_exists("key", "value")
             assert result is False
 
@@ -121,7 +125,9 @@ class TestRedisTransactionManager:
         manager = RedisTransactionManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "incrby", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "incrby", side_effect=Exception("Redis error")
+        ):
             result = manager.increment_atomic("key", 1)
             assert result == 0
 
@@ -142,6 +148,8 @@ class TestRedisTransactionManager:
         manager = RedisTransactionManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
+        ):
             result = manager.get_and_set("key", "value")
             assert result is None

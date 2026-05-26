@@ -104,7 +104,9 @@ class TestRedisSortedSetManager:
         m = RedisSortedSetManager(host="localhost", verbose=False)
         m.redis_client = redis_client
 
-        with patch.object(redis_client, "zrevrange", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "zrevrange", side_effect=Exception("Redis error")
+        ):
             result = m.get_sorted_set_reverse("my_zset")
             assert result == []
 
@@ -270,7 +272,9 @@ class TestRedisSortedSetManager:
         m = RedisSortedSetManager(host="localhost", verbose=False)
         m.redis_client = redis_client
 
-        with patch.object(redis_client, "zincrby", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "zincrby", side_effect=Exception("Redis error")
+        ):
             m.increment_score("my_zset", 1, "a")
 
     def test_get_sorted_set_by_score(self, redis_client):
@@ -297,6 +301,8 @@ class TestRedisSortedSetManager:
         m = RedisSortedSetManager(host="localhost", verbose=False)
         m.redis_client = redis_client
 
-        with patch.object(redis_client, "zrangebyscore", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "zrangebyscore", side_effect=Exception("Redis error")
+        ):
             result = m.get_sorted_set_by_score("my_zset", 1, 5)
             assert result == []

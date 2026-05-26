@@ -45,7 +45,9 @@ class RedisHashManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def create_hash(self, hash_name: str, key: str, value: dict | str, ttl: int = -1) -> None:
+    def create_hash(
+        self, hash_name: str, key: str, value: dict | str, ttl: int = -1
+    ) -> None:
         """
         Writes a key-value pair into a Redis hash and optionally sets a TTL.
 
@@ -110,7 +112,9 @@ class RedisHashManager:
             if isinstance(current_value, dict):
                 current_value.update(new_data)
                 self.create_hash(hash_name, key, current_value)
-                self.log(f"Updated field '{key}' in hash '{hash_name}': {current_value}")
+                self.log(
+                    f"Updated field '{key}' in hash '{hash_name}': {current_value}"
+                )
             else:
                 self.create_hash(hash_name, key, new_data)
                 self.log(f"Added new field '{key}' to hash '{hash_name}': {new_data}")
@@ -160,7 +164,9 @@ class RedisHashManager:
                 self.log(f"Read all fields from hash '{hash_name}': {items}")
                 return items
             else:
-                self.log(f"Hash '{hash_name}' is empty or does not exist.", level="warning")
+                self.log(
+                    f"Hash '{hash_name}' is empty or does not exist.", level="warning"
+                )
                 return None
         except Exception as e:
             logger.error(f"Error reading all fields from hash '{hash_name}': {e}")

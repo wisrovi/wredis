@@ -90,7 +90,9 @@ class TestRedisBitmapManager:
         manager = RedisBitmapManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "bitcount", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "bitcount", side_effect=Exception("Redis error")
+        ):
             result = manager.count_bits("my_bitmap")
             assert result == 0
 

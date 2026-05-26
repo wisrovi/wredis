@@ -105,7 +105,9 @@ class TestAsyncRedisGeoManagerGetDistance:
     @pytest.mark.asyncio
     async def test_get_distance_nonexistent_key(self, async_client, manager):
         manager.redis_client = async_client
-        distance = await manager.get_distance("nonexistent", "Paris", "London", unit="km")
+        distance = await manager.get_distance(
+            "nonexistent", "Paris", "London", unit="km"
+        )
         assert distance is None
 
     @pytest.mark.asyncio
@@ -182,7 +184,9 @@ class TestAsyncRedisGeoManagerSearchNearby:
         manager.redis_client = async_client
         await manager.add_location("cities", "Paris", 2.3522, 48.8566)
         await manager.add_location("cities", "Lyon", 4.8357, 45.7640)
-        results = await manager.search_nearby("cities", 2.3522, 48.8566, 1000, unit="km", count=1)
+        results = await manager.search_nearby(
+            "cities", 2.3522, 48.8566, 1000, unit="km", count=1
+        )
         assert len(results) <= 1
 
     @pytest.mark.asyncio
@@ -215,7 +219,9 @@ class TestAsyncRedisGeoManagerSearchNearbyWithDistance:
         manager.redis_client = async_client
         await manager.add_location("cities", "Paris", 2.3522, 48.8566)
         await manager.add_location("cities", "Lyon", 4.8357, 45.7640)
-        results = await manager.search_nearby_with_distance("cities", 2.3522, 48.8566, 500, unit="km")
+        results = await manager.search_nearby_with_distance(
+            "cities", 2.3522, 48.8566, 500, unit="km"
+        )
         assert len(results) >= 1
         for item in results:
             assert len(item) == 2
@@ -225,13 +231,17 @@ class TestAsyncRedisGeoManagerSearchNearbyWithDistance:
         manager.redis_client = async_client
         await manager.add_location("cities", "Paris", 2.3522, 48.8566)
         await manager.add_location("cities", "Lyon", 4.8357, 45.7640)
-        results = await manager.search_nearby_with_distance("cities", 2.3522, 48.8566, 1000, unit="km", count=1)
+        results = await manager.search_nearby_with_distance(
+            "cities", 2.3522, 48.8566, 1000, unit="km", count=1
+        )
         assert len(results) <= 1
 
     @pytest.mark.asyncio
     async def test_search_nearby_with_distance_empty_key(self, async_client, manager):
         manager.redis_client = async_client
-        results = await manager.search_nearby_with_distance("nonexistent", 0, 0, 100, unit="km")
+        results = await manager.search_nearby_with_distance(
+            "nonexistent", 0, 0, 100, unit="km"
+        )
         assert results == []
 
     @pytest.mark.asyncio

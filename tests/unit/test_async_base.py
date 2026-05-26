@@ -42,7 +42,9 @@ class TestAsyncBaseManager:
     async def test_health_check_failure(self):
         """Test health check with broken connection."""
         manager = AsyncBaseManager(verbose=False)
-        manager.redis_client = aredis.Redis(host="invalid", port=9999, socket_timeout=0.1)
+        manager.redis_client = aredis.Redis(
+            host="invalid", port=9999, socket_timeout=0.1
+        )
         with pytest.raises(OperationError):
             await manager.health_check()
 
@@ -66,7 +68,9 @@ class TestAsyncBaseManager:
     async def test_execute_failure(self):
         """Test execute with failing operation."""
         manager = AsyncBaseManager(verbose=False)
-        manager.redis_client = aredis.Redis(host="invalid", port=9999, socket_timeout=0.1)
+        manager.redis_client = aredis.Redis(
+            host="invalid", port=9999, socket_timeout=0.1
+        )
         with pytest.raises(OperationError):
             await manager._execute("get", "key")
 

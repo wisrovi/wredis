@@ -165,7 +165,9 @@ class TestRedisHashManager:
         m = RedisHashManager(host="localhost", verbose=False)
         m.redis_client = redis_client
 
-        with patch.object(redis_client, "hgetall", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "hgetall", side_effect=Exception("Redis error")
+        ):
             result = m.read_all_hash("my_hash")
             assert result is None
 

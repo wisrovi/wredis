@@ -1,0 +1,29 @@
+import asyncio
+import signal
+import sys
+
+from wredis.aio import RedisPubSubManager
+
+manager = RedisPubSubManager(host="localhost", verbose=False)
+
+
+@manager.on_message("channel_1")
+def handle_message(message):
+    print(f"[channel_1] Mensaje recibido: {message}")
+
+
+@manager.on_message("channel_2")
+def handle_channel_2(message):
+    print(f"[channel_2] Mensaje recibido: {message}")
+
+
+def signal_handler(sig, frame):
+    print("\nDeteniendo programa...")
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
+
+print("Listening... Press Ctrl+C to exit")
+asyncio.get_event_loop().run_until_complete(manager.start())
+signal.pause()

@@ -30,7 +30,9 @@ class RedisTransactionManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def execute_transaction(self, commands: list[tuple[str, list[Any]]]) -> list[Any] | None:
+    def execute_transaction(
+        self, commands: list[tuple[str, list[Any]]]
+    ) -> list[Any] | None:
         """Execute multiple commands in a transaction.
 
         Args:
@@ -50,7 +52,9 @@ class RedisTransactionManager:
             logger.error(f"Error executing transaction: {e}")
             return None
 
-    def watch_and_execute(self, keys: list[str], commands: list[tuple[str, list[Any]]]) -> list[Any] | None:
+    def watch_and_execute(
+        self, keys: list[str], commands: list[tuple[str, list[Any]]]
+    ) -> list[Any] | None:
         """Watch keys and execute transaction.
 
         Args:
@@ -89,7 +93,9 @@ class RedisTransactionManager:
             True if set, False if key exists.
         """
         try:
-            result = self.redis_client.set(key, value, nx=True, ex=ttl if ttl > 0 else None)
+            result = self.redis_client.set(
+                key, value, nx=True, ex=ttl if ttl > 0 else None
+            )
             self.log(f"SET NX result for '{key}': {result}")
             return result is not None
         except Exception as e:
@@ -107,7 +113,11 @@ class RedisTransactionManager:
             New value.
         """
         try:
-            result = self.redis_client.incrby(key, amount) if amount > 0 else self.redis_client.decrby(key, abs(amount))
+            result = (
+                self.redis_client.incrby(key, amount)
+                if amount > 0
+                else self.redis_client.decrby(key, abs(amount))
+            )
             self.log(f"Incremented '{key}' to {result}")
             return result
         except Exception as e:
