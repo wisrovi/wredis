@@ -1,4 +1,5 @@
 """Base manager for all WRedis sync managers."""
+from __future__ import annotations
 
 from typing import Any
 

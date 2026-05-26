@@ -39,5 +39,5 @@ setup(
     author="William Steve Rodriguez Villamizar",
     author_email="wisrovi.rodriguez@gmail.com",
     license="MIT",
-    python_requires=">=3.6, <3.12",  # Requiere Python >=3.6 y <3.10
+    python_requires=">=3.9",
 )

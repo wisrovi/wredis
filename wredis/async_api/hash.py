@@ -1,4 +1,5 @@
 """Async Redis Hash Manager."""
+from __future__ import annotations
 
 import contextlib
 import json

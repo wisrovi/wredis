@@ -31,6 +31,7 @@ Available:
     - CacheMetrics: Metrics tracking for cache
     - cache: Cache decorator
 """
+from __future__ import annotations
 
 from wredis._base import BaseManager
 from wredis.bitmap import RedisBitmapManager

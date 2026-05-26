@@ -1,4 +1,5 @@
 """Async Redis Sorted Set Manager."""
+from __future__ import annotations
 
 import redis.asyncio as redis
 from loguru import logger

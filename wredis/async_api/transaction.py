@@ -1,4 +1,5 @@
 """Async Redis Transaction Manager - atomic operations with WATCH/MULTI/EXEC."""
+from __future__ import annotations
 
 from typing import Any
 

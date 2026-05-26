@@ -1,4 +1,5 @@
 """Async Redis Pub/Sub Manager - real asyncio, no threads."""
+from __future__ import annotations
 
 import asyncio
 import contextlib

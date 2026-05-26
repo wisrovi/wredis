@@ -1,3 +1,4 @@
+from __future__ import annotations
 import redis
 from loguru import logger
 

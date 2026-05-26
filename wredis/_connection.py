@@ -1,4 +1,5 @@
 """Connection factories for WRedis."""
+from __future__ import annotations
 
 import ssl
 from typing import Any

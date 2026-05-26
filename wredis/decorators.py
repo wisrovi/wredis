@@ -1,4 +1,5 @@
 """Cache decorators for WRedis with metrics tracking."""
+from __future__ import annotations
 
 import functools
 import hashlib

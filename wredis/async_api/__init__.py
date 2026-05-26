@@ -1,4 +1,5 @@
 """Async Redis managers for WRedis."""
+from __future__ import annotations
 
 from wredis.async_api.bitmap import AsyncRedisBitmapManager
 from wredis.async_api.geo import AsyncRedisGeoManager

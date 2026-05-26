@@ -1,4 +1,5 @@
 """Redis Geo Manager - Geographic operations with Redis."""
+from __future__ import annotations
 
 from typing import Any
 

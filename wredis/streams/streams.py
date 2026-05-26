@@ -1,4 +1,5 @@
 """Redis Stream Manager with proper error handling and validation."""
+from __future__ import annotations
 
 import signal
 import sys
