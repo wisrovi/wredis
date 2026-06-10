@@ -1,3 +1,5 @@
+
+
 # WRedis
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
@@ -8,6 +10,10 @@
 [![LTS](https://img.shields.io/badge/LTS-v1.0.0-orange.svg)]()
 
 **WRedis v1.0.0 LTS** — Production-ready Python library for Redis with real async/await, cache decorators, high availability, and comprehensive type safety.
+
+<img width="1452" height="826" alt="image" src="https://github.com/user-attachments/assets/ec5277c7-ec3d-4df2-88a3-37937a318133" />
+
+
 
 ## Description
 
