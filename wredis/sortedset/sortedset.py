@@ -64,6 +64,25 @@ class RedisSortedSetManager:
         except Exception as e:
             logger.error(f"Error adding to sorted set '{key}': {e}")
 
+    def exist(self, key: str) -> bool:
+        """
+        Checks if a sorted set key exists.
+
+        Args:
+            key (str): Name of the sorted set in Redis.
+
+        Returns:
+            bool: True if the sorted set exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of sorted set '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of sorted set '{key}': {e}")
+            return False
+
     def get_sorted_set(
         self, key: str, start: int = 0, stop: int = -1, with_scores: bool = False
     ) -> list[str] | list[tuple[str, float]]:

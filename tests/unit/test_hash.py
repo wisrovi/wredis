@@ -45,6 +45,23 @@ class TestRedisHashManager:
         with patch.object(redis_client, "hset", side_effect=Exception("Redis error")):
             m.create_hash("my_hash", "key1", "value")
 
+    def test_exist(self, redis_client):
+        """Test existence check."""
+        m = RedisHashManager(host="localhost", verbose=False)
+        m.redis_client = redis_client
+
+        redis_client.hset("my_hash", "key1", b"value")
+        assert m.exist("my_hash") is True
+        assert m.exist("nonexistent") is False
+
+    def test_exist_error(self, redis_client):
+        """Test exist with error handling."""
+        m = RedisHashManager(host="localhost", verbose=False)
+        m.redis_client = redis_client
+
+        with patch.object(redis_client, "exists", side_effect=Exception("Redis error")):
+            assert m.exist("my_hash") is False
+
     def test_read_hash_exists(self, redis_client):
         """Test reading existing hash field."""
         m = RedisHashManager(host="localhost", verbose=False)

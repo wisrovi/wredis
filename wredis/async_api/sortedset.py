@@ -43,6 +43,25 @@ class AsyncRedisSortedSetManager:
         except Exception as e:
             logger.error(f"Error adding to sorted set '{key}': {e}")
 
+    async def exist(self, key: str) -> bool:
+        """
+        Checks if a sorted set key exists asynchronously.
+
+        Args:
+            key (str): Name of the sorted set in Redis.
+
+        Returns:
+            bool: True if the sorted set exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of sorted set '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of sorted set '{key}': {e}")
+            return False
+
     async def get_sorted_set(
         self, key: str, start: int = 0, stop: int = -1, with_scores: bool = False
     ) -> list[str] | list[tuple[str, float]]:

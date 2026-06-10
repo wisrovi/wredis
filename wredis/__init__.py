@@ -3,22 +3,22 @@
 Quick Start:
     # Sync
     from wredis.sync import RedisHashManager
-
     manager = RedisHashManager()
-    manager.set("user:1", {"name": "Alice"})
-    user = manager.get("user:1")
+    manager.create_hash("user:1", "profile", {"name": "Alice"})
+    user = manager.read_hash("user:1", "profile")
 
     # Async
-    from wredis.aioredis import AsyncRedisHashManager
-
+    from wredis.aio import RedisHashManager
     async def main():
-        manager = AsyncRedisHashManager()
-        await manager.set("user:1", {"name": "Alice"})
-        user = await manager.get("user:1")
+        manager = RedisHashManager()
+        await manager.create_hash("user:1", "profile", {"name": "Alice"})
+        user = await manager.read_hash("user:1", "profile")
 
-For more: from wredis.sync import * or from wredis.aioredis import *
+For more: from wredis.sync import ... or from wredis.aio import ...
 """
 from __future__ import annotations
+
+__version__ = "1.0.0"
 
 from collections.abc import Callable
 from typing import Any

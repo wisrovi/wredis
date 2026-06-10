@@ -43,6 +43,25 @@ class AsyncRedisGeoManager:
         except Exception as e:
             logger.error(f"Error adding location to key '{key}': {e}")
 
+    async def exist(self, key: str) -> bool:
+        """
+        Checks if a geo key exists asynchronously.
+
+        Args:
+            key (str): The Redis key for geographic data.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of geo key '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of geo key '{key}': {e}")
+            return False
+
     async def get_distance(
         self, key: str, location1: str, location2: str, unit: str = "km"
     ) -> float | None:

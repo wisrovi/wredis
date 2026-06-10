@@ -82,6 +82,25 @@ class RedisBitmapManager:
             logger.error(f"Error retrieving bit from '{key}': {e}")
             return 0
 
+    def exist(self, key: str) -> bool:
+        """
+        Checks if a bitmap key exists.
+
+        Args:
+            key (str): The Redis key for the bitmap.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of bitmap '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of bitmap '{key}': {e}")
+            return False
+
     def count_bits(self, key: str) -> int:
         """
         Counts the number of bits set to 1 in a bitmap.

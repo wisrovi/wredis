@@ -11,13 +11,15 @@ from pathlib import Path
 import pytest
 
 SKIP_PATTERNS = [
-    # Long-running examples (consumers, subscribers)
+    # Long-running examples (consumers, subscribers, TTL waits)
     "pubsub/02_subscriber",
     "pubsub/04_simple_subscriber",
     "queue/02_consumer",
     "streams/02_consumer",
     "queue/01_producer",  # may interfere with consumer test
     "streams/01_producer",  # may interfere with consumer test
+    "basic/queue",  # consumer runs indefinitely
+    "sync/hash/06_exist",  # waits for TTL expiration (60s loop)
     # Require special infrastructure
     "cluster",  # requires Redis cluster
     "sentinel",  # requires Redis sentinel
@@ -29,12 +31,9 @@ SKIP_PATTERNS = [
     "async/cluster",
     # Known issues (need code fixes)
     "exceptions/10_logging_integration",  # logging message key conflict
-    "base/13_unit_testing",  # test infrastructure issue
     "cache/06_invalidation_impact",  # timing issue
     "cache/12_custom_key_builder",  # timing issue
     "exceptions/07_operation_error_recovery",  # test issue
-    "sync/base/11_batch_operations",  # batch operations issue
-    "sync/cache/13_error_handling_metrics",  # mock error test issue
 ]
 
 

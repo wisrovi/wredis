@@ -79,6 +79,23 @@ class AsyncBaseManager:
         except aredis.RedisError as e:
             raise OperationError(f"Redis health check failed: {e}") from e
 
+    async def exist(self, key: str) -> bool:
+        """Check if a key exists in Redis.
+
+        Args:
+            key: The key to check.
+
+        Returns:
+            True if key exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of key '{key}': {exists}")
+            return exists
+        except aredis.RedisError as e:
+            raise OperationError(f"Redis exists failed: {e}") from e
+
     async def _execute(self, operation: str, *args: Any, **kwargs: Any) -> Any:
         """Execute a Redis operation with retry.
 
@@ -95,9 +112,46 @@ class AsyncBaseManager:
         backoff = 2.0
         last_exception: Exception | None = None
 
+        # Handle common aliases
+        if operation == "push":
+            operation = "rpush"
+
         for attempt in range(max_attempts):
             try:
-                return await getattr(self.redis_client, operation)(*args, **kwargs)
+                result = await getattr(self.redis_client, operation)(*args, **kwargs)
+                
+                # Auto-decode for convenience while preserving binary data
+                if isinstance(result, bytes):
+                    try:
+                        return result.decode("utf-8")
+                    except UnicodeDecodeError:
+                        return result
+                if isinstance(result, list):
+                    decoded_list = []
+                    for item in result:
+                        if isinstance(item, bytes):
+                            try:
+                                decoded_list.append(item.decode("utf-8"))
+                            except UnicodeDecodeError:
+                                decoded_list.append(item)
+                        else:
+                            decoded_list.append(item)
+                    return decoded_list
+                if isinstance(result, dict):
+                    decoded_dict = {}
+                    for k, v in result.items():
+                        dk = k.decode("utf-8") if isinstance(k, bytes) else k
+                        if isinstance(v, bytes):
+                            try:
+                                dv = v.decode("utf-8")
+                            except UnicodeDecodeError:
+                                dv = v
+                        else:
+                            dv = v
+                        decoded_dict[dk] = dv
+                    return decoded_dict
+                    
+                return result
             except aredis.RedisError as e:
                 last_exception = e
                 if attempt < max_attempts - 1:

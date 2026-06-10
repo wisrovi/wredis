@@ -53,6 +53,25 @@ class AsyncRedisSetManager:
             logger.error(f"Error retrieving members of set '{key}': {e}")
             return set()
 
+    async def exist(self, key: str) -> bool:
+        """
+        Checks if a set key exists asynchronously.
+
+        Args:
+            key (str): Name of the set in Redis.
+
+        Returns:
+            bool: True if the set exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of set '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of set '{key}': {e}")
+            return False
+
     async def is_member(self, key: str, value: str) -> bool:
         """Check if an element is a member of the set."""
         try:

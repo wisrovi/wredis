@@ -140,7 +140,7 @@ def cache(
                         return json.loads(cached)
                     except json.JSONDecodeError:
                         return cached
-            except redis.RedisError as e:
+            except Exception as e:
                 _metrics.record_error()
                 raise CacheError(f"Error reading from cache: {e}") from e
 
@@ -150,7 +150,7 @@ def cache(
             try:
                 cache_value = json.dumps(result, default=str) if not isinstance(result, (str, bytes)) else result
                 _redis.setex(cache_key, ttl, cache_value)
-            except redis.RedisError as e:
+            except Exception as e:
                 _metrics.record_error()
                 raise CacheError(f"Error writing to cache: {e}") from e
 
@@ -199,7 +199,7 @@ def async_cache(
                         return json.loads(cached)
                     except json.JSONDecodeError:
                         return cached
-            except aredis.RedisError as e:
+            except Exception as e:
                 _metrics.record_error()
                 raise CacheError(f"Error reading from cache: {e}") from e
 
@@ -209,7 +209,7 @@ def async_cache(
             try:
                 cache_value = json.dumps(result, default=str) if not isinstance(result, (str, bytes)) else result
                 await _redis.setex(cache_key, ttl, cache_value)
-            except aredis.RedisError as e:
+            except Exception as e:
                 _metrics.record_error()
                 raise CacheError(f"Error writing to cache: {e}") from e
 

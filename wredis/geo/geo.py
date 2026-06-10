@@ -50,6 +50,25 @@ class RedisGeoManager:
         except Exception as e:
             logger.error(f"Error adding location to key '{key}': {e}")
 
+    def exist(self, key: str) -> bool:
+        """
+        Checks if a geo key exists.
+
+        Args:
+            key (str): The Redis key for geographic data.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of geo key '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of geo key '{key}': {e}")
+            return False
+
     def get_distance(
         self, key: str, location1: str, location2: str, unit: str = "km"
     ) -> float | None:

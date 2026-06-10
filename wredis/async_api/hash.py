@@ -61,6 +61,25 @@ class AsyncRedisHashManager:
         except Exception as e:
             logger.error(f"Error writing to hash '{hash_name}': {e}")
 
+    async def exist(self, hash_name: str) -> bool:
+        """
+        Checks if a Redis hash exists asynchronously.
+
+        Args:
+            hash_name (str): Name of the hash in Redis.
+
+        Returns:
+            bool: True if the hash exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(hash_name)
+            exists = result > 0
+            await self.log(f"Check existence of hash '{hash_name}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of hash '{hash_name}': {e}")
+            return False
+
     async def read_hash(self, hash_name: str, key: str) -> dict | str | None:
         """Read a key-value pair from a Redis hash.
 

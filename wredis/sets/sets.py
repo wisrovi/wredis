@@ -80,6 +80,25 @@ class RedisSetManager:
             logger.error(f"Error retrieving members of set '{key}': {e}")
             return set()
 
+    def exist(self, key: str) -> bool:
+        """
+        Checks if a set key exists.
+
+        Args:
+            key (str): Name of the set in Redis.
+
+        Returns:
+            bool: True if the set exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of set '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of set '{key}': {e}")
+            return False
+
     def is_member(self, key: str, value: str) -> bool:
         """
         Checks if an element is a member of the set.

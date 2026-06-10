@@ -39,6 +39,25 @@ class AsyncRedisHyperLogLogManager:
         except Exception as e:
             logger.error(f"Error adding to HyperLogLog '{key}': {e}")
 
+    async def exist(self, key: str) -> bool:
+        """
+        Checks if a HyperLogLog key exists asynchronously.
+
+        Args:
+            key (str): The Redis key for the HyperLogLog.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of HLL key '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of HLL key '{key}': {e}")
+            return False
+
     async def count(self, *keys: str) -> int:
         """Get estimated unique element count."""
         try:

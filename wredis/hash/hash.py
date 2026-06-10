@@ -69,6 +69,25 @@ class RedisHashManager:
         except Exception as e:
             logger.error(f"Error writing to hash '{hash_name}': {e}")
 
+    def exist(self, hash_name: str) -> bool:
+        """
+        Checks if a Redis hash exists.
+
+        Args:
+            hash_name (str): Name of the hash in Redis.
+
+        Returns:
+            bool: True if the hash exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(hash_name)
+            exists = result > 0
+            self.log(f"Check existence of hash '{hash_name}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of hash '{hash_name}': {e}")
+            return False
+
     def read_hash(self, hash_name: str, key: str) -> dict | str | None:
         """
         Reads a key-value pair from a Redis hash.

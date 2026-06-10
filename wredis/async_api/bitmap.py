@@ -80,6 +80,25 @@ class AsyncRedisBitmapManager:
             logger.error(f"Error retrieving bit from '{key}': {e}")
             return 0
 
+    async def exist(self, key: str) -> bool:
+        """
+        Checks if a bitmap key exists asynchronously.
+
+        Args:
+            key (str): The Redis key for the bitmap.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = await self.redis_client.exists(key)
+            exists = result > 0
+            await self.log(f"Check existence of bitmap '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of bitmap '{key}': {e}")
+            return False
+
     async def count_bits(self, key: str) -> int:
         """Count the number of bits set to 1 in a bitmap.
 

@@ -74,6 +74,28 @@ class TestAsyncRedisHashManagerCreateHash:
         mock_client.hset.assert_called_once()
 
 
+class TestAsyncRedisHashManagerExist:
+    """Tests for exist method."""
+
+    @pytest.mark.asyncio
+    async def test_exist_true(self, async_client, manager):
+        manager.redis_client = async_client
+        await async_client.hset("myhash", "f", "v")
+        assert await manager.exist("myhash") is True
+
+    @pytest.mark.asyncio
+    async def test_exist_false(self, async_client, manager):
+        manager.redis_client = async_client
+        assert await manager.exist("nonexistent") is False
+
+    @pytest.mark.asyncio
+    async def test_exist_error(self, manager):
+        mock_client = AsyncMock()
+        mock_client.exists.side_effect = Exception("error")
+        manager.redis_client = mock_client
+        assert await manager.exist("myhash") is False
+
+
 class TestAsyncRedisHashManagerReadHash:
     """Tests for read_hash method."""
 

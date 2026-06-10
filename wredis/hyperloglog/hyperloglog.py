@@ -44,6 +44,25 @@ class RedisHyperLogLogManager:
         except Exception as e:
             logger.error(f"Error adding to HyperLogLog '{key}': {e}")
 
+    def exist(self, key: str) -> bool:
+        """
+        Checks if a HyperLogLog key exists.
+
+        Args:
+            key (str): The Redis key for the HyperLogLog.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of HLL key '{key}': {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Error checking existence of HLL key '{key}': {e}")
+            return False
+
     def count(self, *keys: str) -> int:
         """Get estimated unique element count.
 

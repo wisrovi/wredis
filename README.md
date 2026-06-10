@@ -3,11 +3,17 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/badge/style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![PyPI](https://img.shields.io/badge/pypi-v0.9.6-blue.svg)](https://pypi.org/project/wredis/)
+[![PyPI](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/wredis/)
 [![Coverage](https://img.shields.io/badge/coverage-95%25%2B-brightgreen.svg)]()
-[![LTS](https://img.shields.io/badge/LTS-v0.9.6-orange.svg)]()
+[![LTS](https://img.shields.io/badge/LTS-v1.0.0-orange.svg)]()
 
 **WRedis** — Production-ready Python library for Redis with sync/async APIs, cache decorators, high availability, and comprehensive type safety.
+
+
+<img width="1452" height="826" alt="image" src="https://github.com/user-attachments/assets/ec5277c7-ec3d-4df2-88a3-37937a318133" />
+
+
+
 
 ---
 
@@ -65,7 +71,7 @@ print(bm.get_bit("my_bitmap", 0))   # 0
 print(bm.count_bits("my_bitmap"))    # 1
 ```
 
-**Methods:** `set_bit`, `get_bit`, `count_bits`, `get_ttl`, `extend_ttl`
+**Methods:** `set_bit`, `get_bit`, `exist`, `count_bits`, `get_ttl`, `extend_ttl`
 
 ---
 
@@ -80,9 +86,10 @@ user = hm.read_hash("users", "user:1")
 all_users = hm.read_all_hash("users")
 hm.update_hash("users", "user:1", {"age": 31})
 hm.delete_hash_field("users", "user:2")
+exists = hm.exist("users")
 ```
 
-**Methods:** `create_hash`, `read_hash`, `update_hash`, `delete_hash_field`, `read_all_hash`, `get_ttl`, `extend_ttl`
+**Methods:** `create_hash`, `read_hash`, `exist`, `update_hash`, `delete_hash_field`, `read_all_hash`, `get_ttl`, `extend_ttl`
 
 ---
 
@@ -94,17 +101,10 @@ from wredis.queue import RedisQueueManager
 # Producer
 qm = RedisQueueManager(host="localhost")
 qm.publish("tasks", {"id": 1, "task": "process_image"}, ttl=30)
-
-# Consumer
-@qm.on_message("tasks")
-def worker(record):
-    print(f"Processing: {record}")
-
-qm.start()
-qm.wait()
+exists = qm.exist("tasks")
 ```
 
-**Methods:** `publish`, `on_message`, `start`, `stop`, `wait`, `get_queue_length`
+**Methods:** `publish`, `on_message`, `exist`, `start`, `stop`, `wait`, `get_queue_length`
 
 ---
 
@@ -118,6 +118,7 @@ pbm = RedisPubSubManager(host="localhost")
 # Producer
 pbm.publish_message("notifications", "Hello, Redis!")
 pbm.publish_message("alerts", {"severity": "high", "message": "Disk full"})
+exists = pbm.exist("notifications")
 
 # Consumer
 @pbm.on_message("notifications")
@@ -127,7 +128,7 @@ def handle(msg):
 pbm.stop_listeners()
 ```
 
-**Methods:** `publish_message`, `on_message`, `stop_listeners`
+**Methods:** `publish_message`, `on_message`, `exist`, `stop_listeners`
 
 ---
 
@@ -140,6 +141,7 @@ sm = RedisStreamManager(host="localhost")
 
 # Producer
 sm.add_to_stream("events", {"action": "login", "user": "alice"})
+exists = sm.exist("events")
 
 # Consumer
 @sm.on_message("events", group_name="my_group", consumer_name="worker_1")
@@ -149,7 +151,7 @@ def process(data):
 sm.wait()
 ```
 
-**Methods:** `add_to_stream`, `on_message`, `read_from_stream`, `wait`
+**Methods:** `add_to_stream`, `on_message`, `exist`, `read_from_stream`, `wait`
 
 ---
 
@@ -163,9 +165,10 @@ sm.add_to_set("tags", "python", "redis", "wredis")
 members = sm.get_set_members("tags")
 print(sm.is_member("tags", "python"))  # True
 sm.remove_from_set("tags", "redis")
+exists = sm.exist("tags")
 ```
 
-**Methods:** `add_to_set`, `get_set_members`, `is_member`, `remove_from_set`, `get_ttl`, `extend_ttl`
+**Methods:** `add_to_set`, `get_set_members`, `exist`, `is_member`, `remove_from_set`, `get_ttl`, `extend_ttl`
 
 ---
 
@@ -183,9 +186,10 @@ top = ssm.get_sorted_set_reverse("leaderboard", with_scores=True)
 rank = ssm.get_rank("leaderboard", "player2")
 score = ssm.get_score("leaderboard", "player3")
 ssm.increment_score("leaderboard", 50, "player3")
+exists = ssm.exist("leaderboard")
 ```
 
-**Methods:** `add_to_sorted_set`, `get_sorted_set`, `get_sorted_set_reverse`, `remove_from_sorted_set`, `get_rank`, `get_score`, `delete_sorted_set`, `set_ttl`, `get_ttl`, `increment_score`, `get_sorted_set_by_score`
+**Methods:** `add_to_sorted_set`, `get_sorted_set`, `get_sorted_set_reverse`, `exist`, `remove_from_sorted_set`, `get_rank`, `get_score`, `delete_sorted_set`, `set_ttl`, `get_ttl`, `increment_score`, `get_sorted_set_by_score`
 
 ---
 
@@ -197,9 +201,23 @@ from wredis.geo import RedisGeoManager
 gm = RedisGeoManager(host="localhost")
 gm.add_location("places", "Central Park", 40.785091, -73.968285)
 dist = gm.distance("places", "Central Park", "Times Square")
+exists = gm.exist("places")
 ```
 
-**Methods:** `add_location`, `distance`, `geo_radius`, `get_location`
+**Methods:** `add_location`, `exist`, `distance`, `geo_radius`, `get_location`
+
+---
+
+### Advanced Patterns
+
+For complex use cases, WRedis supports:
+
+* **Pipelines & Transactions**: Atomic operations and batch execution.
+* **Custom Key Generation**: Full control over cache key naming.
+* **Connection Tuning**: Optimization for high-traffic environments.
+* **Granular Error Handling**: Specific exception hierarchy for robust applications.
+
+Check the [Full Documentation](https://wredis.readthedocs.io/) for detailed guides.
 
 ---
 
@@ -212,9 +230,10 @@ hll = RedisHyperLogLogManager(host="localhost")
 hll.add("visitors", "user1", "user2", "user3")
 count = hll.count("visitors")
 hll.merge("all_visitors", "visitors")
+exists = hll.exist("visitors")
 ```
 
-**Methods:** `add`, `count`, `merge`, `get_all`
+**Methods:** `add`, `exist`, `count`, `merge`, `get_all`
 
 ---
 

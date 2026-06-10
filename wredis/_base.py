@@ -82,6 +82,23 @@ class BaseManager:
         except redis.RedisError as e:
             raise OperationError(f"Redis health check failed: {e}") from e
 
+    def exist(self, key: str) -> bool:
+        """Check if a key exists in Redis.
+
+        Args:
+            key: The key to check.
+
+        Returns:
+            True if key exists, False otherwise.
+        """
+        try:
+            result = self.redis_client.exists(key)
+            exists = result > 0
+            self.log(f"Check existence of key '{key}': {exists}")
+            return exists
+        except redis.RedisError as e:
+            raise OperationError(f"Redis exists failed: {e}") from e
+
     @retry(max_attempts=3, delay=0.1, backoff=2.0)
     def _execute(self, operation: str, *args: Any, **kwargs: Any) -> Any:
         """Execute a Redis operation with retry.
@@ -98,7 +115,44 @@ class BaseManager:
             OperationError: If the operation fails after retries.
         """
         try:
-            return getattr(self.redis_client, operation)(*args, **kwargs)
+            # Handle common aliases
+            if operation == "push":
+                operation = "rpush"
+
+            result = getattr(self.redis_client, operation)(*args, **kwargs)
+            
+            # Auto-decode for convenience while preserving binary data
+            if isinstance(result, bytes):
+                try:
+                    return result.decode("utf-8")
+                except UnicodeDecodeError:
+                    return result
+            if isinstance(result, list):
+                decoded_list = []
+                for item in result:
+                    if isinstance(item, bytes):
+                        try:
+                            decoded_list.append(item.decode("utf-8"))
+                        except UnicodeDecodeError:
+                            decoded_list.append(item)
+                    else:
+                        decoded_list.append(item)
+                return decoded_list
+            if isinstance(result, dict):
+                decoded_dict = {}
+                for k, v in result.items():
+                    dk = k.decode("utf-8") if isinstance(k, bytes) else k
+                    if isinstance(v, bytes):
+                        try:
+                            dv = v.decode("utf-8")
+                        except UnicodeDecodeError:
+                            dv = v
+                    else:
+                        dv = v
+                    decoded_dict[dk] = dv
+                return decoded_dict
+                
+            return result
         except redis.RedisError as e:
             raise OperationError(f"Redis {operation} failed: {e}") from e
 
