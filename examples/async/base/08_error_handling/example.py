@@ -52,7 +52,7 @@ async def main():
         print("  _execute automatically retries up to 3 times")
         print("  with exponential backoff: 0.1s, 0.2s")
         await manager._execute("set", "retry:key", "safe_value")
-        print(f"  Operation completed with retries enabled")
+        print("  Operation completed with retries enabled")
 
     print("\nError handling completed")
 

@@ -1,4 +1,5 @@
 """Async Redis Pub/Sub Manager - real asyncio, no threads."""
+
 from __future__ import annotations
 
 import asyncio
@@ -46,7 +47,6 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
             host=host,
             port=port,
             db=db,
-            decode_responses=False,
             verbose=verbose,
         )
         self.subscribers: dict[str, Callable[[Any], None]] = {}
@@ -72,12 +72,10 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
             elif isinstance(message, str):
                 payload = message
             else:
-                raise ValidationError(
-                    "Message must be a string or a JSON-serializable dictionary."
-                )
+                raise ValidationError("Message must be a string or a JSON-serializable dictionary.")
 
             await self.redis_client.publish(channel, payload)
-            self.log(f"Message published to channel '{channel}': {payload}")
+            await self.log(f"Message published to channel '{channel}': {payload}")
         except (ValidationError, PubSubError):
             raise
         except aredis.RedisError as e:
@@ -104,12 +102,8 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
 
             self.subscribers[channel] = callback
             if self._running:
-                self._tasks[channel] = asyncio.create_task(
-                    self._listen_channel(channel, callback)
-                )
-            self.log(
-                f"Subscribed to channel '{channel}' with handler '{callback.__name__}'"
-            )
+                self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
+            # self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
             return callback
 
         return decorator
@@ -121,10 +115,8 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
         """
         self._running = True
         for channel, callback in self.subscribers.items():
-            self._tasks[channel] = asyncio.create_task(
-                self._listen_channel(channel, callback)
-            )
-        self.log(f"Started listening on {len(self._tasks)} channels")
+            self._tasks[channel] = asyncio.create_task(self._listen_channel(channel, callback))
+        await self.log(f"Started listening on {len(self._tasks)} channels")
 
     async def _listen_channel(self, channel: str, callback: Callable) -> None:
         """Listen to a single channel and invoke callback on messages.
@@ -136,7 +128,7 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
         pubsub = self.redis_client.pubsub()
         try:
             await pubsub.subscribe(channel)
-            self.log(f"Listening for messages on channel '{channel}'")
+            await self.log(f"Listening for messages on channel '{channel}'")
 
             async for message in pubsub.listen():
                 if message["type"] == "message" and channel in self.subscribers:
@@ -151,14 +143,14 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
                         else:
                             callback(data)
                     except Exception as e:
-                        self.log(
+                        await self.log(
                             f"Error processing message on '{channel}': {e}",
                             level="error",
                         )
         except asyncio.CancelledError:
-            self.log(f"Listener for channel '{channel}' cancelled")
+            await self.log(f"Listener for channel '{channel}' cancelled")
         except aredis.RedisError as e:
-            self.log(f"Redis error on channel '{channel}': {e}", level="error")
+            await self.log(f"Redis error on channel '{channel}': {e}", level="error")
         finally:
             with contextlib.suppress(Exception):
                 await pubsub.unsubscribe(channel)
@@ -169,14 +161,14 @@ class AsyncRedisPubSubManager(AsyncBaseManager):
         self._running = False
         for channel, task in self._tasks.items():
             task.cancel()
-            self.log(f"Cancelling listener for channel '{channel}'")
+            await self.log(f"Cancelling listener for channel '{channel}'")
 
         if self._tasks:
             await asyncio.gather(*self._tasks.values(), return_exceptions=True)
 
         self._tasks.clear()
         self.subscribers.clear()
-        self.log("All listeners stopped")
+        await self.log("All listeners stopped")
 
     async def close(self) -> None:
         """Stop listeners and close connection pool."""

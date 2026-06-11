@@ -1,4 +1,5 @@
 """Async Redis Set Manager."""
+
 from __future__ import annotations
 
 import redis.asyncio as redis
@@ -44,9 +45,7 @@ class AsyncRedisSetManager:
     async def get_set_members(self, key: str) -> set:
         """Retrieve all members of a set."""
         try:
-            members = {
-                member.decode() for member in await self.redis_client.smembers(key)
-            }
+            members = {member.decode() for member in await self.redis_client.smembers(key)}
             await self.log(f"Members of set '{key}': {members}")
             return members
         except Exception as e:
@@ -54,8 +53,7 @@ class AsyncRedisSetManager:
             return set()
 
     async def exist(self, key: str) -> bool:
-        """
-        Checks if a set key exists asynchronously.
+        """Checks if a set key exists asynchronously.
 
         Args:
             key (str): Name of the set in Redis.
@@ -76,9 +74,7 @@ class AsyncRedisSetManager:
         """Check if an element is a member of the set."""
         try:
             result = await self.redis_client.sismember(key, value)
-            await self.log(
-                f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'"
-            )
+            await self.log(f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'")
             return result
         except Exception as e:
             logger.error(f"Error checking membership in set '{key}': {e}")

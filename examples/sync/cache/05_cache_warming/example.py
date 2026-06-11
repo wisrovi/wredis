@@ -34,8 +34,6 @@ for clave in solicitudes_reales:
 
 print(f"\nFinal metrics: {metrics}")
 print(f"Final hit rate: {metrics.hit_rate:.1f}%")
-print(
-    f"Warming benefit: {metrics.hits} hits out of {metrics.hits + metrics.misses} requests"
-)
+print(f"Warming benefit: {metrics.hits} hits out of {metrics.hits + metrics.misses} requests")
 
 manager.close()

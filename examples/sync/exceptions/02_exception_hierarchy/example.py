@@ -27,9 +27,20 @@ def show_hierarchy():
 show_hierarchy()
 
 # Verify inheritance relationships
-from wredis._exceptions import (CacheError, ClusterError, OperationError, PubSubError, QueueError, RedisConnectionError,
-                                SentinelError, SerializationError, StreamError, TransactionError, ValidationError,
-                                WRedisError)
+from wredis._exceptions import (
+    CacheError,
+    ClusterError,
+    OperationError,
+    PubSubError,
+    QueueError,
+    RedisConnectionError,
+    SentinelError,
+    SerializationError,
+    StreamError,
+    TransactionError,
+    ValidationError,
+    WRedisError,
+)
 
 exceptions = [
     RedisConnectionError,

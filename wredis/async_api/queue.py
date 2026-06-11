@@ -1,4 +1,5 @@
 """Async Redis Queue Manager - real asyncio, no threads."""
+
 from __future__ import annotations
 
 import asyncio
@@ -70,9 +71,7 @@ class AsyncRedisQueueManager(AsyncBaseManager):
 
         def decorator(func: Callable) -> Callable:
             if queue_name in self.callbacks:
-                raise QueueError(
-                    f"Callback already registered for queue '{queue_name}'"
-                )
+                raise QueueError(f"Callback already registered for queue '{queue_name}'")
             self.callbacks[queue_name] = func
             return func
 
@@ -85,36 +84,34 @@ class AsyncRedisQueueManager(AsyncBaseManager):
             queue_name: Name of the queue.
             callback: Function to process messages.
         """
-        self.log(f"Starting async consumer for queue '{queue_name}'")
+        await self.log(f"Starting async consumer for queue '{queue_name}'")
         retries = 0
 
         while self.running:
             try:
-                item = await self.redis_client.brpop(
-                    queue_name, timeout=self.poll_interval
-                )
+                item = await self.redis_client.brpop(queue_name, timeout=self.poll_interval)
                 if item:
                     data = json.loads(item[1])
-                    self.log(f"Consumed from '{queue_name}': {data}")
+                    await self.log(f"Consumed from '{queue_name}': {data}")
                     if asyncio.iscoroutinefunction(callback):
                         await callback(data)
                     else:
                         callback(data)
                     retries = 0
             except json.JSONDecodeError as e:
-                self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
+                await self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries for queue '{queue_name}'", level="error")
+                    await self.log(f"Max retries for queue '{queue_name}'", level="error")
                     break
             except aredis.RedisError as e:
-                self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
+                await self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
                 retries += 1
                 if retries >= self.max_retries:
-                    self.log(f"Max retries for queue '{queue_name}'", level="error")
+                    await self.log(f"Max retries for queue '{queue_name}'", level="error")
                     break
             except asyncio.CancelledError:
-                self.log(f"Consumer for queue '{queue_name}' cancelled")
+                await self.log(f"Consumer for queue '{queue_name}' cancelled")
                 break
 
     async def start(self) -> None:
@@ -124,39 +121,35 @@ class AsyncRedisQueueManager(AsyncBaseManager):
             QueueError: If no callbacks registered.
         """
         if self.running:
-            self.log("Consumption already running", level="warning")
+            await self.log("Consumption already running", level="warning")
             return
 
         if not self.callbacks:
-            raise QueueError(
-                "No callbacks registered. Use @on_message decorator first."
-            )
+            raise QueueError("No callbacks registered. Use @on_message decorator first.")
 
         self.running = True
         self._tasks = {}
 
         for queue_name, callback in self.callbacks.items():
-            self._tasks[queue_name] = asyncio.create_task(
-                self._consume_queue(queue_name, callback)
-            )
-            self.log(f"Task started for queue '{queue_name}'")
+            self._tasks[queue_name] = asyncio.create_task(self._consume_queue(queue_name, callback))
+            await self.log(f"Task started for queue '{queue_name}'")
 
     async def stop(self) -> None:
         """Stop all consumption tasks."""
         if not self.running:
-            self.log("Consumption already stopped", level="warning")
+            await self.log("Consumption already stopped", level="warning")
             return
 
         self.running = False
         for queue_name, task in self._tasks.items():
             task.cancel()
-            self.log(f"Cancelling consumer for queue '{queue_name}'")
+            await self.log(f"Cancelling consumer for queue '{queue_name}'")
 
         if self._tasks:
             await asyncio.gather(*self._tasks.values(), return_exceptions=True)
 
         self._tasks.clear()
-        self.log("All queue consumers stopped")
+        await self.log("All queue consumers stopped")
 
     async def publish(self, queue_name: str, data: dict, ttl: int = -1) -> None:
         """Publish a message to a Redis queue.
@@ -176,11 +169,11 @@ class AsyncRedisQueueManager(AsyncBaseManager):
         try:
             json_data = serialize(data)
             await self.redis_client.rpush(queue_name, json_data)
-            self.log(f"Published to queue '{queue_name}': {data}")
+            await self.log(f"Published to queue '{queue_name}': {data}")
 
             if ttl > 0:
                 await self.redis_client.expire(queue_name, ttl)
-                self.log(f"Set TTL of {ttl}s for queue '{queue_name}'")
+                await self.log(f"Set TTL of {ttl}s for queue '{queue_name}'")
         except (ValidationError, QueueError):
             raise
         except aredis.RedisError as e:
@@ -203,12 +196,10 @@ class AsyncRedisQueueManager(AsyncBaseManager):
 
         try:
             length = await self.redis_client.llen(queue_name)
-            self.log(f"Queue '{queue_name}' length: {length}")
+            await self.log(f"Queue '{queue_name}' length: {length}")
             return length
         except aredis.RedisError as e:
-            raise QueueError(
-                f"Failed to get length of queue '{queue_name}': {e}"
-            ) from e
+            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
 
     async def close(self) -> None:
         """Stop consumers and close connection pool."""

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "wpipe-mcp": {
+      "command": "/home/william.rodriguez/miniconda3/bin/python3.13",
+      "args": [
+        "-m",
+        "wpipe_mcp.server",
+        "run"
+      ]
+    }
+  }
+}

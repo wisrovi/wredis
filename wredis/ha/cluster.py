@@ -1,4 +1,5 @@
 """Redis Cluster Manager for high availability."""
+
 from __future__ import annotations
 
 import ssl

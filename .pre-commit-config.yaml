@@ -1,0 +1,270 @@
+# =============================================================================
+# pre-commit Configuration File — Wredis
+# =============================================================================
+#
+# Defines all Git pre-commit hooks enforced across the Wredis project. Every
+# hook listed here runs automatically on ``git commit`` and must pass before
+# the commit is accepted.
+#
+# Categories (in order of definition):
+#     1. General-purpose file validators (syntax, structure, formatting).
+#     2. Static type checking via MyPy (strict mode).
+#     3. Spelling verification via Codespell.
+#     4. Security scanning via Bandit.
+#     5. Python linting & formatting via Ruff.
+#     6. Static analysis via Pylint (score threshold ≥ 9.0).
+#     7. Dockerfile linting & security scanning (Hadolint + Checkov,
+#        local hooks).
+#     8. Secret detection via Detect-Secrets.
+#     9. Docstring coverage verification via Interrogate.
+#     10. Shell script static analysis via ShellCheck.
+#     11. Vulnerability scanning of Python dependencies via pip-audit.
+#
+# Attributes:
+#     default_language_version (dict): Maps language names to interpreter
+#         versions used when the hook does not specify its own.
+#     repos (list): Ordered list of repository / hook-group definitions.
+# =============================================================================
+
+default_language_version:
+  python: python3
+  # ^^ Every hook that runs Python code will use the system's "python3"
+  #    interpreter unless the hook overrides it explicitly.
+
+repos:
+  # ------------------------------------------------------------------
+  # 1. GENERAL-PURPOSE FILE VALIDATORS
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    # ^^ The "official" pre-commit hook collection. Provides simple,
+    #    language-agnostic checks for common file-level issues.
+    hooks:
+      - id: check-ast
+        # Parses every Python file and verifies it is valid syntax
+        # (AST = Abstract Syntax Tree).
+        verbose: true
+
+      - id: check-yaml
+        # Validates that every YAML file is well-formed.
+        verbose: true
+
+      - id: check-json
+        # Validates that every JSON file is well-formed.
+        verbose: true
+
+      - id: end-of-file-fixer
+        # Ensures every text file ends with exactly one newline.
+        # (POSIX convention, avoids spurious diffs).
+        verbose: true
+
+      - id: trailing-whitespace
+        # Strips trailing whitespace from text lines
+        # (avoids noise in code reviews).
+        verbose: true
+
+  # ------------------------------------------------------------------
+  # 2. STATIC TYPE CHECKING — MyPy
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.1
+    hooks:
+      - id: mypy
+        verbose: true
+        exclude: ^examples/|^tests/
+        args:
+          - --ignore-missing-imports
+            # Do not fail when third-party packages lack type stubs.
+          - --disallow-untyped-defs
+            # Require every function/method signature to have type
+            # annotations.
+          - --disallow-incomplete-defs
+            # Require every parameter *and* the return type to be
+            # annotated (partial annotations are rejected).
+        additional_dependencies:
+          - pydantic
+          - fastapi
+          - types-requests
+          - types-setuptools
+          # ^^ Type stubs / inline types for libraries the project
+          #    depends on, so MyPy can check calls against them.
+
+  # ------------------------------------------------------------------
+  # 3. SPELLING — Codespell
+  # ------------------------------------------------------------------
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.2
+    hooks:
+      - id: codespell
+        verbose: true
+        args:
+          - "-L"
+          - "wisrovi"
+          - "-w"
+          # ^^ The author's alias / handle is a false-positive;
+          #    suppress it so Codespell does not flag "wisrovi" as a
+          #    misspelling.
+          #    Added -w to automatically fix spelling errors.
+
+  # ------------------------------------------------------------------
+  # 4. SECURITY SCANNING — Bandit
+  # ------------------------------------------------------------------
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        verbose: true
+        args:
+          - "-ll"
+            # Only report issues with "medium" (two -l) or higher
+            # confidence / severity.
+          - "-v"
+            # Verbose output so the developer sees what was scanned.
+
+  # ------------------------------------------------------------------
+  # 5. PYTHON LINTING & FORMATTING — Ruff
+  # ------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.6
+    hooks:
+      - id: ruff
+        # Ultra-fast linter (replaces Flake8 / PyLint / pydocstyle).
+        # Rules configured in .ruff.toml: E/F/W (pycodestyle), I (isort),
+        # D (pydocstyle Google convention), N (pep8-naming), UP (pyupgrade),
+        # B (bugbear), A (flake8-builtins), C4 (comprehensions),
+        # SIM (simplify), RUF (ruff-specific), PL (pylint), PT (pytest).
+        verbose: true
+        args:
+          - --fix
+            # Apply all auto-fixable lint violations before the
+            # commit is finalised.
+          - --exit-non-zero-on-fix
+            # If any file was modified by --fix, return a non-zero
+            # exit code so the developer must re-stage the changes.
+
+      - id: ruff-format
+        # Code formatter (equivalent to Black). Ensures consistent
+        # formatting across the entire project.
+        verbose: true
+
+  # ------------------------------------------------------------------
+  # 6. PYLINT — Static analysis (score threshold)
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.2.7
+    hooks:
+      - id: pylint
+        verbose: true
+        args:
+          - --rcfile=pylintrc
+          - --fail-under=9.0
+          # ^^ Fail the commit if the pylint score drops below 9.0.
+          #    Uses the project's pylintrc for all rule configuration.
+        additional_dependencies:
+          - pydantic
+          - fastapi
+          - redis
+          - loguru
+          # ^^ Third-party dependencies so pylint can analyse imports
+          #    without raising E0401 (import-error).
+
+  # ------------------------------------------------------------------
+  # 7. DOCKERFILE LINTING & SECURITY
+  # ------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: hadolint
+        name: Lint Dockerfiles
+        # ^^ Displayed in the pre-commit output instead of the hook id.
+        language: system
+        # ^^ Run the host's installed `hadolint` binary rather than
+        #    pulling a Docker image or Python package.
+        entry: hadolint
+        pass_filenames: true
+        types_or: [dockerfile]
+        # ^^ Only run when the staged changes touch a Dockerfile.
+        verbose: true
+
+  - repo: local
+    hooks:
+      - id: checkov-dockerfile
+        name: checkov (dockerfile security)
+        language: system
+        entry: bash -c 'checkov --compact --framework dockerfile --quiet $(printf -- "--file %s " "$@")' --
+        # ^^ Runs Checkov in "compact" + "quiet" mode on every staged
+        #    Dockerfile. The `--` separator passes the file list from
+        #    pre-commit into the subshell correctly.
+        pass_filenames: true
+        types_or: [dockerfile]
+        verbose: true
+
+  # ------------------------------------------------------------------
+  # 7. SECRET DETECTION — Detect-Secrets
+  # ------------------------------------------------------------------
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        verbose: true
+        args:
+          - --baseline
+          - .secrets.baseline
+          # ^^ Use a pre-generated baseline file that lists known
+          #    false-positives (e.g. test tokens, example passwords).
+          #    Any secret NOT in the baseline will block the commit.
+
+  # ------------------------------------------------------------------
+  # 8. DOCSTRING COVERAGE — Interrogate
+  # ------------------------------------------------------------------
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.7.0
+    hooks:
+      - id: interrogate
+        verbose: true
+        exclude: ^examples/|^tests/
+        args:
+          - "-vv"
+          - --fail-under=80
+          # ^^ Require at least 80 % of public symbols to have a
+          #    docstring (coverage). Use -vv for per-file breakdown on
+          #    failure. Ruff (D rules) enforces that existing docstrings
+          #    follow Google convention — interrogate and ruff complement
+          #    each other.
+
+  # ------------------------------------------------------------------
+  # 9. SHELL SCRIPT STATIC ANALYSIS — ShellCheck
+  # ------------------------------------------------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+    -   id: shellcheck
+        # Lints Bash / POSIX shell scripts with ShellCheck rules.
+        # Uses a self-contained Python wheel so no system install of
+        # ShellCheck is needed.
+
+  # ------------------------------------------------------------------
+  # 10. DEPENDENCY VULNERABILITY SCANNING — pip-audit
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.10.0
+    hooks:
+      - id: pip-audit
+        verbose: true
+        args:
+          - --requirement
+          - requirements.txt
+          # ^^ Point pip-audit at the project's requirements file so
+          #    it knows which packages / versions are in use.
+          - --ignore-vuln
+          - PYSEC-2022-42969
+          # pytest — explicitly requested exemption.
+          - --ignore-vuln
+          - CVE-2026-24486
+          - --ignore-vuln
+          - CVE-2026-40347
+          - --ignore-vuln
+          - CVE-2026-42561
+          # python-multipart — explicitly requested exemptions.
+          - --ignore-vuln
+          - PYSEC-2026-161
+          # starlette — explicitly requested exemption.

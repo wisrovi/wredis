@@ -8,10 +8,7 @@ be found when storing logs or file contents.
 from wredis._serializer import deserialize, serialize
 
 # Create a long string simulating a log
-log_lines = [
-    f"[2024-01-{i:02d} 10:{i:02d}:00] INFO: Process completed successfully"
-    for i in range(1, 101)
-]
+log_lines = [f"[2024-01-{i:02d} 10:{i:02d}:00] INFO: Process completed successfully" for i in range(1, 101)]
 full_log = "\n".join(log_lines)
 
 print(f"Log length: {len(full_log)} characters")

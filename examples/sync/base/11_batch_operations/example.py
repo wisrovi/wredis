@@ -25,7 +25,7 @@ with BaseManager(verbose=False) as manager:
 
     # Batch 2: Bulk reading
     print("\n2. Bulk data reading:")
-    for key in data.keys():
+    for key in data:
         value = manager._execute("get", key)
         name = value.split('"name": "')[1].split('"')[0] if value else "N/A"
         print(f"   {key}: {name}")

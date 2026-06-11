@@ -1,6 +1,5 @@
 from wredis.streams import RedisStreamManager
 
-
 stream_manager = RedisStreamManager(host="localhost")
 
 stream_manager.add_to_stream("my_stream", {"field1": "value1"})

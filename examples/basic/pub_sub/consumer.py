@@ -1,5 +1,6 @@
-from wredis.pubsub import RedisPubSubManager
 import signal
+
+from wredis.pubsub import RedisPubSubManager
 
 pubsub_manager = RedisPubSubManager(host="localhost", verbose=False)
 

@@ -49,7 +49,7 @@ pre-commit install
 
 ```bash
 # Using Docker Compose
-cd enviroment
+cd environment
 docker-compose up -d
 
 # Or using Makefile
@@ -87,7 +87,7 @@ pytest tests/test_bitmap.py
 
 ```bash
 # Ensure Redis is running
-docker-compose -f enviroment/docker-compose.yml up -d
+docker-compose -f environment/docker-compose.yml up -d
 
 # Run tests
 pytest --integration
@@ -172,7 +172,7 @@ wredis/
 │   └── _connection.py   # Connection factories
 ├── tests/               # Test suite
 ├── examples/            # Example scripts
-├── enviroment/          # Docker Compose files
+├── environment/          # Docker Compose files
 └── site/                # Marketing website
 ```
 
@@ -185,7 +185,7 @@ If you get connection errors, ensure Redis is running:
 ```bash
 docker ps | grep redis
 # If not running:
-docker-compose -f enviroment/docker-compose.yml up -d
+docker-compose -f environment/docker-compose.yml up -d
 ```
 
 ### Import Errors

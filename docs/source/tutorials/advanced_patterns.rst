@@ -13,12 +13,12 @@ When you need to execute multiple commands, using a Pipeline can significantly i
    from wredis.sync import RedisPipelineManager
 
    pipeline = RedisPipelineManager(host="localhost")
-   
+
    # Queue multiple commands
    pipeline.set("key1", "value1")
    pipeline.set("key2", "value2")
    pipeline.hset("hash1", "field1", "data")
-   
+
    # Execute all at once
    results = pipeline.execute()
 
@@ -52,7 +52,7 @@ WRedis managers use connection pooling by default. You can tune the pool size fo
 
    # Configure max connections
    manager = RedisHashManager(
-       host="localhost", 
+       host="localhost",
        max_connections=50,
        socket_timeout=5
    )

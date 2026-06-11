@@ -49,7 +49,7 @@ for tipo in severe_errors:
             "Severe error in Redis operation",
             extra={
                 "type": type(exc).__name__,
-                "message": str(exc),
+                "error_message": str(exc),
             },
         )
         logger.debug(f"Traceback: {exc.__traceback__}")
@@ -64,7 +64,7 @@ for tipo in mild_errors:
             "Mild error, can continue",
             extra={
                 "type": type(exc).__name__,
-                "message": str(exc),
+                "error_message": str(exc),
             },
         )
 

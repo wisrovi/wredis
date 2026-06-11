@@ -180,9 +180,7 @@ class TestWait:
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_registers_sigint_handler(
-        self, mock_pause, mock_signal, queue_manager
-    ):
+    def test_wait_registers_sigint_handler(self, mock_pause, mock_signal, queue_manager):
         """Test wait() registers a SIGINT handler and calls signal.pause()."""
         queue_manager.running = True
 
@@ -200,9 +198,7 @@ class TestWait:
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_signal_handler_calls_stop(
-        self, mock_pause, mock_signal, queue_manager
-    ):
+    def test_wait_signal_handler_calls_stop(self, mock_pause, mock_signal, queue_manager):
         """Test the SIGINT handler inside wait() calls stop()."""
 
         @queue_manager.on_message("q1")
@@ -222,9 +218,7 @@ class TestWait:
 
     @patch("signal.signal")
     @patch("signal.pause")
-    def test_wait_without_callbacks_still_registers_signal(
-        self, mock_pause, mock_signal, queue_manager
-    ):
+    def test_wait_without_callbacks_still_registers_signal(self, mock_pause, mock_signal, queue_manager):
         """Test wait() registers signal handler even without callbacks (start is called internally)."""
         queue_manager.wait()
 

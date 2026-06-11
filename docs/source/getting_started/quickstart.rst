@@ -35,10 +35,10 @@ Using ``AsyncRedisHashManager`` with ``asyncio``:
    async def main():
        # Initialize
        manager = AsyncRedisHashManager(host="localhost")
-       
+
        # Create hash
        await manager.create_hash("async_key", "field", {"data": 123})
-       
+
        # Read hash
        result = await manager.read_hash("async_key", "field")
        print(f"Result: {result}")

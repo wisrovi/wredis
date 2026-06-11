@@ -40,7 +40,7 @@ for _ in range(5):
 tiempo_con_cache = time.time() - inicio
 print(f"Total time: {tiempo_con_cache:.4f}s")
 
-print(f"\n=== Cache metrics ===")
+print("\n=== Cache metrics ===")
 print(f"Hits: {metrics.hits}")
 print(f"Misses: {metrics.misses}")
 print(f"Hit rate: {metrics.hit_rate:.1f}%")

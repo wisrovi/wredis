@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""
-Generador de changelog para WRedis.
+"""Generador de changelog para WRedis.
 
-Lee el historial de git desde la última etiqueta (o desde una etiqueta específica)
+Lee el historical de git desde la última etiqueta (o desde una etiqueta específica)
 y genera un changelog formateado en Markdown, categorizando los commits por tipo.
 
 Uso:
@@ -27,7 +26,6 @@ import subprocess
 import sys
 from collections import defaultdict
 from datetime import datetime
-
 
 # ---------------------------------------------------------------------------
 # Mapeo de tipos de commit a secciones del changelog
@@ -59,19 +57,20 @@ COMMIT_PATTERN = re.compile(
 
 
 def run_git(args: list[str]) -> str:
-    """Ejecuta un comando de git y devuelve su salida.
+    """Ejecuta un commando de git y devuelve su salida.
 
     Args:
-        args: Lista de argumentos para el comando git.
+        args: Lista de arguments para el commando git.
 
     Returns:
-        Salida estándar del comando.
+        Salida estándar del commando.
 
     Raises:
-        RuntimeError: Si el comando git falla.
+        RuntimeError: Si el commando git falla.
     """
     result = subprocess.run(
         ["git"] + args,
+        check=False,
         capture_output=True,
         text=True,
     )
@@ -223,12 +222,12 @@ def format_changelog(commits: list[dict], version: str | None = None, date: str 
     return "\n".join(lines)
 
 
-def main():
+def main() -> None:
     """Función principal del generador de changelog."""
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Genera un changelog a partir del historial de git de WRedis.",
+        description="Genera un changelog a partir del historical de git de WRedis.",
     )
     parser.add_argument(
         "since_tag",
@@ -252,7 +251,7 @@ def main():
         "--all",
         "-a",
         action="store_true",
-        help="Incluir todos los commits (ignora etiquetas)",
+        help="Incluir todos los commits (ignore etiquetas)",
     )
 
     args = parser.parse_args()

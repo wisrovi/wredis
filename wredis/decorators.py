@@ -1,4 +1,5 @@
 """Cache decorators for WRedis with metrics tracking."""
+
 from __future__ import annotations
 
 import functools
@@ -91,7 +92,7 @@ def _default_key_builder(func: Callable, args: tuple, kwargs: dict) -> str:
             key_parts.append(f"{k}:{str(v)}")
 
     key_string = ":".join(key_parts)
-    return hashlib.md5(key_string.encode()).hexdigest()
+    return hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
 
 
 def cache(
@@ -100,7 +101,7 @@ def cache(
     key_builder: Callable | None = None,
     redis_client: redis.StrictRedis | None = None,
     metrics: CacheMetrics | None = None,
-):
+) -> Callable:
     """Decorator to cache function results in Redis.
 
     Implements the Cache-Aside pattern:
@@ -165,9 +166,9 @@ def async_cache(
     ttl: int = 300,
     prefix: str = "wredis:cache",
     key_builder: Callable | None = None,
-    redis_client: "redis.asyncio.Redis | None" = None,
+    redis_client: redis.asyncio.Redis | None = None,
     metrics: CacheMetrics | None = None,
-):
+) -> Callable:
     """Async version of @cache decorator.
 
     Args:
@@ -223,7 +224,7 @@ def async_cache(
 def invalidate_cache(
     pattern: str,
     redis_client: redis.StrictRedis | None = None,
-):
+) -> Callable:
     """Decorator to invalidate cache after function execution.
 
     Args:

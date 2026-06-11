@@ -35,9 +35,7 @@ class TestNewExamples:
             dir_path = EXAMPLES_ROOT / d
             assert dir_path.exists(), f"Directory missing: {d}"
             py_files = list(dir_path.glob("*.py"))
-            assert (
-                len(py_files) >= 15
-            ), f"Expected 15+ examples in {d}, got {len(py_files)}"
+            assert len(py_files) >= 15, f"Expected 15+ examples in {d}, got {len(py_files)}"
 
     def test_readme_files_exist(self):
         """Verify each example directory has a README."""
@@ -50,19 +48,21 @@ class TestNewExamples:
         for f in _get_example_files():
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
             )
-            assert (
-                result.returncode == 0
-            ), f"Example {f.relative_to(EXAMPLES_ROOT)} failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+            assert result.returncode == 0, (
+                f"Example {f.relative_to(EXAMPLES_ROOT)} failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+            )
 
     def test_serializer_examples(self):
         """Test serializer examples specifically."""
         for f in sorted((EXAMPLES_ROOT / "sync/serializer").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -74,6 +74,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "sync/validation").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -85,6 +86,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "sync/retry").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -96,6 +98,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "sync/base_manager").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -107,6 +110,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "async/async_base").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -118,6 +122,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "sync/cache_metrics").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -129,6 +134,7 @@ class TestNewExamples:
         for f in sorted((EXAMPLES_ROOT / "sync/exceptions").glob("*.py")):
             result = subprocess.run(
                 ["python", str(f)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,

@@ -28,9 +28,7 @@ with BaseManager(verbose=False) as manager:
     print(f"  INCR executed: {result_incr}")
 
     # HSET operation with retries
-    result_hset = manager._execute(
-        "hset", "retry:hash", mapping={"field1": "value1", "field2": "value2"}
-    )
+    result_hset = manager._execute("hset", "retry:hash", mapping={"field1": "value1", "field2": "value2"})
     print(f"  HSET executed: {result_hset} fields")
 
     # HGETALL operation with retries

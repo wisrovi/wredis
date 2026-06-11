@@ -29,7 +29,7 @@ for i in range(3):
     print(f"  Operation {i + 1}: SET/GET of pool:key:{i} = {value}")
 
 # Pool information
-print(f"\nPool status:")
+print("\nPool status:")
 print(f"  Pool type: {type(manager._pool).__name__}")
 print(f"  Max connections: {manager._pool.max_connections}")
 

@@ -26,6 +26,4 @@ try:
 except ValidationError as e:
     print(f"Key with 10000 characters: invalid -> {e}")
 
-print(
-    "\nDemonstrated that empty keys or keys larger than 512 characters raise ValidationError."
-)
+print("\nDemonstrated that empty keys or keys larger than 512 characters raise ValidationError.")

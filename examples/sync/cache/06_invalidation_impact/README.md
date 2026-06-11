@@ -34,7 +34,7 @@ redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=T
 metrics = CacheMetrics()
 
 
-@cache(ttl=600, prefix="sesion", redis_client=redis_client, metrics=metrics)
+@cache(ttl=600, prefix="session", redis_client=redis_client, metrics=metrics)
 def obtener_sesion(session_id: str) -> dict:
     """Gets user session data."""
     return {"session_id": session_id, "datos": "datos_de_sesion"}
@@ -42,7 +42,7 @@ def obtener_sesion(session_id: str) -> dict:
 
 def invalidar_sesion(session_id: str) -> None:
     """Invalidates a specific session in cache."""
-    patron = f"sesion:*"
+    patron = f"session:*"
     claves = redis_client.keys(patron)
     for clave in claves:
         valor = redis_client.get(clave)

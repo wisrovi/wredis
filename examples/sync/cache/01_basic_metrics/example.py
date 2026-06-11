@@ -36,7 +36,7 @@ print(f"Result: {resultado}")
 print(f"Metrics: hits={metrics.hits}, misses={metrics.misses}")
 print()
 
-print(f"=== Summary ===")
+print("=== Summary ===")
 print(f"Final metrics: {metrics}")
 print(f"Hit rate: {metrics.hit_rate:.1f}%")
 

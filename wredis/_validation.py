@@ -1,4 +1,5 @@
 """Input validation for WRedis."""
+
 from __future__ import annotations
 
 from wredis._exceptions import ValidationError

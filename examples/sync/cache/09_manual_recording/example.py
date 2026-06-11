@@ -26,9 +26,7 @@ def obtener_de_cache_manual(clave: str, redis_client) -> str | None:
         return None
 
 
-def guardar_en_cache_manual(
-    clave: str, valor: str, redis_client, ttl: int = 300
-) -> None:
+def guardar_en_cache_manual(clave: str, valor: str, redis_client, ttl: int = 300) -> None:
     """Manually saves a value to cache."""
     redis_client.setex(clave, ttl, valor)
 
@@ -50,7 +48,7 @@ print(f"Attempt 3 (hit): {resultado}")
 resultado = obtener_de_cache_manual("config:inexistente", manager.redis_client)
 print(f"Attempt 4 (miss): {resultado}")
 
-print(f"\n=== Final Metrics ===")
+print("\n=== Final Metrics ===")
 print(f"Hits: {metrics.hits}")
 print(f"Misses: {metrics.misses}")
 print(f"Errors: {metrics.errors}")

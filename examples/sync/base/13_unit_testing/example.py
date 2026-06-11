@@ -55,6 +55,7 @@ def test_list_operations():
     """Test list operations."""
     manager = create_test_manager()
     try:
+        manager._execute("delete", "test:list")
         manager._execute("push", "test:list", "elem1", "elem2", "elem3")
         length = manager._execute("llen", "test:list")
         assert length == 3
@@ -69,9 +70,7 @@ def test_hash_operations():
     """Test hash operations."""
     manager = create_test_manager()
     try:
-        manager._execute(
-            "hset", "test:hash", mapping={"field1": "value1", "field2": "value2"}
-        )
+        manager._execute("hset", "test:hash", mapping={"field1": "value1", "field2": "value2"})
         value = manager._execute("hget", "test:hash", "field1")
         assert value == "value1"
         all_values = manager._execute("hgetall", "test:hash")

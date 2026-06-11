@@ -11,7 +11,7 @@ manager = BaseManager(verbose=False)
 metrics = CacheMetrics()
 
 
-@cache(ttl=600, prefix="sesion", redis_client=manager.redis_client, metrics=metrics)
+@cache(ttl=600, prefix="session", redis_client=manager.redis_client, metrics=metrics)
 def obtener_sesion(session_id: str) -> dict:
     """Gets user session data."""
     return {"session_id": session_id, "datos": "datos_de_sesion"}
@@ -19,7 +19,7 @@ def obtener_sesion(session_id: str) -> dict:
 
 def invalidar_sesion(session_id: str) -> None:
     """Invalidates a specific session in cache."""
-    patron = f"sesion:*"
+    patron = "session:*"
     claves = manager.redis_client.keys(patron)
     for clave in claves:
         valor = manager.redis_client.get(clave)
@@ -46,7 +46,7 @@ print(f"After post-invalidation access: {metrics}")
 obtener_sesion("abc123")  # hit
 print(f"After next access: {metrics}")
 
-print(f"\n=== Summary ===")
+print("\n=== Summary ===")
 print(f"Hits: {metrics.hits}")
 print(f"Misses: {metrics.misses}")
 print(f"Hit rate: {metrics.hit_rate:.1f}%")

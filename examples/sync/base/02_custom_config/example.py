@@ -19,12 +19,12 @@ manager = BaseManager(
 
 # Display the applied configuration
 print("BaseManager custom configuration:")
-print(f"  Host: localhost")
-print(f"  Port: 6379")
-print(f"  Database: 0")
-print(f"  Socket timeout: 10.0s")
-print(f"  Max connections: 20")
-print(f"  Decode responses: True")
+print("  Host: localhost")
+print("  Port: 6379")
+print("  Database: 0")
+print("  Socket timeout: 10.0s")
+print("  Max connections: 20")
+print("  Decode responses: True")
 print(f"  Verbose: {manager.verbose}")
 
 # Verify it works with the configuration

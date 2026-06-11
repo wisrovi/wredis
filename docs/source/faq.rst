@@ -8,7 +8,7 @@ General Questions
 WRedis requires Python 3.10 or higher. This ensures we can use the latest type hinting and asyncio features.
 
 **Is WRedis thread-safe?**
-Yes, sychronous managers use connection pooling which is thread-safe. For asynchronous applications, use the ``Async`` variants.
+Yes, synchronous managers use connection pooling which is thread-safe. For asynchronous applications, use the ``Async`` variants.
 
 Troubleshooting
 --------------------------------------------------------------------------------

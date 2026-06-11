@@ -9,13 +9,9 @@ if __name__ == "__main__":
     all_users = redis_manager.read_all_hash("my_hash")
     print(f"All users: {all_users}")
 
-    redis_manager.update_hash(
-        "my_hash", "user:3", {"name": "William", "age": 35, "gender": "male"}
-    )
+    redis_manager.update_hash("my_hash", "user:3", {"name": "William", "age": 35, "gender": "male"})
 
-    redis_manager.update_hash(
-        "my_hash", "user:5", {"name": "William", "age": 35, "gender": "male"}
-    )
+    redis_manager.update_hash("my_hash", "user:5", {"name": "William", "age": 35, "gender": "male"})
 
     redis_manager.delete_hash_field("my_hash", "user:2")
 

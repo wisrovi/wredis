@@ -10,15 +10,15 @@ assignees: wisrovi
 A clear and concise description of the bug.
 
 ## Environment
-- **Python version**: 
-- **WRedis version**: 
-- **Redis version**: 
-- **OS**: 
+- **Python version**:
+- **WRedis version**:
+- **Redis version**:
+- **OS**:
 
 ## Steps to Reproduce
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Expected Behavior
 What you expected to happen.

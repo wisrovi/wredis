@@ -4,9 +4,20 @@ Shows how to design classes and functions to handle
 WRedis exceptions in a centralized and reusable way.
 """
 
-from wredis._exceptions import (CacheError, ClusterError, OperationError, PubSubError, QueueError, RedisConnectionError,
-                                SentinelError, SerializationError, StreamError, TransactionError, ValidationError,
-                                WRedisError)
+from wredis._exceptions import (
+    CacheError,
+    ClusterError,
+    OperationError,
+    PubSubError,
+    QueueError,
+    RedisConnectionError,
+    SentinelError,
+    SerializationError,
+    StreamError,
+    TransactionError,
+    ValidationError,
+    WRedisError,
+)
 
 
 class WRedisErrorHandler:

@@ -1,6 +1,5 @@
 from wredis.sortedset import RedisSortedSetManager
 
-
 sorted_set_manager = RedisSortedSetManager(host="localhost")
 
 

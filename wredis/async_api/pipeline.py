@@ -1,4 +1,5 @@
 """Async Redis Pipeline Manager - batch command execution."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -31,9 +32,7 @@ class AsyncRedisPipelineManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    async def execute_commands(
-        self, commands: list[tuple[str, list[Any]]]
-    ) -> list[Any]:
+    async def execute_commands(self, commands: list[tuple[str, list[Any]]]) -> list[Any]:
         """Execute multiple commands in a pipeline."""
         try:
             pipe = self.redis_client.pipeline()

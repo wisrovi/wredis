@@ -1,4 +1,5 @@
 """Async Redis Transaction Manager - atomic operations with WATCH/MULTI/EXEC."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -31,9 +32,7 @@ class AsyncRedisTransactionManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    async def execute_transaction(
-        self, commands: list[tuple[str, list[Any]]]
-    ) -> list[Any] | None:
+    async def execute_transaction(self, commands: list[tuple[str, list[Any]]]) -> list[Any] | None:
         """Execute multiple commands in a transaction."""
         try:
             pipe = self.redis_client.pipeline(transaction=True)
@@ -49,9 +48,7 @@ class AsyncRedisTransactionManager:
     async def set_if_not_exists(self, key: str, value: str, ttl: int = -1) -> bool:
         """Set a key only if it doesn't exist (atomic)."""
         try:
-            result = await self.redis_client.set(
-                key, value, nx=True, ex=ttl if ttl > 0 else None
-            )
+            result = await self.redis_client.set(key, value, nx=True, ex=ttl if ttl > 0 else None)
             await self.log(f"SET NX result for '{key}': {result}")
             return result is not None
         except Exception as e:

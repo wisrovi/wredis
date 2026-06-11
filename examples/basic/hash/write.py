@@ -1,6 +1,5 @@
 from wredis.hash import RedisHashManager
 
-
 if __name__ == "__main__":
     # Crear una instancia de RedisHashManager
     redis_manager = RedisHashManager(host="localhost")

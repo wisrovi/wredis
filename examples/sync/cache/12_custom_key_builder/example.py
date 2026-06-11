@@ -55,7 +55,7 @@ print("\n=== Keys in Redis ===")
 for clave in manager.redis_client.keys("app:*"):
     print(f"  {clave.decode() if isinstance(clave, bytes) else clave}")
 
-print(f"\n=== Metrics ===")
+print("\n=== Metrics ===")
 print(f"Hits: {metrics.hits}")
 print(f"Misses: {metrics.misses}")
 print(f"Hit rate: {metrics.hit_rate:.1f}%")

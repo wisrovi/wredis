@@ -21,15 +21,17 @@ class TestAsyncBaseManager:
         manager = AsyncBaseManager()
         assert manager.verbose is True
 
-    def test_log_verbose(self):
+    @pytest.mark.asyncio
+    async def test_log_verbose(self):
         """Test logging when verbose is True."""
         manager = AsyncBaseManager(verbose=True)
-        manager.log("test message")
+        await manager.log("test message")
 
-    def test_log_not_verbose(self):
+    @pytest.mark.asyncio
+    async def test_log_not_verbose(self):
         """Test logging when verbose is False."""
         manager = AsyncBaseManager(verbose=False)
-        manager.log("test message")
+        await manager.log("test message")
 
     @pytest.mark.asyncio
     async def test_health_check_success(self, async_redis_client):
@@ -42,11 +44,9 @@ class TestAsyncBaseManager:
     async def test_health_check_failure(self):
         """Test health check with broken connection."""
         manager = AsyncBaseManager(verbose=False)
-        manager.redis_client = aredis.Redis(
-            host="invalid", port=9999, socket_timeout=0.1
-        )
-        with pytest.raises(OperationError):
-            await manager.health_check()
+        manager.redis_client = aredis.Redis(host="invalid", port=9999, socket_timeout=0.1)
+        # health_check now returns False instead of raising OperationError
+        assert await manager.health_check() is False
 
     @pytest.mark.asyncio
     async def test_async_context_manager(self, async_redis_client):
@@ -68,9 +68,7 @@ class TestAsyncBaseManager:
     async def test_execute_failure(self):
         """Test execute with failing operation."""
         manager = AsyncBaseManager(verbose=False)
-        manager.redis_client = aredis.Redis(
-            host="invalid", port=9999, socket_timeout=0.1
-        )
+        manager.redis_client = aredis.Redis(host="invalid", port=9999, socket_timeout=0.1)
         with pytest.raises(OperationError):
             await manager._execute("get", "key")
 

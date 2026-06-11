@@ -1,4 +1,5 @@
 """Async Redis Bitmap Manager."""
+
 from __future__ import annotations
 
 import json
@@ -81,8 +82,7 @@ class AsyncRedisBitmapManager:
             return 0
 
     async def exist(self, key: str) -> bool:
-        """
-        Checks if a bitmap key exists asynchronously.
+        """Checks if a bitmap key exists asynchronously.
 
         Args:
             key (str): The Redis key for the bitmap.

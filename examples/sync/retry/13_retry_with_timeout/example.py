@@ -24,9 +24,7 @@ class OperationWithTimeout:
         """Checks if total timeout was exceeded."""
         elapsed = time.time() - self._start
         if elapsed > self.total_timeout:
-            raise TimeoutError(
-                f"Timeout of {self.total_timeout}s exceeded (elapsed: {elapsed:.2f}s)"
-            )
+            raise TimeoutError(f"Timeout of {self.total_timeout}s exceeded (elapsed: {elapsed:.2f}s)")
 
     @retry(max_attempts=10, delay=0.2, backoff=1.5)
     def execute(self) -> str:

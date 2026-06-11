@@ -33,9 +33,7 @@ print(f"   Max connections: {manager._pool.max_connections}")
 
 print("\n4. Redis client information:")
 print(f"   Client type: {type(manager.redis_client).__name__}")
-print(
-    f"   Decode responses: {manager.redis_client.connection_pool.connection_kwargs.get('decode_responses', False)}"
-)
+print(f"   Decode responses: {manager.redis_client.connection_pool.connection_kwargs.get('decode_responses', False)}")
 
 print("\n5. Health check:")
 status = manager.health_check()

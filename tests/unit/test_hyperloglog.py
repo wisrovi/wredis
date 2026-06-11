@@ -36,9 +36,7 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pfadd", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pfadd", side_effect=Exception("Redis error")):
             manager.add("visitors", "user1")
 
     def test_count(self, redis_client):
@@ -76,9 +74,7 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pfcount", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pfcount", side_effect=Exception("Redis error")):
             result = manager.count("key")
             assert result == 0
 
@@ -101,9 +97,7 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pfmerge", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pfmerge", side_effect=Exception("Redis error")):
             manager.merge("dest", "src1", "src2")
 
     def test_get_all(self, redis_client):
@@ -128,8 +122,6 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "get", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "get", side_effect=Exception("Redis error")):
             result = manager.get_all("key")
             assert result is None

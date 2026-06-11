@@ -15,7 +15,7 @@ redis_manager: BaseManager | None = None
 
 
 @asynccontextmanager
-async def lifespan(app: Dict[str, Any]):
+async def lifespan(app: dict[str, Any]):
     global redis_manager
     redis_manager = BaseManager(verbose=False)
     connected = await redis_manager.health_check()

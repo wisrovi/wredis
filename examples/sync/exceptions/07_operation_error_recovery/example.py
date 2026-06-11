@@ -65,7 +65,7 @@ def operation_with_retry(client, operation, max_attempts=3):
 
 # Scenario 1: Operation that fails permanently
 print("=== Scenario 1: Permanent failure ===")
-client = RedisSimulado()
+client = SimulatedRedis()
 try:
     result = operation_with_retry(client, lambda: client.get("user:1"), max_attempts=3)
     print(f"Result: {result}")

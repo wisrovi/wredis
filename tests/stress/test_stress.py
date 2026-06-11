@@ -202,9 +202,7 @@ class TestPubSubHighMessageRate:
                 manager.publish_message(f"ch:{ch}", f"msg:{i}")
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [
-                executor.submit(channel_worker, ch) for ch in range(num_channels)
-            ]
+            futures = [executor.submit(channel_worker, ch) for ch in range(num_channels)]
             for f in as_completed(futures):
                 f.result()
 

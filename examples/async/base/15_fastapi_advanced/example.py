@@ -112,9 +112,9 @@ async def main():
             response = await handle_request(req)
 
             if response.get("cached"):
-                print(f"  [CACHE] Response from cache")
+                print("  [CACHE] Response from cache")
             else:
-                print(f"  [NEW] Response generated")
+                print("  [NEW] Response generated")
 
             print(f"  Status: {response['status']}")
             body = response.get("body", {})

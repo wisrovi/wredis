@@ -12,12 +12,13 @@ import pytest
 
 SKIP_PATTERNS = [
     # Long-running examples (consumers, subscribers, TTL waits)
+    "pub_sub/consumer",
+    "streams/consume",
+    "queue/consumer",
     "pubsub/02_subscriber",
     "pubsub/04_simple_subscriber",
     "queue/02_consumer",
     "streams/02_consumer",
-    "queue/01_producer",  # may interfere with consumer test
-    "streams/01_producer",  # may interfere with consumer test
     "basic/queue",  # consumer runs indefinitely
     "sync/hash/06_exist",  # waits for TTL expiration (60s loop)
     # Require special infrastructure
@@ -29,11 +30,6 @@ SKIP_PATTERNS = [
     "async/streams",
     "async/sentinel",
     "async/cluster",
-    # Known issues (need code fixes)
-    "exceptions/10_logging_integration",  # logging message key conflict
-    "cache/06_invalidation_impact",  # timing issue
-    "cache/12_custom_key_builder",  # timing issue
-    "exceptions/07_operation_error_recovery",  # test issue
 ]
 
 
@@ -43,11 +39,15 @@ def get_examples_directory() -> Path:
 
 
 def discover_examples():
-    """Discover all example.py files in the examples directory."""
+    """Discover all .py files in the examples directory."""
     examples_dir = get_examples_directory()
     examples = []
 
-    for example_path in examples_dir.rglob("example.py"):
+    # Look for all .py files except those in the test/ directory or __init__.py
+    for example_path in examples_dir.rglob("*.py"):
+        if "examples/test/" in str(example_path) or example_path.name == "__init__.py":
+            continue
+
         # Get relative path from examples directory
         rel_path = example_path.relative_to(examples_dir)
 
@@ -78,6 +78,7 @@ def test_example_runs(example):
     # Run the example as a subprocess
     result = subprocess.run(
         [sys.executable, str(example_path)],
+        check=False,
         capture_output=True,
         text=True,
         timeout=30,
@@ -88,6 +89,4 @@ def test_example_runs(example):
         print(f"\n=== STDOUT ===\n{result.stdout}")
         print(f"\n=== STDERR ===\n{result.stderr}")
 
-    assert (
-        result.returncode == 0
-    ), f"Example {example['rel_path']} failed with return code {result.returncode}"
+    assert result.returncode == 0, f"Example {example['rel_path']} failed with return code {result.returncode}"

@@ -12,25 +12,25 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../.."))
 
-project = 'WRedis'
-copyright = f'{datetime.now().year}, wisrovi'
-author = 'wisrovi (https://es.linkedin.com/in/wisrovi-rodriguez)'
-release = '1.0.0'
+project = "WRedis"
+copyright = f"{datetime.now().year}, wisrovi"
+author = "wisrovi (https://es.linkedin.com/in/wisrovi-rodriguez)"
+release = "1.0.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
-    'sphinx_copybutton',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
+    "sphinx_copybutton",
+    "myst_parser",
 ]
 
-templates_path = ['_templates']
-exclude_patterns = []
+templates_path = ["_templates"]
+exclude_patterns: list[str] = []
 
 # Napoleon settings
 napoleon_google_docstring = True
@@ -67,8 +67,8 @@ myst_enable_extensions = [
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
-html_static_path = ['_static']
+html_theme = "furo"
+html_static_path = ["_static"]
 
 html_theme_options = {
     "light_css_variables": {
@@ -82,5 +82,5 @@ html_theme_options = {
 }
 
 # Autodoc settings
-autodoc_member_order = 'bysource'
-autoclass_content = 'both'
+autodoc_member_order = "bysource"
+autoclass_content = "both"

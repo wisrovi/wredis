@@ -1,6 +1,5 @@
 from wredis.sets import RedisSetManager
 
-
 set_manager = RedisSetManager(host="localhost")
 
 

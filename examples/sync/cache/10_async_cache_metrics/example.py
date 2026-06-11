@@ -12,9 +12,7 @@ from wredis.aio import CacheMetrics, cache
 
 
 async def main():
-    redis_client = aredis.Redis(
-        host="localhost", port=6379, db=0, decode_responses=True
-    )
+    redis_client = aredis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
     metrics = CacheMetrics()
 
     @cache(ttl=300, prefix="async_data", redis_client=redis_client, metrics=metrics)
@@ -37,7 +35,7 @@ async def main():
     for i in [2, 1, 3, 1, 2]:
         await obtener_datos_async(i)
 
-    print(f"\n=== Final Summary ===")
+    print("\n=== Final Summary ===")
     print(f"Metrics: {metrics}")
     print(f"Hit rate: {metrics.hit_rate:.1f}%")
 

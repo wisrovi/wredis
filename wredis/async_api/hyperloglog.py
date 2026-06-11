@@ -1,4 +1,5 @@
 """Async Redis HyperLogLog Manager - probabilistic counting."""
+
 from __future__ import annotations
 
 import redis.asyncio as redis
@@ -21,9 +22,7 @@ class AsyncRedisHyperLogLogManager:
         verbose: bool = True,
     ):
         """Initialize the AsyncRedisHyperLogLogManager."""
-        self.redis_client = redis.Redis(
-            host=host, port=port, db=db, decode_responses=True
-        )
+        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
         self.verbose = verbose
 
     async def log(self, message: str, level: str = "info") -> None:
@@ -40,8 +39,7 @@ class AsyncRedisHyperLogLogManager:
             logger.error(f"Error adding to HyperLogLog '{key}': {e}")
 
     async def exist(self, key: str) -> bool:
-        """
-        Checks if a HyperLogLog key exists asynchronously.
+        """Checks if a HyperLogLog key exists asynchronously.
 
         Args:
             key (str): The Redis key for the HyperLogLog.

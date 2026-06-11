@@ -1,4 +1,5 @@
 """Connection factories for WRedis."""
+
 from __future__ import annotations
 
 import ssl
@@ -27,8 +28,7 @@ def create_sync_client(
     max_connections: int = 10,
     decode_responses: bool = True,
 ) -> redis.StrictRedis:
-    """
-    Create a synchronous Redis client.
+    """Create a synchronous Redis client.
 
     Args:
         host: Redis server hostname.
@@ -87,8 +87,7 @@ def create_async_client(
     max_connections: int = 10,
     decode_responses: bool = True,
 ) -> redis.asyncio.Redis:
-    """
-    Create an asynchronous Redis client.
+    """Create an asynchronous Redis client.
 
     Args:
         host: Redis server hostname.
@@ -142,8 +141,7 @@ def create_sentinel_client(
     sentinel_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> redis.StrictRedis:
-    """
-    Create a Redis client through Sentinel.
+    """Create a Redis client through Sentinel.
 
     Args:
         sentinel_nodes: List of (host, port) tuples for Sentinel nodes.
@@ -182,8 +180,7 @@ def create_cluster_client(
     max_redirects: int = 3,
     decode_responses: bool = True,
 ) -> RedisCluster:
-    """
-    Create a Redis Cluster client.
+    """Create a Redis Cluster client.
 
     Args:
         startup_nodes: List of (host, port) tuples for cluster nodes.

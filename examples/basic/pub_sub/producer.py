@@ -1,6 +1,5 @@
 from wredis.pubsub import RedisPubSubManager
 
-
 pubsub_manager = RedisPubSubManager(host="localhost")
 
 

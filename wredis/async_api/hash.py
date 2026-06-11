@@ -1,4 +1,5 @@
 """Async Redis Hash Manager."""
+
 from __future__ import annotations
 
 import contextlib
@@ -39,9 +40,7 @@ class AsyncRedisHashManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    async def create_hash(
-        self, hash_name: str, key: str, value: dict | str, ttl: int = -1
-    ) -> None:
+    async def create_hash(self, hash_name: str, key: str, value: dict | str, ttl: int = -1) -> None:
         """Write a key-value pair into a Redis hash.
 
         Args:
@@ -62,8 +61,7 @@ class AsyncRedisHashManager:
             logger.error(f"Error writing to hash '{hash_name}': {e}")
 
     async def exist(self, hash_name: str) -> bool:
-        """
-        Checks if a Redis hash exists asynchronously.
+        """Checks if a Redis hash exists asynchronously.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -122,14 +120,10 @@ class AsyncRedisHashManager:
             if isinstance(current_value, dict):
                 current_value.update(new_data)
                 await self.create_hash(hash_name, key, current_value)
-                await self.log(
-                    f"Updated field '{key}' in hash '{hash_name}': {current_value}"
-                )
+                await self.log(f"Updated field '{key}' in hash '{hash_name}': {current_value}")
             else:
                 await self.create_hash(hash_name, key, new_data)
-                await self.log(
-                    f"Added new field '{key}' to hash '{hash_name}': {new_data}"
-                )
+                await self.log(f"Added new field '{key}' to hash '{hash_name}': {new_data}")
         except Exception as e:
             logger.error(f"Error updating field '{key}' in hash '{hash_name}': {e}")
 
@@ -162,9 +156,7 @@ class AsyncRedisHashManager:
                 await self.log(f"Read all fields from hash '{hash_name}': {items}")
                 return items
             else:
-                await self.log(
-                    f"Hash '{hash_name}' is empty or does not exist.", level="warning"
-                )
+                await self.log(f"Hash '{hash_name}' is empty or does not exist.", level="warning")
                 return None
         except Exception as e:
             logger.error(f"Error reading all fields from hash '{hash_name}': {e}")

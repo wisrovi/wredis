@@ -22,6 +22,6 @@ print("Key 'x': valid")
 # Key with exactly 512 characters (maximum limit)
 long_key = "k" * 512
 validate_key(long_key)
-print(f"Key with 512 characters: valid")
+print("Key with 512 characters: valid")
 
 print("\nAll valid keys were accepted correctly.")

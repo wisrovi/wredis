@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 import redis
 from loguru import logger
 
 
 class RedisBitmapManager:
-    """
-    Manages Redis bitmap operations, including setting, retrieving, and counting bits,
+    """Manages Redis bitmap operations, including setting, retrieving, and counting bits,
     as well as managing TTL (Time-to-Live) for bitmap keys.
 
     Attributes:
@@ -20,8 +20,7 @@ class RedisBitmapManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """
-        Initializes the RedisBitmapManager with connection details.
+        """Initializes the RedisBitmapManager with connection details.
 
         Args:
             host (str): Hostname of the Redis server.
@@ -33,8 +32,7 @@ class RedisBitmapManager:
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
-        """
-        Logs a message if verbose mode is enabled.
+        """Logs a message if verbose mode is enabled.
 
         Args:
             message (str): The message to log.
@@ -44,8 +42,7 @@ class RedisBitmapManager:
             getattr(logger, level)(message)
 
     def set_bit(self, key: str, offset: int, value: int, ttl: int = -1) -> None:
-        """
-        Sets a bit at a specific position in a bitmap and optionally sets a TTL.
+        """Sets a bit at a specific position in a bitmap and optionally sets a TTL.
 
         Args:
             key (str): The Redis key for the bitmap.
@@ -64,8 +61,7 @@ class RedisBitmapManager:
             logger.error(f"Error setting bit in '{key}': {e}")
 
     def get_bit(self, key: str, offset: int) -> int:
-        """
-        Retrieves the value of a bit at a specific position in a bitmap.
+        """Retrieves the value of a bit at a specific position in a bitmap.
 
         Args:
             key (str): The Redis key for the bitmap.
@@ -83,8 +79,7 @@ class RedisBitmapManager:
             return 0
 
     def exist(self, key: str) -> bool:
-        """
-        Checks if a bitmap key exists.
+        """Checks if a bitmap key exists.
 
         Args:
             key (str): The Redis key for the bitmap.
@@ -102,8 +97,7 @@ class RedisBitmapManager:
             return False
 
     def count_bits(self, key: str) -> int:
-        """
-        Counts the number of bits set to 1 in a bitmap.
+        """Counts the number of bits set to 1 in a bitmap.
 
         Args:
             key (str): The Redis key for the bitmap.
@@ -120,8 +114,7 @@ class RedisBitmapManager:
             return 0
 
     def get_ttl(self, key: str) -> int:
-        """
-        Retrieves the time-to-live (TTL) for a bitmap key.
+        """Retrieves the time-to-live (TTL) for a bitmap key.
 
         Args:
             key (str): The Redis key for the bitmap.
@@ -143,8 +136,7 @@ class RedisBitmapManager:
             return -2
 
     def extend_ttl(self, key: str, ttl: int) -> None:
-        """
-        Extends or sets a new TTL for a bitmap key.
+        """Extends or sets a new TTL for a bitmap key.
 
         Args:
             key (str): The Redis key for the bitmap.

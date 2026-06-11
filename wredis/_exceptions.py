@@ -1,4 +1,5 @@
 """Custom exceptions for WRedis."""
+
 from __future__ import annotations
 
 

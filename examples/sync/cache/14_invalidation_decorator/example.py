@@ -48,7 +48,7 @@ perfil = obtener_perfil_usuario(1)
 print(f"Profile: {perfil}")
 print(f"Metrics: {metrics}")
 
-print(f"\n=== Summary ===")
+print("\n=== Summary ===")
 print(f"Total hits: {metrics.hits}")
 print(f"Total misses: {metrics.misses}")
 print(f"Hit rate: {metrics.hit_rate:.1f}%")

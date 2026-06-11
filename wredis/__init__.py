@@ -16,6 +16,7 @@ Quick Start:
 
 For more: from wredis.sync import ... or from wredis.aio import ...
 """
+
 from __future__ import annotations
 
 __version__ = "1.0.0"
@@ -92,7 +93,7 @@ def subscribe(
     manager = RedisPubSubManager(host=host, port=port, db=db, verbose=False)
 
     @manager.on_message(channel)
-    def handler(message):  # type: ignore[misc]
+    def handler(message: Any) -> None:  # type: ignore[misc]
         callback(message)
 
     return manager

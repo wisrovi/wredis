@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wredis v1.0.0 | Enterprise-Grade Python Redis Library</title>
+
+    <!-- SEO & Meta Tags -->
+    <meta name="description" content="wredis v1.0.0: Production-ready Python library for Redis with sync/async APIs, 12 data structures, cache decorators, HA Sentinel/Cluster, and 95%+ test coverage.">
+    <meta name="keywords" content="python, redis, cache, async, sentinel, cluster, bitmap, hash, queue, pubsub, streams, hyperloglog, pipeline, transaction, wisrovi">
+    <meta name="author" content="William Steve Rodriguez Villamizar (wisrovi)">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="wredis — The Python Redis Swiss Army Knife">
+    <meta property="og:description" content="12 Redis data structures, dual sync/async APIs, cache decorators with metrics, Redis Sentinel & Cluster HA. Zero boilerplate.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/wisrovi/wredis">
+    <meta property="og:image" content="https://github.com/user-attachments/assets/ec5277c7-ec3d-4df2-88a3-37937a318133">
+    <meta property="og:site_name" content="wredis">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@wisrovi">
+    <meta name="twitter:title" content="wredis v1.0.0 | Python Redis Library">
+
+    <!-- Favicon (Procedural SVG) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%23ff4757'/><stop offset='100%25' style='stop-color:%23ff6b81'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' font-weight='bold' text-anchor='middle' fill='white'>R</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #ff4757;
+            --primary-glow: rgba(255, 71, 87, 0.4);
+            --secondary: #ff6b81;
+            --secondary-glow: rgba(255, 107, 129, 0.4);
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-deep: #0a0a0f;
+            --bg-card: rgba(18, 18, 30, 0.6);
+            --bg-card-hover: rgba(30, 30, 55, 0.8);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-highlight: rgba(255, 71, 87, 0.3);
+
+            --gradient-linear: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+            --gradient-mesh: radial-gradient(at 0% 0%, hsla(0, 100%, 50%, 0.12) 0, transparent 50%),
+                             radial-gradient(at 100% 100%, hsla(350, 100%, 50%, 0.08) 0, transparent 50%);
+            --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+
+            --shadow-neo: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+            --shadow-glow: 0 0 30px var(--primary-glow);
+
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --container-max: 1200px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: var(--gradient-mesh);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: var(--container-max); margin: 0 auto; padding: 0 2rem; }
+        section { padding: 100px 0; position: relative; }
+
+        h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+        .gradient-text {
+            background: var(--gradient-linear);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 0;
+            transition: var(--transition);
+            border-bottom: 1px solid transparent;
+        }
+        nav.scrolled {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 1rem 0;
+            border-color: var(--border);
+        }
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+        .logo i {
+            background: var(--gradient-linear);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        .nav-links a:hover { color: var(--primary); }
+        .btn-nav {
+            background: var(--gradient-linear);
+            color: #fff !important;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+        .hero-bg-fx {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255, 71, 87, 0.06) 0%, transparent 70%);
+            z-index: -1;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid var(--border-highlight);
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            animation: fadeInUp 0.8s ease;
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease 0.1s both;
+        }
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--text-dim);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            animation: fadeInUp 1.2s ease 0.2s both;
+        }
+        .hero-btns {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            animation: fadeInUp 1.4s ease 0.3s both;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.2rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .btn-main {
+            background: var(--gradient-linear);
+            color: #fff;
+            box-shadow: var(--shadow-glow);
+        }
+        .btn-main:hover { transform: translateY(-5px); box-shadow: 0 0 40px var(--primary-glow); }
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); transform: translateY(-3px); }
+
+        .stats-bar {
+            background: rgba(18, 18, 30, 0.4);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 3rem 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 3rem;
+            text-align: center;
+        }
+        .stat-item h3 {
+            font-size: 3rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+            font-weight: 800;
+        }
+        .stat-item p {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .section-header { text-align: center; margin-bottom: 5rem; }
+        .section-header h2 { font-size: 3.5rem; margin-bottom: 1.5rem; }
+        .section-header p { color: var(--text-dim); font-size: 1.2rem; max-width: 600px; margin: 0 auto; }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--gradient-surface);
+            pointer-events: none;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--border-highlight);
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow-neo);
+        }
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 71, 87, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+        .feature-card h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        .feature-card p { color: var(--text-dim); margin-bottom: 1.5rem; }
+
+        .data-structures {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 1rem;
+        }
+        .ds-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.75rem;
+            border-radius: 18px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        .ds-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-highlight);
+            background: var(--bg-card-hover);
+        }
+        .ds-icon {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background: rgba(255, 71, 87, 0.08);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+        .ds-card h4 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+        .ds-card p { font-size: 0.85rem; color: var(--text-dim); }
+        .ds-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 50px;
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.4rem;
+        }
+
+        .code-showcase {
+            background: #010409;
+            border-radius: 32px;
+            border: 1px solid var(--border);
+            padding: 4rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .code-content h2 { margin-bottom: 2rem; }
+        .code-content p { color: var(--text-dim); margin-bottom: 2rem; font-size: 1.1rem; }
+        .code-window {
+            background: #0d1117;
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #e6edf3;
+            box-shadow: var(--shadow-neo);
+            border: 1px solid #30363d;
+            position: relative;
+            overflow-x: auto;
+        }
+        .code-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        .ha-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .ha-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .ha-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-5px);
+        }
+        .ha-card h3 { font-size: 1.4rem; margin-bottom: 1rem; }
+        .ha-card p { color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .ha-features { list-style: none; text-align: left; }
+        .ha-features li { margin-bottom: 0.6rem; color: var(--text-dim); font-size: 0.9rem; }
+        .ha-features i { color: var(--success); margin-right: 0.6rem; }
+
+        .modules-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .module-pill {
+            background: rgba(255, 71, 87, 0.06);
+            border: 1px solid rgba(255, 71, 87, 0.15);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            transition: var(--transition);
+        }
+        .module-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        .ecosystem {
+            text-align: center;
+            background: linear-gradient(180deg, transparent, rgba(255, 71, 87, 0.04));
+        }
+        .eco-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 4rem;
+            border-radius: 40px;
+            border: 2px solid var(--border-highlight);
+            box-shadow: var(--shadow-glow);
+        }
+        .eco-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 30px;
+            background: var(--gradient-linear);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .eco-card h3 { font-size: 2.5rem; margin-bottom: 1.5rem; }
+        .eco-card p { font-size: 1.2rem; color: var(--text-dim); margin-bottom: 2.5rem; }
+
+        .examples-section {
+            background: rgba(255, 71, 87, 0.015);
+        }
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .example-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .example-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-5px);
+        }
+        .example-count {
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .example-card h4 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .example-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+        footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--border);
+            background: rgba(18, 18, 30, 0.8);
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+        .footer-brand p { color: var(--text-dim); margin: 1.5rem 0; max-width: 300px; }
+        .footer-links h4 { margin-bottom: 1.5rem; font-size: 1.1rem; }
+        .footer-links ul { list-style: none; }
+        .footer-links li { margin-bottom: 0.75rem; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; transition: var(--transition); }
+        .footer-links a:hover { color: var(--primary); padding-left: 5px; }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .social-links { display: flex; gap: 1.5rem; }
+        .social-links a { font-size: 1.5rem; color: var(--text-muted); transition: var(--transition); }
+        .social-links a:hover { color: var(--primary); transform: scale(1.2); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 968px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .code-showcase { grid-template-columns: 1fr; padding: 2rem; }
+            .hero h1 { font-size: 3.5rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="container nav-content">
+            <a href="#" class="logo">
+                <i class="fas fa-database"></i> wredis
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#structures">Data Structures</a>
+                <a href="#ha">HA</a>
+                <a href="#examples">Examples</a>
+                <a href="#ecosystem">Ecosystem</a>
+                <a href="https://wredis.readthedocs.io/" target="_blank">Docs</a>
+                <a href="https://github.com/wisrovi/wredis" class="btn-nav">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg-fx"></div>
+        <div class="container">
+            <div class="hero-badge">
+                <i class="fas fa-shield-alt"></i> v1.0.0-LTS — 95%+ Test Coverage
+            </div>
+            <h1>The Python <span class="gradient-text">Redis Swiss Army</span> Knife</h1>
+            <p>
+                wredis is a production-grade Python library that wraps Redis into 12 elegant managers
+                with dual sync/async APIs, cache decorators with hit/miss metrics, Sentinel and Cluster HA,
+                and over 200 ready-to-run examples.
+            </p>
+            <div class="hero-btns">
+                <a href="https://github.com/wisrovi/wredis" class="btn btn-main">
+                    Get Started <i class="fas fa-chevron-right"></i>
+                </a>
+                <a href="#structures" class="btn btn-outline">
+                    Explore the 12 Modules <i class="fas fa-cubes"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <div class="stats-bar">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>12</h3>
+                    <p>Data Structures</p>
+                </div>
+                <div class="stat-item">
+                    <h3>200+</h3>
+                    <p>Ready Examples</p>
+                </div>
+                <div class="stat-item">
+                    <h3>95%+</h3>
+                    <p>Test Coverage</p>
+                </div>
+                <div class="stat-item">
+                    <h3>Sync+Async</h3>
+                    <p>Dual APIs</p>
+                </div>
+                <div class="stat-item">
+                    <h3>LTS</h3>
+                    <p>Enterprise Ready</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">Core Capabilities</span>
+                <h2>Redis, <span class="gradient-text">Reimagined</span></h2>
+                <p>Every Redis primitive wrapped in a clean, type-safe, and resilient manager.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-code-branch"></i></div>
+                    <h3>Dual Sync / Async</h3>
+                    <p>Full synchronous and <code>asyncio</code> APIs. Import from <code>wredis.sync</code> or <code>wredis.aio</code> — same ergonomics, zero lock-in.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+                    <h3>Cache Decorators</h3>
+                    <p><code>@cache</code> and <code>@async_cache</code> with built-in hit/miss/error metrics, TTL management, and custom key builders. Cache-Aside pattern in one line.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+                    <h3>High Availability</h3>
+                    <p>Redis Sentinel auto-failover and Redis Cluster hash-slot routing. Automatic master discovery and replica detection.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-rotate"></i></div>
+                    <h3>Smart Retry Engine</h3>
+                    <p>Exponential backoff decorator for <code>@retry</code> and <code>@async_retry</code>. Configurable attempts, delays, and exception filtering.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                    <h3>Rich Error Hierarchy</h3>
+                    <p>12 exception types from <code>WRedisError</code> down to <code>QueueError</code>, <code>StreamError</code>, <code>PubSubError</code>. Catch precisely, never silence.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-check-double"></i></div>
+                    <h3>Validation & Safety</h3>
+                    <p>Built-in key length, TTL range, bitmap offset, score validity checks. Fail-fast before commands reach Redis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12 Data Structures -->
+    <section id="structures">
+        <div class="container">
+            <div class="section-header">
+                <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">Full Coverage</span>
+                <h2>12 Data Structures, <span class="gradient-text">One Library</span></h2>
+                <p>From Bitmaps to Streams — every Redis data type has a dedicated manager with CRUD + TTL + existence checks.</p>
+            </div>
+
+            <div class="data-structures">
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-hashtag"></i></div>
+                    <div>
+                        <h4>Bitmap</h4>
+                        <p>Set, get, count bits</p>
+                        <span class="ds-tag">RedisBitmapManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-list"></i></div>
+                    <div>
+                        <h4>Hash</h4>
+                        <p>CRUD, JSON serialize, TTL</p>
+                        <span class="ds-tag">RedisHashManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-layer-group"></i></div>
+                    <div>
+                        <h4>Set</h4>
+                        <p>Add, members, membership, remove</p>
+                        <span class="ds-tag">RedisSetManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-arrow-up-wide-short"></i></div>
+                    <div>
+                        <h4>Sorted Set</h4>
+                        <p>Rank, score, range, increment</p>
+                        <span class="ds-tag">RedisSortedSetManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-queue"></i></div>
+                    <div>
+                        <h4>Queue</h4>
+                        <p>Thread consumers, gzip, retries</p>
+                        <span class="ds-tag">RedisQueueManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-bullhorn"></i></div>
+                    <div>
+                        <h4>Pub/Sub</h4>
+                        <p>Publish, subscribe, decorators</p>
+                        <span class="ds-tag">RedisPubSubManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-water"></i></div>
+                    <div>
+                        <h4>Streams</h4>
+                        <p>Consumer groups, XACK, XREAD</p>
+                        <span class="ds-tag">RedisStreamManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-location-dot"></i></div>
+                    <div>
+                        <h4>Geo</h4>
+                        <p>Geoadd, distance, radius search</p>
+                        <span class="ds-tag">RedisGeoManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-chart-simple"></i></div>
+                    <div>
+                        <h4>HyperLogLog</h4>
+                        <p>Probabilistic counting, merge</p>
+                        <span class="ds-tag">RedisHyperLogLogManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-grip-lines"></i></div>
+                    <div>
+                        <h4>Pipeline</h4>
+                        <p>Batch commands, atomic sets</p>
+                        <span class="ds-tag">RedisPipelineManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-cubes"></i></div>
+                    <div>
+                        <h4>Transaction</h4>
+                        <p>WATCH/MULTI/EXEC, SET NX</p>
+                        <span class="ds-tag">RedisTransactionManager</span>
+                    </div>
+                </div>
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-bolt"></i></div>
+                    <div>
+                        <h4>Cache Decorator</h4>
+                        <p>@cache with hit-rate metrics</p>
+                        <span class="ds-tag">RedisCacheManager</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Showcase -->
+    <section>
+        <div class="container">
+            <div class="code-showcase">
+                <div class="code-content">
+                    <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">Zero Boilerplate</span>
+                    <h2>One Import, <br><span class="gradient-text">Full Control</span></h2>
+                    <p>Every manager is self-contained with connection pooling, retry logic, auto-decoding, and verbose logging built in. Use sync for simplicity, async for scale.</p>
+                    <ul style="list-style: none; color: var(--text-dim);">
+                        <li style="margin-bottom: 1rem;"><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i> Connection pooling with retry-on-timeout</li>
+                        <li style="margin-bottom: 1rem;"><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i> Automatic bytes-to-string decoding</li>
+                        <li style="margin-bottom: 1rem;"><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i> Context manager support (with statement)</li>
+                        <li style="margin-bottom: 1rem;"><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i> Full mypy type-safety, 0 warnings</li>
+                    </ul>
+                </div>
+                <div class="code-window">
+                    <div class="code-header">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-yellow"></div>
+                        <div class="dot dot-green"></div>
+                    </div>
+                    <span style="color: #ff7b72;">from</span> wredis.sync <span style="color: #ff7b72;">import</span> RedisHashManager<br>
+                    <span style="color: #ff7b72;">from</span> wredis.decorators <span style="color: #ff7b72;">import</span> cache, CacheMetrics<br><br>
+                    <span style="color: #8b949e;"># Track performance</span><br>
+                    metrics = CacheMetrics()<br><br>
+                    <span style="color: #8b949e;"># One-line caching</span><br>
+                    <span style="color: #ff7b72;">@</span><span style="color: #d2a8ff;">cache</span>(ttl=60, metrics=metrics)<br>
+                    <span style="color: #ff7b72;">def</span> <span style="color: #d2a8ff;">get_user</span>(user_id: <span style="color: #79c0ff;">str</span>) -> <span style="color: #79c0ff;">dict</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff7b72;">return</span> {<span style="color: #a5d6ff;">"id"</span>: user_id, <span style="color: #a5d6ff;">"name"</span>: <span style="color: #a5d6ff;">"Alice"</span>}<br><br>
+                    <span style="color: #8b949e;"># Hash operations</span><br>
+                    hm = RedisHashManager(host=<span style="color: #a5d6ff;">"localhost"</span>)<br>
+                    hm.create_hash(<span style="color: #a5d6ff;">"users"</span>, <span style="color: #a5d6ff;">"u:1"</span>, {<span style="color: #a5d6ff;">"role"</span>: <span style="color: #a5d6ff;">"admin"</span>}, ttl=300)<br>
+                    user = hm.read_hash(<span style="color: #a5d6ff;">"users"</span>, <span style="color: #a5d6ff;">"u:1"</span>)<br><br>
+                    <span style="color: #8b949e;"># Check metrics anytime</span><br>
+                    <span style="color: #79c0ff;">print</span>(metrics)  <span style="color: #8b949e;"># CacheMetrics(hits=5, misses=2, ...)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- High Availability -->
+    <section id="ha">
+        <div class="container">
+            <div class="section-header">
+                <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">High Availability</span>
+                <h2>Production <span class="gradient-text">Hardened</span></h2>
+                <p>Two HA strategies for mission-critical Redis deployments.</p>
+            </div>
+
+            <div class="ha-grid">
+                <div class="ha-card">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem; color: var(--primary);">
+                        <i class="fas fa-shield"></i>
+                    </div>
+                    <h3>Redis Sentinel</h3>
+                    <p><code>SentinelRedisManager</code> — automatic failover with master/slave topology.</p>
+                    <ul class="ha-features">
+                        <li><i class="fas fa-check"></i> Auto master discovery & failover</li>
+                        <li><i class="fas fa-check"></i> Slave read-replica support</li>
+                        <li><i class="fas fa-check"></i> Role detection (is_master)</li>
+                        <li><i class="fas fa-check"></i> Multi-node Sentinel support</li>
+                    </ul>
+                </div>
+                <div class="ha-card">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem; color: var(--primary);">
+                        <i class="fas fa-circle-nodes"></i>
+                    </div>
+                    <h3>Redis Cluster</h3>
+                    <p><code>ClusterRedisManager</code> — distributed hash-slot routing at scale.</p>
+                    <ul class="ha-features">
+                        <li><i class="fas fa-check"></i> Automatic slot routing</li>
+                        <li><i class="fas fa-check"></i> Cluster state monitoring</li>
+                        <li><i class="fas fa-check"></i> Node & slot discovery</li>
+                        <li><i class="fas fa-check"></i> Replica wait & health checks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Catalog -->
+    <section id="examples" class="examples-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">Learn by Example</span>
+                <h2>200+ Examples, <span class="gradient-text">15 Levels Deep</span></h2>
+                <p>From "hello world" to advanced enterprise patterns — every concept is demonstrated with runnable code.</p>
+            </div>
+
+            <div class="examples-grid">
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Sync Base</h4>
+                    <p>Init, health check, context managers, retry, FastAPI integration, connection pooling, error handling, custom managers, logging, multiple DBs, batch ops, pipelines, testing, pool monitoring.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Async Base</h4>
+                    <p>Async init, health check, context managers, retry, FastAPI integration, concurrent ops, connection pooling, error handling, custom managers, logging, multiple DBs, worker patterns, cache decorators, rate limiters.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Cache Patterns</h4>
+                    <p>Basic metrics, hit-rate monitoring, multi-zone cache, TTL impact, cache warming, invalidation, dashboard patterns, alerting, manual recording, async metrics, performance comparison, custom key builder, error handling.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Exception Handling</h4>
+                    <p>Exception hierarchy, specific error catching, custom messages, validation errors, operation recovery, transaction errors, serialization errors, logging integration, retry on specific errors, graceful degradation, queue/stream/pubsub error handling.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Retry Patterns</h4>
+                    <p>Basic retry, custom exceptions, backoff timing, Redis read/write ops, DB connection, API calls, circuit breaker, logging, wrapper pattern, batch ops, fallback, timeout, async retry, FastAPI integration.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">15 Levels</span>
+                    <h4>Serialization</h4>
+                    <p>Basic, nested dicts, lists, unicode, none values, booleans, datetime, custom objects, large data, round-trip, error handling, tuples, long strings, Redis storage pattern.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">Per Module</span>
+                    <h4>Data Structure Examples</h4>
+                    <p>Bitmap (read/write), Hash (CRUD), Sets, Sorted Sets, Queue (producer/consumer), Pub/Sub (pub/sub), Streams, Geo, HyperLogLog, Pipeline, Transaction — all with sync and async variants.</p>
+                </div>
+                <div class="example-card">
+                    <span class="example-count">Bonus</span>
+                    <h4>HA & Environment</h4>
+                    <p>Sentinel basic, Cluster basic, Docker Compose with redislabs/redismod + Redis Commander UI.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 4rem;">
+                <a href="https://github.com/wisrovi/wredis/tree/main/examples" class="btn btn-outline">
+                    <i class="fas fa-folder-open"></i> Browse Examples Folder
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Wisdom Ecosystem -->
+    <section id="ecosystem" class="ecosystem">
+        <div class="container">
+            <div class="eco-card">
+                <div class="eco-avatar">W</div>
+                <h3>Wisrovi <span class="gradient-text">Ecosystem</span></h3>
+                <p>
+                    wredis is part of the Wisrovi library family — designed to bridge the gap between
+                    complex enterprise infrastructure and clean, maintainable Python code.
+                    Every library is fully typed, rigorously tested, and production-hardened.
+                </p>
+                <a href="https://github.com/wisrovi" target="_blank" class="btn btn-main">
+                    Explore Wisrovi Libraries <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section>
+        <div class="container" style="text-align: center;">
+            <h2 style="font-size: 3.5rem; margin-bottom: 2rem;">Build <span class="gradient-text">Resilient</span> Redis Systems</h2>
+            <p style="color: var(--text-dim); font-size: 1.2rem; max-width: 600px; margin: 0 auto 3rem;">
+                pip install wredis — one command, 12 data structures, infinite possibilities.
+            </p>
+            <div class="hero-btns">
+                <a href="https://github.com/wisrovi/wredis" class="btn btn-main">Star on GitHub</a>
+                <a href="https://pypi.org/project/wredis/" class="btn btn-outline"><i class="fab fa-python"></i> PyPI</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <i class="fas fa-database"></i> wredis
+                    </a>
+                    <p>The definitive Python library for Redis. 12 data structures, dual sync/async APIs, HA Sentinel & Cluster, and 95%+ test coverage — all in one well-typed package.</p>
+                    <div class="social-links">
+                        <a href="https://github.com/wisrovi" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="https://es.linkedin.com/in/wisrovi-rodriguez" target="_blank"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://twitter.com/wisrovi" target="_blank"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Library</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#structures">Data Structures</a></li>
+                        <li><a href="#ha">High Availability</a></li>
+                        <li><a href="https://wredis.readthedocs.io/" target="_blank">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/wisrovi/wredis/releases">Releases</a></li>
+                        <li><a href="https://github.com/wisrovi/wredis/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/wisrovi/wredis/blob/main/CONTRIBUTING.md">Contributing</a></li>
+                        <li><a href="https://github.com/wisrovi/wredis/blob/main/SECURITY.md">Security</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Developer</h4>
+                    <ul>
+                        <li><a href="https://github.com/wisrovi">GitHub Profile</a></li>
+                        <li><a href="https://wpipe.readthedocs.io/">wpipe Library</a></li>
+                        <li><a href="mailto:wisrovi.rodriguez@gmail.com">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024-2026 William Steve Rodriguez Villamizar. MIT Licensed.</p>
+                <p>Built with <i class="fas fa-heart" style="color: var(--danger);"></i> for the Python Community.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .ds-card, .ha-card, .example-card, .eco-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

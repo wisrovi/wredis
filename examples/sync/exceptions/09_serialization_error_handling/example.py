@@ -24,9 +24,7 @@ def serialize(data):
     try:
         return json.dumps(data)
     except (TypeError, ValueError) as exc:
-        raise SerializationError(
-            f"Could not serialize data of type {type(data).__name__}: {exc}"
-        ) from exc
+        raise SerializationError(f"Could not serialize data of type {type(data).__name__}: {exc}") from exc
 
 
 def deserialize(text):

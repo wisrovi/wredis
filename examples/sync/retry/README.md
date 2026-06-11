@@ -15,7 +15,7 @@ Coleccion de 15 ejemplos practicos que demuestran el uso de los decoradores `ret
 
 | # | Archivo | Descripcion |
 |---|---------|-------------|
-| 01 | [01_basic_retry.py](01_basic_retry.py) | Uso basico del decorador `@retry` con una funcion que falla intermitentemente |
+| 01 | [01_basic_retry.py](01_basic_retry.py) | Uso basico del decorador `@retry` con una function que falla intermitentemente |
 | 02 | [02_custom_exceptions.py](02_custom_exceptions.py) | Configuracion de excepciones personalizadas para capturar errores especificos |
 | 03 | [03_backoff_timing.py](03_backoff_timing.py) | Medicion y demostracion del backoff exponencial entre reintentos |
 | 04 | [04_redis_read_operations.py](04_redis_read_operations.py) | Reintento en operaciones de lectura (GET) de Redis |
@@ -34,7 +34,7 @@ Coleccion de 15 ejemplos practicos que demuestran el uso de los decoradores `ret
 ## Parametros del Decorador
 
 - **`max_attempts`** (int): Numero maximo de intentos (default: 3)
-- **`delay`** (float): Delay inicial entre reintentos en segundos (default: 0.1)
+- **`delay`** (float): Delay initial entre reintentos en segundos (default: 0.1)
 - **`backoff`** (float): Multiplicador del delay tras cada reintento (default: 2.0)
 - **`exceptions`** (tuple): Tupla de tipos de excepcion que disparan el reintento (default: `(redis.ConnectionError, redis.TimeoutError)`)
 
@@ -51,6 +51,6 @@ def operacion_critica():
 
 ## Notas
 
-- Todos los ejemplos usan mocks para simular fallos de Redis sin necesidad de un servidor real
+- Todos los ejemplos usan mocks para similar fallos de Redis sin necesidad de un servidor real
 - Las excepciones no incluidas en `exceptions` se propagan inmediatamente sin reintento
 - Tras agotar los intentos, se lanza `OperationError` de `wredis._exceptions`

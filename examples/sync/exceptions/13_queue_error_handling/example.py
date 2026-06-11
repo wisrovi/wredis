@@ -27,9 +27,7 @@ class RedisQueue:
         if element is None:
             raise QueueError(f"Cannot add None to queue '{self.name}'")
         if len(self._elements) >= self.max_size:
-            raise QueueError(
-                f"Queue '{self.name}' is full ({self.max_size} elements max)"
-            )
+            raise QueueError(f"Queue '{self.name}' is full ({self.max_size} elements max)")
         self._elements.append(element)
         return len(self._elements)
 

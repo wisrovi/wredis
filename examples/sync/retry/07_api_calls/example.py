@@ -52,9 +52,7 @@ if __name__ == "__main__":
 
     # Weather query with retries
     weather = query_weather("Buenos Aires")
-    print(
-        f"Weather in {weather['city']}: {weather['temperature']}C, {weather['humidity']}% humidity"
-    )
+    print(f"Weather in {weather['city']}: {weather['temperature']}C, {weather['humidity']}% humidity")
 
     # Send notification
     sent = send_alert("System alert")

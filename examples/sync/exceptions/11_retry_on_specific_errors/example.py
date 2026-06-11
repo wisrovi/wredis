@@ -33,16 +33,12 @@ def retry(max_attempts=3, wait=0.1, retryable_exceptions=None):
                     return func(*args, **kwargs)
                 except retryable_exceptions as exc:
                     last_error = exc
-                    print(
-                        f"  [{func.__name__}] Attempt {attempt}/{max_attempts} failed: {type(exc).__name__}: {exc}"
-                    )
+                    print(f"  [{func.__name__}] Attempt {attempt}/{max_attempts} failed: {type(exc).__name__}: {exc}")
                     if attempt < max_attempts:
                         time.sleep(wait)
                 except WRedisError as exc:
                     # Non-retryable errors are propagated immediately
-                    print(
-                        f"  [{func.__name__}] Non-retryable error: {type(exc).__name__}: {exc}"
-                    )
+                    print(f"  [{func.__name__}] Non-retryable error: {type(exc).__name__}: {exc}")
                     raise
             raise last_error
 
@@ -133,9 +129,7 @@ def retry_with_backoff(max_attempts=4, retryable_exceptions=None):
                     return func(*args, **kwargs)
                 except retryable_exceptions as exc:
                     wait_time = 0.05 * (2 ** (attempt - 1))
-                    print(
-                        f"  Attempt {attempt}/{max_attempts} failed, waiting {wait_time:.2f}s: {exc}"
-                    )
+                    print(f"  Attempt {attempt}/{max_attempts} failed, waiting {wait_time:.2f}s: {exc}")
                     if attempt < max_attempts:
                         time.sleep(wait_time)
             raise exc

@@ -139,9 +139,7 @@ class TestRedisQueueManagerGetQueueLength:
     def test_get_queue_length_redis_error(self, queue_manager):
         """Test get_queue_length raises QueueError on Redis failure."""
         original_llen = queue_manager.redis_client.llen
-        queue_manager.redis_client.llen = MagicMock(
-            side_effect=redis.RedisError("Redis error")
-        )
+        queue_manager.redis_client.llen = MagicMock(side_effect=redis.RedisError("Redis error"))
 
         with pytest.raises(QueueError, match="Failed to get length of queue"):
             queue_manager.get_queue_length("myqueue")

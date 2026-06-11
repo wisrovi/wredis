@@ -93,18 +93,14 @@ class TestCacheMetrics:
 
     def test_repr_empty(self):
         metrics = CacheMetrics()
-        assert (
-            repr(metrics) == "CacheMetrics(hits=0, misses=0, errors=0, hit_rate=0.0%)"
-        )
+        assert repr(metrics) == "CacheMetrics(hits=0, misses=0, errors=0, hit_rate=0.0%)"
 
     def test_repr_with_data(self):
         metrics = CacheMetrics()
         metrics.record_hit()
         metrics.record_miss()
         metrics.record_error()
-        assert (
-            repr(metrics) == "CacheMetrics(hits=1, misses=1, errors=1, hit_rate=50.0%)"
-        )
+        assert repr(metrics) == "CacheMetrics(hits=1, misses=1, errors=1, hit_rate=50.0%)"
 
     def test_default_metrics_is_cache_metrics(self):
         assert isinstance(default_metrics, CacheMetrics)
@@ -266,9 +262,7 @@ class TestCacheDecorator:
         def my_builder(func, args, kwargs):
             return "custom_key"
 
-        @cache(
-            ttl=300, prefix="test", key_builder=my_builder, redis_client=redis_client
-        )
+        @cache(ttl=300, prefix="test", key_builder=my_builder, redis_client=redis_client)
         def func(x):
             return x
 
@@ -279,9 +273,7 @@ class TestCacheDecorator:
         def my_builder(func, args, kwargs):
             return f"arg_{args[0]}"
 
-        @cache(
-            ttl=300, prefix="test", key_builder=my_builder, redis_client=redis_client
-        )
+        @cache(ttl=300, prefix="test", key_builder=my_builder, redis_client=redis_client)
         def func(x):
             return x
 
@@ -313,9 +305,7 @@ class TestCacheDecorator:
             return x
 
         original_get = redis_client.get
-        redis_client.get = lambda key: (_ for _ in ()).throw(
-            redis.RedisError("connection lost")
-        )
+        redis_client.get = lambda key: (_ for _ in ()).throw(redis.RedisError("connection lost"))
         try:
             with pytest.raises(CacheError):
                 func(1)
@@ -334,9 +324,7 @@ class TestCacheDecorator:
         original_get = redis_client.get
         original_setex = redis_client.setex
         redis_client.get = lambda key: None
-        redis_client.setex = lambda key, ttl, value: (_ for _ in ()).throw(
-            redis.RedisError("write failed")
-        )
+        redis_client.setex = lambda key, ttl, value: (_ for _ in ()).throw(redis.RedisError("write failed"))
         try:
             with pytest.raises(CacheError):
                 func(1)
@@ -540,9 +528,7 @@ class TestAsyncCacheDecorator:
     async def test_cache_metrics_tracking(self, async_redis_client):
         metrics = CacheMetrics()
 
-        @async_cache(
-            ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics
-        )
+        @async_cache(ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics)
         async def func(x):
             return x
 
@@ -561,9 +547,7 @@ class TestAsyncCacheDecorator:
 
         metrics = CacheMetrics()
 
-        @async_cache(
-            ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics
-        )
+        @async_cache(ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics)
         async def func(x):
             return x
 
@@ -587,9 +571,7 @@ class TestAsyncCacheDecorator:
 
         metrics = CacheMetrics()
 
-        @async_cache(
-            ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics
-        )
+        @async_cache(ttl=300, prefix="atest", redis_client=async_redis_client, metrics=metrics)
         async def func(x):
             return x
 
@@ -732,9 +714,7 @@ class TestInvalidateCacheDecorator:
             return "ok"
 
         original_keys = redis_client.keys
-        redis_client.keys = lambda pattern: (_ for _ in ()).throw(
-            redis.RedisError("redis error")
-        )
+        redis_client.keys = lambda pattern: (_ for _ in ()).throw(redis.RedisError("redis error"))
         try:
             with pytest.raises(CacheError):
                 func()
@@ -776,9 +756,7 @@ class TestClearCache:
 
     def test_clear_cache_error(self, redis_client):
         original_keys = redis_client.keys
-        redis_client.keys = lambda pattern: (_ for _ in ()).throw(
-            redis.RedisError("redis error")
-        )
+        redis_client.keys = lambda pattern: (_ for _ in ()).throw(redis.RedisError("redis error"))
         try:
             with pytest.raises(CacheError):
                 clear_cache("test:*", redis_client=redis_client)

@@ -64,8 +64,6 @@ key = "product:999"
 value = {"name": "Widget", "price": None}
 
 try:
-    raise ValidationError(
-        f"Cannot serialize value for '{key}': field 'price' cannot be null"
-    )
+    raise ValidationError(f"Cannot serialize value for '{key}': field 'price' cannot be null")
 except ValidationError as exc:
     print(f"\n{exc}")

@@ -43,9 +43,7 @@ class TestRedisPipelineManager:
         manager = RedisPipelineManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
             result = manager.execute_commands([("set", ["k", "v"])])
             assert result == []
 
@@ -64,9 +62,7 @@ class TestRedisPipelineManager:
         manager = RedisPipelineManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
             result = manager.set_get("key", "value")
             assert result is None
 
@@ -97,9 +93,7 @@ class TestRedisPipelineManager:
         manager = RedisPipelineManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
             result = manager.mget_pipeline("key")
             assert result == []
 
@@ -129,9 +123,7 @@ class TestRedisPipelineManager:
         manager = RedisPipelineManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
             result = manager.mset_pipeline({"k": "v"})
             assert result is False
 
@@ -164,8 +156,6 @@ class TestRedisPipelineManager:
         manager = RedisPipelineManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(
-            manager.redis_client, "pipeline", side_effect=Exception("Redis error")
-        ):
+        with patch.object(manager.redis_client, "pipeline", side_effect=Exception("Redis error")):
             result = manager.delete_keys("key")
             assert result == 0

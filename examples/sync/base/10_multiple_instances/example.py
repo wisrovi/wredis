@@ -33,10 +33,8 @@ task = queue_manager._execute("lpop", "queue:tasks")
 print(f"  Queue - task processed = {task}")
 
 print("\nVerifying independence:")
-print(
-    f"  Session can see cache data: {session_manager._execute('get', 'cache:page:home')}"
-)
-print(f"  (Redis databases are independent)")
+print(f"  Session can see cache data: {session_manager._execute('get', 'cache:page:home')}")
+print("  (Redis databases are independent)")
 
 session_manager.close()
 cache_manager.close()

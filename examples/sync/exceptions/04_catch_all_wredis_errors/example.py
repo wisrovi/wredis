@@ -4,9 +4,20 @@ Shows how to catch any WRedis exception with a single
 except block, useful when handling is indifferent to type.
 """
 
-from wredis._exceptions import (CacheError, ClusterError, OperationError, PubSubError, QueueError, RedisConnectionError,
-                                SentinelError, SerializationError, StreamError, TransactionError, ValidationError,
-                                WRedisError)
+from wredis._exceptions import (
+    CacheError,
+    ClusterError,
+    OperationError,
+    PubSubError,
+    QueueError,
+    RedisConnectionError,
+    SentinelError,
+    SerializationError,
+    StreamError,
+    TransactionError,
+    ValidationError,
+    WRedisError,
+)
 
 
 def execute_risky_operation(operation_id):

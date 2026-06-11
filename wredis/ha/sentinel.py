@@ -1,4 +1,5 @@
 """Redis Sentinel Manager for high availability."""
+
 from __future__ import annotations
 
 import redis

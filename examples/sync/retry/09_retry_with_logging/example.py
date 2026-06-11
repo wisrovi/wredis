@@ -27,9 +27,7 @@ class RetryMonitor:
             self.successful_operations += 1
         else:
             self.failed_operations += 1
-        print(
-            f"  [LOG] {name}: {'SUCCESS' if success else 'FAILURE'} (retries: {retries})"
-        )
+        print(f"  [LOG] {name}: {'SUCCESS' if success else 'FAILURE'} (retries: {retries})")
 
     def summary(self) -> dict:
         """Returns accumulated statistics."""
@@ -76,6 +74,6 @@ if __name__ == "__main__":
         except OperationError:
             monitor.register_operation(name, False, attempts_ref[0])
 
-    print(f"\nMonitor summary:")
+    print("\nMonitor summary:")
     for key, value in monitor.summary().items():
         print(f"  {key}: {value}")

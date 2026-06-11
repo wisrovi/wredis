@@ -34,8 +34,6 @@ if __name__ == "__main__":
     for i in range(1, len(timestamps)):
         actual_delay = timestamps[i] - timestamps[i - 1]
         expected_delay = 0.1 * (2.0 ** (i - 1))
-        print(
-            f"  Attempt {i} -> {i + 1}: actual_delay={actual_delay:.3f}s, expected_delay={expected_delay:.3f}s"
-        )
+        print(f"  Attempt {i} -> {i + 1}: actual_delay={actual_delay:.3f}s, expected_delay={expected_delay:.3f}s")
 
     print(f"\nTotal attempts: {len(timestamps)}")

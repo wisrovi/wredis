@@ -9,11 +9,11 @@ from ._exceptions import (
 )
 
 __all__ = [
-    "WRedisError",
-    "ValidationError",
     "OperationError",
-    "TransactionError",
+    "PubSubError",
     "QueueError",
     "StreamError",
-    "PubSubError",
+    "TransactionError",
+    "ValidationError",
+    "WRedisError",
 ]

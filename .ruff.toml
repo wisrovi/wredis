@@ -3,6 +3,7 @@ line-length = 120
 
 [lint]
 select = [
+    "D",
     "E",
     "F",
     "W",
@@ -31,6 +32,9 @@ ignore = [
 [lint.isort]
 known-first-party = ["wredis"]
 combine-as-imports = true
+
+[lint.pydocstyle]
+convention = "google"
 
 [format]
 quote-style = "double"

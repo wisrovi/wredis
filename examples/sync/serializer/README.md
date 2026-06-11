@@ -32,7 +32,7 @@ valor = deserialize(datos_json)
 | 10 | [10_round_trip.py](10_round_trip.py) | Pruebas de ida y vuelta para verificar integridad de datos |
 | 11 | [11_error_handling.py](11_error_handling.py) | Captura y manejo de excepciones SerializationError |
 | 12 | [12_tuples_to_lists.py](12_tuples_to_lists.py) | Comportamiento de tuplas al serializar (se convierten a listas) |
-| 13 | [13_long_strings.py](13_long_strings.py) | Serialización de cadenas de texto muy largas y con caracteres de escape |
+| 13 | [13_long_strings.py](13_long_strings.py) | Serialización de cadenas de texto muy largas y con characters de escape |
 | 14 | [14_redis_storage_pattern.py](14_redis_storage_pattern.py) | Patrón de almacenamiento simulando operaciones de Redis |
 | 15 | [15_error_handling.py](15_error_handling.py) | Manejo avanzado de errores con validación previa y valores por defecto |
 
@@ -48,7 +48,7 @@ python examples/sync/serializer/02_nested_dicts.py
 
 ## Notas
 
-- El serializador usa `json.dumps` con `ensure_ascii=False` para preservar caracteres Unicode.
+- El serializador usa `json.dumps` con `ensure_ascii=False` para preservar characters Unicode.
 - Los objetos `datetime` deben convertirse a cadena ISO 8601 antes de serializar.
 - Las tuplas se convierten a listas durante la serialización (limitación de JSON).
-- No todos los tipos de Python son serializables (sets, funciones, clases personalizadas sin conversión).
+- No todos los tipos de Python son serializables (sets, funciones, classes personalizadas sin conversión).

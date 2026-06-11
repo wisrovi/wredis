@@ -30,9 +30,7 @@ print(f"Result (cache hit): {resultado}")
 print(f"Metrics: {metrics}")
 
 print("\n=== Simulating cache error ===")
-with unittest.mock.patch.object(
-    manager.redis_client, "get", side_effect=Exception("simulated connection error")
-):
+with unittest.mock.patch.object(manager.redis_client, "get", side_effect=Exception("simulated connection error")):
     try:
         resultado = obtener_datos_seguros("config2")
         print(f"Result: {resultado}")

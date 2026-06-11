@@ -1,4 +1,5 @@
 """Redis Geo Manager - Geographic operations with Redis."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -23,9 +24,7 @@ class RedisGeoManager:
         verbose: bool = True,
     ):
         """Initialize the RedisGeoManager."""
-        self.redis_client = redis.Redis(
-            host=host, port=port, db=db, decode_responses=True
-        )
+        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
@@ -33,9 +32,7 @@ class RedisGeoManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def add_location(
-        self, key: str, location: str, longitude: float, latitude: float
-    ) -> None:
+    def add_location(self, key: str, location: str, longitude: float, latitude: float) -> None:
         """Add a location to a geo key.
 
         Args:
@@ -51,8 +48,7 @@ class RedisGeoManager:
             logger.error(f"Error adding location to key '{key}': {e}")
 
     def exist(self, key: str) -> bool:
-        """
-        Checks if a geo key exists.
+        """Checks if a geo key exists.
 
         Args:
             key (str): The Redis key for geographic data.
@@ -69,9 +65,7 @@ class RedisGeoManager:
             logger.error(f"Error checking existence of geo key '{key}': {e}")
             return False
 
-    def get_distance(
-        self, key: str, location1: str, location2: str, unit: str = "km"
-    ) -> float | None:
+    def get_distance(self, key: str, location1: str, location2: str, unit: str = "km") -> float | None:
         """Get distance between two locations.
 
         Args:
@@ -91,9 +85,7 @@ class RedisGeoManager:
             logger.error(f"Error getting distance: {e}")
             return None
 
-    def get_positions(
-        self, key: str, *locations: str
-    ) -> list[tuple[str, float, float] | None]:
+    def get_positions(self, key: str, *locations: str) -> list[tuple[str, float, float] | None]:
         """Get positions of locations.
 
         Args:
@@ -140,9 +132,7 @@ class RedisGeoManager:
             List of location names.
         """
         try:
-            results = self.redis_client.georadius(
-                key, longitude, latitude, radius, unit=unit, count=count
-            )
+            results = self.redis_client.georadius(key, longitude, latitude, radius, unit=unit, count=count)
             self.log(f"Found {len(results)} locations within {radius} {unit}")
             return results
         except Exception as e:

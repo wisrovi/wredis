@@ -23,7 +23,6 @@ setup(
     install_requires=[
         "redis>=5.0.0",
         "loguru>=0.7.0",
-
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

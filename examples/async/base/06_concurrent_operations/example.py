@@ -23,9 +23,7 @@ async def read_data(manager: BaseManager, key: str):
 async def main():
     async with BaseManager(verbose=False) as manager:
         print("=== Concurrent Write ===")
-        write_tasks = [
-            write_data(manager, f"user:{i}", f"name_{i}") for i in range(1, 6)
-        ]
+        write_tasks = [write_data(manager, f"user:{i}", f"name_{i}") for i in range(1, 6)]
         results = await asyncio.gather(*write_tasks)
         for r in results:
             print(f"  {r}")

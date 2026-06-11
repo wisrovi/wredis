@@ -28,9 +28,7 @@ class CircuitBreaker:
         self.consecutive_failures += 1
         if self.consecutive_failures >= self.max_failures:
             self.open = True
-            print(
-                f"  [CIRCUIT BREAKER] Circuit OPEN after {self.consecutive_failures} failures"
-            )
+            print(f"  [CIRCUIT BREAKER] Circuit OPEN after {self.consecutive_failures} failures")
 
     def verify(self) -> None:
         """Verifies if circuit is open before executing."""

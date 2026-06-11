@@ -1,4 +1,5 @@
 """Base manager for all WRedis sync managers."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -120,7 +121,7 @@ class BaseManager:
                 operation = "rpush"
 
             result = getattr(self.redis_client, operation)(*args, **kwargs)
-            
+
             # Auto-decode for convenience while preserving binary data
             if isinstance(result, bytes):
                 try:
@@ -139,19 +140,17 @@ class BaseManager:
                         decoded_list.append(item)
                 return decoded_list
             if isinstance(result, dict):
-                decoded_dict = {}
+                decoded_dict: dict[str, Any] = {}
                 for k, v in result.items():
                     dk = k.decode("utf-8") if isinstance(k, bytes) else k
+                    dv: Any = v
                     if isinstance(v, bytes):
                         try:
                             dv = v.decode("utf-8")
                         except UnicodeDecodeError:
-                            dv = v
-                    else:
-                        dv = v
+                            pass
                     decoded_dict[dk] = dv
                 return decoded_dict
-                
             return result
         except redis.RedisError as e:
             raise OperationError(f"Redis {operation} failed: {e}") from e
@@ -161,8 +160,20 @@ class BaseManager:
         self._pool.disconnect()
         self.log("Connection pool closed")
 
-    def __enter__(self) -> "BaseManager":
+    def __enter__(self) -> BaseManager:
+        """Enter the runtime context related to this object.
+
+        Returns:
+            The BaseManager instance.
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Exit the runtime context and close the connection pool.
+
+        Args:
+            exc_type: The exception type.
+            exc_val: The exception value.
+            exc_tb: The traceback.
+        """
         self.close()

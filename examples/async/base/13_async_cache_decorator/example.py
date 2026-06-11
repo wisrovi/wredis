@@ -7,7 +7,8 @@ avoiding redundant executions with configurable TTL.
 
 import asyncio
 import functools
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from wredis.aio import BaseManager
 

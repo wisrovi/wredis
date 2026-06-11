@@ -26,9 +26,7 @@ def verificar_alerta(metrics: CacheMetrics, umbral: float) -> None:
         return
 
     if metrics.hit_rate < umbral:
-        print(
-            f"  [ALERT] Hit rate {metrics.hit_rate:.1f}% < {umbral}% - Possible cache problem"
-        )
+        print(f"  [ALERT] Hit rate {metrics.hit_rate:.1f}% < {umbral}% - Possible cache problem")
     else:
         print(f"  [OK] Hit rate {metrics.hit_rate:.1f}% >= {umbral}% - Cache healthy")
 
@@ -52,7 +50,7 @@ for ep in endpoints_repetidos:
     consultar_api(ep)
     verificar_alerta(metrics, ALERT_THRESHOLD)
 
-print(f"\n=== Final Summary ===")
+print("\n=== Final Summary ===")
 print(f"Metrics: {metrics}")
 
 manager.close()

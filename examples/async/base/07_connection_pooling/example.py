@@ -30,9 +30,9 @@ async def main():
         value = await manager._execute("get", f"pool:key:{i}")
         print(f"  pool:key:{i} = {value}")
 
-    print(f"\nMaximum pool size: 20 connections")
-    print(f"Socket timeout: 10.0 seconds")
-    print(f"Decode responses: True")
+    print("\nMaximum pool size: 20 connections")
+    print("Socket timeout: 10.0 seconds")
+    print("Decode responses: True")
 
     await manager.close()
     print("\nConnection pool closed")

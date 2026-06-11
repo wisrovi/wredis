@@ -1,3 +1,5 @@
+#!/bin/bash
+#!/bin/bash
 #!/usr/bin/env bash
 # Release automation for WRedis
 # Usage: ./release.sh <version>

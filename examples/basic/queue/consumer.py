@@ -1,6 +1,5 @@
 from wredis.queue import RedisQueueManager
 
-
 # Crear una instancia del consumidor
 queue_manager = RedisQueueManager(poll_interval=2, host="localhost", verbose=False, compress=True)
 

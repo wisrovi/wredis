@@ -33,6 +33,6 @@ print(f"  {serialized}")
 
 # Deserialize and verify integrity
 restored = deserialize(serialized)
-print(f"\nDeserialized:")
+print("\nDeserialized:")
 print(f"  {restored}")
 print(f"\nIs data equal? {user == restored}")

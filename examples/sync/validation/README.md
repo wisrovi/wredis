@@ -8,8 +8,8 @@ Ejemplos que demuestran el uso de las funciones de validación de `wredis._valid
 |---|---------|-------------|
 | 01 | [`01_ttl_validation.py`](01_ttl_validation.py) | Validación básica de TTL con valores aceptables (positivos, 0 y -1). |
 | 02 | [`02_invalid_ttl.py`](02_invalid_ttl.py) | Validación de TTL con valores inválidos menores a -1 que lanzan `ValidationError`. |
-| 03 | [`03_key_validation.py`](03_key_validation.py) | Validación de claves de Redis con casos válidos: simples, jerárquicas y de 512 caracteres. |
-| 04 | [`04_invalid_key.py`](04_invalid_key.py) | Validación de claves inválidas: vacías y mayores a 512 caracteres. |
+| 03 | [`03_key_validation.py`](03_key_validation.py) | Validación de claves de Redis con casos válidos: simples, jerárquicas y de 512 characters. |
+| 04 | [`04_invalid_key.py`](04_invalid_key.py) | Validación de claves inválidas: vacías y mayores a 512 characters. |
 | 05 | [`05_offset_validation.py`](05_offset_validation.py) | Validación de offset para operaciones con bitmaps (valores válidos e inválidos). |
 | 06 | [`06_bit_value_validation.py`](06_bit_value_validation.py) | Validación de valores de bit (0 y 1) para operaciones SETBIT/GETBIT. |
 | 07 | [`07_score_validation.py`](07_score_validation.py) | Validación de scores para conjuntos ordenados: enteros, floats, NaN e infinito. |
@@ -29,7 +29,7 @@ Las funciones disponibles en `wredis._validation` son:
 | Función | Parámetro | Válidos | Inválidos |
 |---------|-----------|---------|-----------|
 | `validate_ttl(ttl)` | `int` | `>= 0` y `-1` | `< -1` |
-| `validate_key(key)` | `str` | 1 a 512 caracteres | vacío o `> 512` |
+| `validate_key(key)` | `str` | 1 a 512 characters | vacío o `> 512` |
 | `validate_offset(offset)` | `int` | `>= 0` | `< 0` |
 | `validate_bit_value(value)` | `int` | `0` o `1` | cualquier otro |
 | `validate_score(score)` | `float` | números finitos | `NaN`, `inf`, no-números |

@@ -1,4 +1,5 @@
 """Async Redis Stream Manager - real asyncio, no threads."""
+
 from __future__ import annotations
 
 import asyncio
@@ -44,9 +45,7 @@ class AsyncRedisStreamManager(AsyncBaseManager):
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self.running = False
 
-    async def add_to_stream(
-        self, key: str, data: dict[str, str], ttl: int | None = None
-    ) -> str | None:
+    async def add_to_stream(self, key: str, data: dict[str, str], ttl: int | None = None) -> str | None:
         """Add a message to the stream.
 
         Args:
@@ -65,11 +64,11 @@ class AsyncRedisStreamManager(AsyncBaseManager):
 
         try:
             message_id = await self.redis_client.xadd(key, data)
-            self.log(f"Added to stream '{key}' with ID {message_id}")
+            await self.log(f"Added to stream '{key}' with ID {message_id}")
 
             if ttl:
                 await self.redis_client.expire(key, ttl)
-                self.log(f"Set TTL of {ttl}s for stream '{key}'")
+                await self.log(f"Set TTL of {ttl}s for stream '{key}'")
 
             return message_id
         except (ValidationError, StreamError):
@@ -77,9 +76,7 @@ class AsyncRedisStreamManager(AsyncBaseManager):
         except aredis.RedisError as e:
             raise StreamError(f"Failed to add to stream '{key}': {e}") from e
 
-    def on_message(
-        self, stream_name: str, group_name: str, consumer_name: str
-    ) -> Callable:
+    def on_message(self, stream_name: str, group_name: str, consumer_name: str) -> Callable:
         """Decorator to register an async consumer for a stream.
 
         Args:
@@ -98,9 +95,7 @@ class AsyncRedisStreamManager(AsyncBaseManager):
 
         def decorator(func: Callable) -> Callable:
             if stream_name in self.consumers:
-                raise StreamError(
-                    f"Consumer already registered for stream '{stream_name}'"
-                )
+                raise StreamError(f"Consumer already registered for stream '{stream_name}'")
 
             self.consumers[stream_name] = {
                 "group_name": group_name,
@@ -108,13 +103,11 @@ class AsyncRedisStreamManager(AsyncBaseManager):
                 "callback": func,
             }
             if self.running:
-                self._tasks[stream_name] = asyncio.create_task(
-                    self._listen_stream(stream_name)
-                )
-            self.log(
-                f"Registered consumer for stream '{stream_name}' "
-                f"with group '{group_name}' and consumer '{consumer_name}'"
-            )
+                self._tasks[stream_name] = asyncio.create_task(self._listen_stream(stream_name))
+            # self.log(
+            #     f"Registered consumer for stream '{stream_name}' "
+            #     f"with group '{group_name}' and consumer '{consumer_name}'"
+            # )
             return func
 
         return decorator
@@ -127,19 +120,15 @@ class AsyncRedisStreamManager(AsyncBaseManager):
             group_name = consumer_info["group_name"]
 
             try:
-                await self.redis_client.xgroup_create(
-                    stream_name, group_name, id="0", mkstream=True
-                )
+                await self.redis_client.xgroup_create(stream_name, group_name, id="0", mkstream=True)
             except aredis.exceptions.ResponseError:
-                self.log(
+                await self.log(
                     f"Group '{group_name}' already exists for stream '{stream_name}'",
                     level="warning",
                 )
 
-            self._tasks[stream_name] = asyncio.create_task(
-                self._listen_stream(stream_name)
-            )
-        self.log(f"Started listening on {len(self._tasks)} streams")
+            self._tasks[stream_name] = asyncio.create_task(self._listen_stream(stream_name))
+        await self.log(f"Started listening on {len(self._tasks)} streams")
 
     async def _listen_stream(self, stream_name: str) -> None:
         """Listen to a single stream and process messages.
@@ -152,7 +141,7 @@ class AsyncRedisStreamManager(AsyncBaseManager):
         consumer_name = consumer_info["consumer_name"]
         callback = consumer_info["callback"]
 
-        self.log(f"Listening for messages on stream '{stream_name}'")
+        await self.log(f"Listening for messages on stream '{stream_name}'")
 
         try:
             while self.running:
@@ -168,34 +157,23 @@ class AsyncRedisStreamManager(AsyncBaseManager):
                         for stream, entries in messages:
                             for message_id, data in entries:
                                 decoded_data = {
-                                    k.decode(): (
-                                        v.decode() if isinstance(v, bytes) else v
-                                    )
-                                    for k, v in data.items()
+                                    k.decode(): (v.decode() if isinstance(v, bytes) else v) for k, v in data.items()
                                 }
-                                self.log(
-                                    f"Message from stream '{stream}': {decoded_data}"
-                                )
+                                await self.log(f"Message from stream '{stream}': {decoded_data}")
                                 if asyncio.iscoroutinefunction(callback):
                                     await callback(decoded_data)
                                 else:
                                     callback(decoded_data)
-                                await self.redis_client.xack(
-                                    stream_name, group_name, message_id
-                                )
+                                await self.redis_client.xack(stream_name, group_name, message_id)
                 except aredis.RedisError as e:
-                    self.log(
-                        f"Redis error on stream '{stream_name}': {e}", level="error"
-                    )
+                    await self.log(f"Redis error on stream '{stream_name}': {e}", level="error")
                     await asyncio.sleep(1)
         except asyncio.CancelledError:
-            self.log(f"Listener for stream '{stream_name}' cancelled")
+            await self.log(f"Listener for stream '{stream_name}' cancelled")
         except Exception as e:
-            self.log(f"Unexpected error on stream '{stream_name}': {e}", level="error")
+            await self.log(f"Unexpected error on stream '{stream_name}': {e}", level="error")
 
-    async def read_from_stream(
-        self, key: str, count: int = 1, block: int | None = None
-    ) -> list:
+    async def read_from_stream(self, key: str, count: int = 1, block: int | None = None) -> list:
         """Read messages from a stream without a registered consumer.
 
         Args:
@@ -213,22 +191,14 @@ class AsyncRedisStreamManager(AsyncBaseManager):
         validate_key(key)
 
         try:
-            messages = await self.redis_client.xread(
-                {key: "$"}, count=count, block=block
-            )
+            messages = await self.redis_client.xread({key: "$"}, count=count, block=block)
             decoded_messages = (
                 [
                     {
-                        "stream": (
-                            stream.decode() if isinstance(stream, bytes) else stream
-                        ),
+                        "stream": (stream.decode() if isinstance(stream, bytes) else stream),
                         "entries": [
                             {
-                                "id": (
-                                    entry_id.decode()
-                                    if isinstance(entry_id, bytes)
-                                    else entry_id
-                                ),
+                                "id": (entry_id.decode() if isinstance(entry_id, bytes) else entry_id),
                                 "data": {
                                     k.decode() if isinstance(k, bytes) else k: (
                                         v.decode() if isinstance(v, bytes) else v
@@ -244,7 +214,7 @@ class AsyncRedisStreamManager(AsyncBaseManager):
                 if messages
                 else []
             )
-            self.log(f"Read {len(decoded_messages)} messages from stream '{key}'")
+            await self.log(f"Read {len(decoded_messages)} messages from stream '{key}'")
             return decoded_messages
         except (ValidationError, StreamError):
             raise
@@ -256,14 +226,14 @@ class AsyncRedisStreamManager(AsyncBaseManager):
         self.running = False
         for stream_name, task in self._tasks.items():
             task.cancel()
-            self.log(f"Cancelling listener for stream '{stream_name}'")
+            await self.log(f"Cancelling listener for stream '{stream_name}'")
 
         if self._tasks:
             await asyncio.gather(*self._tasks.values(), return_exceptions=True)
 
         self._tasks.clear()
         self.consumers.clear()
-        self.log("All stream consumers stopped")
+        await self.log("All stream consumers stopped")
 
     async def close(self) -> None:
         """Stop consumers and close connection pool."""

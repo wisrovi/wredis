@@ -85,9 +85,7 @@ class TestGeoIntegration:
         nearby = manager.search_nearby("places", -122.4194, 37.7749, 5, unit="km")
         assert len(nearby) >= 1
 
-        nearby_dist = manager.search_nearby_with_distance(
-            "places", -122.4194, 37.7749, 5, unit="km"
-        )
+        nearby_dist = manager.search_nearby_with_distance("places", -122.4194, 37.7749, 5, unit="km")
         assert len(nearby_dist) >= 1
 
 

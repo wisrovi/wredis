@@ -78,9 +78,7 @@ class TestSentinelRedisManagerInit:
     @patch("wredis.ha.sentinel.redis.Sentinel")
     def test_init_connection_error(self, mock_sentinel_cls):
         """Test initialization raises SentinelError on connection failure."""
-        mock_sentinel_cls.side_effect = redis.exceptions.ConnectionError(
-            "Connection refused"
-        )
+        mock_sentinel_cls.side_effect = redis.exceptions.ConnectionError("Connection refused")
 
         with pytest.raises(SentinelError, match="Failed to connect to Sentinel"):
             SentinelRedisManager(sentinel_nodes=SENTINEL_NODES)

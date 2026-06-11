@@ -1,3 +1,5 @@
+#!/bin/bash
+#!/bin/bash
 pip install --upgrade build
 
 # generar dist
