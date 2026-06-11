@@ -1,4 +1,5 @@
 """Redis HyperLogLog Manager - probabilistic counting."""
+
 from __future__ import annotations
 
 import redis
@@ -21,9 +22,7 @@ class RedisHyperLogLogManager:
         verbose: bool = True,
     ):
         """Initialize the RedisHyperLogLogManager."""
-        self.redis_client = redis.Redis(
-            host=host, port=port, db=db, decode_responses=True
-        )
+        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
@@ -45,8 +44,7 @@ class RedisHyperLogLogManager:
             logger.error(f"Error adding to HyperLogLog '{key}': {e}")
 
     def exist(self, key: str) -> bool:
-        """
-        Checks if a HyperLogLog key exists.
+        """Checks if a HyperLogLog key exists.
 
         Args:
             key (str): The Redis key for the HyperLogLog.
