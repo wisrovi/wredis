@@ -1,4 +1,7 @@
+"""Redis hash management implementation."""
+
 from __future__ import annotations
+
 import contextlib
 import json
 
@@ -7,9 +10,9 @@ from loguru import logger
 
 
 class RedisHashManager:
-    """
-    Manages Redis hash operations, including creation, reading, updating,
-    deleting fields, and managing TTL (Time-to-Live).
+    """Manages Redis hash operations.
+
+    Includes creation, reading, updating, deleting fields, and managing TTL (Time-to-Live).
 
     Attributes:
         redis_client (redis.StrictRedis): Redis client instance.
@@ -23,8 +26,7 @@ class RedisHashManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """
-        Initializes the RedisHashManager with connection details.
+        """Initializes the RedisHashManager with connection details.
 
         Args:
             host (str): Hostname of the Redis server.
@@ -36,8 +38,7 @@ class RedisHashManager:
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
-        """
-        Logs a message if verbose mode is enabled.
+        """Logs a message if verbose mode is enabled.
 
         Args:
             message (str): The message to log.
@@ -46,11 +47,8 @@ class RedisHashManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    def create_hash(
-        self, hash_name: str, key: str, value: dict | str, ttl: int = -1
-    ) -> None:
-        """
-        Writes a key-value pair into a Redis hash and optionally sets a TTL.
+    def create_hash(self, hash_name: str, key: str, value: dict | str, ttl: int = -1) -> None:
+        """Writes a key-value pair into a Redis hash and optionally sets a TTL.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -70,8 +68,7 @@ class RedisHashManager:
             logger.error(f"Error writing to hash '{hash_name}': {e}")
 
     def exist(self, hash_name: str) -> bool:
-        """
-        Checks if a Redis hash exists.
+        """Checks if a Redis hash exists.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -89,8 +86,7 @@ class RedisHashManager:
             return False
 
     def read_hash(self, hash_name: str, key: str) -> dict | str | None:
-        """
-        Reads a key-value pair from a Redis hash.
+        """Reads a key-value pair from a Redis hash.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -118,8 +114,7 @@ class RedisHashManager:
             return None
 
     def update_hash(self, hash_name: str, key: str, new_data: dict) -> None:
-        """
-        Updates a key-value pair in a Redis hash. If the field does not exist, it adds it.
+        """Updates a key-value pair in a Redis hash. If the field does not exist, it adds it.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -132,9 +127,7 @@ class RedisHashManager:
             if isinstance(current_value, dict):
                 current_value.update(new_data)
                 self.create_hash(hash_name, key, current_value)
-                self.log(
-                    f"Updated field '{key}' in hash '{hash_name}': {current_value}"
-                )
+                self.log(f"Updated field '{key}' in hash '{hash_name}': {current_value}")
             else:
                 self.create_hash(hash_name, key, new_data)
                 self.log(f"Added new field '{key}' to hash '{hash_name}': {new_data}")
@@ -142,8 +135,7 @@ class RedisHashManager:
             logger.error(f"Error updating field '{key}' in hash '{hash_name}': {e}")
 
     def delete_hash_field(self, hash_name: str, key: str) -> None:
-        """
-        Deletes a specific field from a Redis hash.
+        """Deletes a specific field from a Redis hash.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -162,8 +154,7 @@ class RedisHashManager:
             logger.error(f"Error deleting field '{key}' from hash '{hash_name}': {e}")
 
     def read_all_hash(self, hash_name: str) -> dict | None:
-        """
-        Reads all fields and values from a Redis hash.
+        """Reads all fields and values from a Redis hash.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -184,17 +175,14 @@ class RedisHashManager:
                 self.log(f"Read all fields from hash '{hash_name}': {items}")
                 return items
             else:
-                self.log(
-                    f"Hash '{hash_name}' is empty or does not exist.", level="warning"
-                )
+                self.log(f"Hash '{hash_name}' is empty or does not exist.", level="warning")
                 return None
         except Exception as e:
             logger.error(f"Error reading all fields from hash '{hash_name}': {e}")
             return None
 
     def get_ttl(self, hash_name: str) -> int | None:
-        """
-        Retrieves the remaining time-to-live (TTL) for a Redis hash.
+        """Retrieves the remaining time-to-live (TTL) for a Redis hash.
 
         Args:
             hash_name (str): Name of the hash in Redis.
@@ -216,8 +204,7 @@ class RedisHashManager:
             return None
 
     def extend_ttl(self, hash_name: str, ttl: int) -> None:
-        """
-        Extends or sets a new TTL for a Redis hash.
+        """Extends or sets a new TTL for a Redis hash.
 
         Args:
             hash_name (str): Name of the hash in Redis.
