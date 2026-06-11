@@ -60,7 +60,7 @@ class TestBaseManager:
         manager.redis_client = redis_client
         redis_client.set("test_key", "test_value")
         result = manager._execute("get", "test_key")
-        assert result == b"test_value"
+        assert result == "test_value"
 
     def test_execute_failure(self):
         """Test execute with failing operation."""
