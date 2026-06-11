@@ -1,12 +1,15 @@
+"""Redis sets management implementation."""
+
 from __future__ import annotations
+
 import redis
 from loguru import logger
 
 
 class RedisSetManager:
-    """
-    Manages Redis set operations, including adding elements, checking membership,
-    removing elements, and managing TTL (Time-to-Live) for set keys.
+    """Manages Redis set operations.
+
+    Includes adding elements, checking membership, removing elements, and managing TTL (Time-to-Live).
 
     Attributes:
         redis_client (redis.StrictRedis): Redis client instance.
@@ -20,8 +23,7 @@ class RedisSetManager:
         db: int = 0,
         verbose: bool = True,
     ):
-        """
-        Initializes the RedisSetManager with connection details.
+        """Initializes the RedisSetManager with connection details.
 
         Args:
             host (str): Hostname of the Redis server.
@@ -33,8 +35,7 @@ class RedisSetManager:
         self.verbose = verbose
 
     def log(self, message: str, level: str = "info") -> None:
-        """
-        Logs a message if verbose mode is enabled.
+        """Logs a message if verbose mode is enabled.
 
         Args:
             message (str): The message to log.
@@ -44,8 +45,7 @@ class RedisSetManager:
             getattr(logger, level)(message)
 
     def add_to_set(self, key: str, *values: str, ttl: int = -1) -> None:
-        """
-        Adds one or more elements to a set and optionally sets a TTL.
+        """Adds one or more elements to a set and optionally sets a TTL.
 
         Args:
             key (str): Name of the set in Redis.
@@ -63,8 +63,7 @@ class RedisSetManager:
             logger.error(f"Error adding to set '{key}': {e}")
 
     def get_set_members(self, key: str) -> set:
-        """
-        Retrieves all members of a set.
+        """Retrieves all members of a set.
 
         Args:
             key (str): Name of the set in Redis.
@@ -81,8 +80,7 @@ class RedisSetManager:
             return set()
 
     def exist(self, key: str) -> bool:
-        """
-        Checks if a set key exists.
+        """Checks if a set key exists.
 
         Args:
             key (str): Name of the set in Redis.
@@ -100,8 +98,7 @@ class RedisSetManager:
             return False
 
     def is_member(self, key: str, value: str) -> bool:
-        """
-        Checks if an element is a member of the set.
+        """Checks if an element is a member of the set.
 
         Args:
             key (str): Name of the set in Redis.
@@ -112,17 +109,14 @@ class RedisSetManager:
         """
         try:
             result = self.redis_client.sismember(key, value)
-            self.log(
-                f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'"
-            )
+            self.log(f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'")
             return result
         except Exception as e:
             logger.error(f"Error checking membership in set '{key}': {e}")
             return False
 
     def remove_from_set(self, key: str, *values: str) -> None:
-        """
-        Removes one or more elements from a set.
+        """Removes one or more elements from a set.
 
         Args:
             key (str): Name of the set in Redis.
@@ -135,8 +129,7 @@ class RedisSetManager:
             logger.error(f"Error removing from set '{key}': {e}")
 
     def get_ttl(self, key: str) -> int | None:
-        """
-        Retrieves the remaining TTL (Time-to-Live) of a set.
+        """Retrieves the remaining TTL (Time-to-Live) of a set.
 
         Args:
             key (str): Name of the set in Redis.
@@ -158,8 +151,7 @@ class RedisSetManager:
             return None
 
     def extend_ttl(self, key: str, ttl: int) -> None:
-        """
-        Extends or sets a new TTL for the set.
+        """Extends or sets a new TTL for the set.
 
         Args:
             key (str): Name of the set in Redis.
