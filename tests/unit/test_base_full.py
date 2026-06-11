@@ -1,4 +1,5 @@
 """Full coverage tests for BaseManager and AsyncBaseManager."""
+
 from unittest.mock import AsyncMock, patch
 
 import fakeredis
@@ -26,9 +27,10 @@ class TestBaseManagerFull:
     def test_health_check_redis_error(self):
         """Test health_check raises OperationError on RedisError (lines 83-84)."""
         manager = BaseManager(verbose=False)
-        with patch.object(
-            manager.redis_client, "ping", side_effect=redis.RedisError("fail")
-        ), pytest.raises(OperationError, match="Redis health check failed"):
+        with (
+            patch.object(manager.redis_client, "ping", side_effect=redis.RedisError("fail")),
+            pytest.raises(OperationError, match="Redis health check failed"),
+        ):
             manager.health_check()
         manager.close()
 
@@ -44,9 +46,10 @@ class TestBaseManagerFull:
     def test_exist_redis_error(self):
         """Test exist raises OperationError on RedisError (lines 100-101)."""
         manager = BaseManager(verbose=False)
-        with patch.object(
-            manager.redis_client, "exists", side_effect=redis.RedisError("fail")
-        ), pytest.raises(OperationError, match="Redis exists failed"):
+        with (
+            patch.object(manager.redis_client, "exists", side_effect=redis.RedisError("fail")),
+            pytest.raises(OperationError, match="Redis exists failed"),
+        ):
             manager.exist("key")
         manager.close()
 
@@ -139,9 +142,10 @@ class TestBaseManagerFull:
     def test_execute_redis_error(self):
         """Test _execute raises OperationError on RedisError (line 156)."""
         manager = BaseManager(verbose=False)
-        with patch.object(
-            manager.redis_client, "get", side_effect=redis.RedisError("fail")
-        ), pytest.raises(OperationError, match="Redis get failed"):
+        with (
+            patch.object(manager.redis_client, "get", side_effect=redis.RedisError("fail")),
+            pytest.raises(OperationError, match="Redis get failed"),
+        ):
             manager._execute("get", "key")
         manager.close()
 
@@ -208,12 +212,15 @@ class TestAsyncBaseManagerFull:
     async def test_health_check_redis_error_logs(self):
         """Test health_check logs error when verbose (lines 85-89)."""
         manager = AsyncBaseManager(verbose=True)
-        with patch.object(
-            manager.redis_client,
-            "ping",
-            side_effect=aredis.RedisError("fail"),
-            new_callable=AsyncMock,
-        ), patch("wredis._async_base.logger") as mock_logger:
+        with (
+            patch.object(
+                manager.redis_client,
+                "ping",
+                side_effect=aredis.RedisError("fail"),
+                new_callable=AsyncMock,
+            ),
+            patch("wredis._async_base.logger") as mock_logger,
+        ):
             result = await manager.health_check()
             assert result is False
             mock_logger.error.assert_called_once()
@@ -233,12 +240,15 @@ class TestAsyncBaseManagerFull:
     async def test_exists_redis_error(self):
         """Test exists raises OperationError on RedisError (lines 105-106)."""
         manager = AsyncBaseManager(verbose=False)
-        with patch.object(
-            manager.redis_client,
-            "exists",
-            side_effect=aredis.RedisError("fail"),
-            new_callable=AsyncMock,
-        ), pytest.raises(OperationError, match="Redis exists failed"):
+        with (
+            patch.object(
+                manager.redis_client,
+                "exists",
+                side_effect=aredis.RedisError("fail"),
+                new_callable=AsyncMock,
+            ),
+            pytest.raises(OperationError, match="Redis exists failed"),
+        ):
             await manager.exists("key")
         await manager.close()
 
@@ -340,13 +350,14 @@ class TestAsyncBaseManagerFull:
     async def test_execute_retry_and_fail(self):
         """Test _execute raises OperationError after retries (lines 163-170)."""
         manager = AsyncBaseManager(verbose=False)
-        with patch.object(
-            manager.redis_client,
-            "get",
-            side_effect=aredis.RedisError("fail"),
-            new_callable=AsyncMock,
-        ), pytest.raises(
-            OperationError, match="Redis get failed after 3 attempts"
+        with (
+            patch.object(
+                manager.redis_client,
+                "get",
+                side_effect=aredis.RedisError("fail"),
+                new_callable=AsyncMock,
+            ),
+            pytest.raises(OperationError, match="Redis get failed after 3 attempts"),
         ):
             await manager._execute("get", "key")
         await manager.close()
@@ -355,9 +366,10 @@ class TestAsyncBaseManagerFull:
     async def test_close_calls_redis_close(self):
         """Test close calls redis_client.close and logs (line 174)."""
         manager = AsyncBaseManager(verbose=True)
-        with patch.object(
-            manager.redis_client, "close", new_callable=AsyncMock
-        ) as mock_close, patch("wredis._async_base.logger") as mock_logger:
+        with (
+            patch.object(manager.redis_client, "close", new_callable=AsyncMock) as mock_close,
+            patch("wredis._async_base.logger") as mock_logger,
+        ):
             await manager.close()
             mock_close.assert_awaited_once()
             mock_logger.info.assert_called_once_with("Connection closed")

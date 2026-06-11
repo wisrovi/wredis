@@ -1,4 +1,5 @@
 """Tests for remaining uncovered lines in async_api modules."""
+
 from unittest.mock import AsyncMock, patch
 
 import fakeredis.aioredis

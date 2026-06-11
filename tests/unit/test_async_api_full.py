@@ -24,6 +24,7 @@ from wredis.async_api.streams import AsyncRedisStreamManager
 # Fixtures
 # ============================================================
 
+
 @pytest.fixture
 async def async_client():
     fake = fakeredis.aioredis.FakeRedis(decode_responses=False)
@@ -115,8 +116,8 @@ def stream_manager():
 # Bitmap — uncovered branches (lines 45, 93-100)
 # ============================================================
 
-class TestAsyncRedisBitmapManagerUncovered:
 
+class TestAsyncRedisBitmapManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, bitmap_manager_verbose):
         with patch("wredis.async_api.bitmap.logger") as mock_logger:
@@ -149,8 +150,8 @@ class TestAsyncRedisBitmapManagerUncovered:
 # Geo — uncovered branches (lines 33, 52-59)
 # ============================================================
 
-class TestAsyncRedisGeoManagerUncovered:
 
+class TestAsyncRedisGeoManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, geo_manager_verbose):
         with patch("wredis.async_api.geo.logger") as mock_logger:
@@ -175,8 +176,8 @@ class TestAsyncRedisGeoManagerUncovered:
 # Hash — uncovered branches (lines 41, 127)
 # ============================================================
 
-class TestAsyncRedisHashManagerUncovered:
 
+class TestAsyncRedisHashManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, hash_manager_verbose):
         with patch("wredis.async_api.hash.logger") as mock_logger:
@@ -204,8 +205,8 @@ class TestAsyncRedisHashManagerUncovered:
 # HyperLogLog — uncovered branches (lines 31, 50-57)
 # ============================================================
 
-class TestAsyncRedisHyperLogLogManagerUncovered:
 
+class TestAsyncRedisHyperLogLogManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, hll_manager_verbose):
         with patch("wredis.async_api.hyperloglog.logger") as mock_logger:
@@ -230,8 +231,8 @@ class TestAsyncRedisHyperLogLogManagerUncovered:
 # Pipeline — uncovered branches (line 33)
 # ============================================================
 
-class TestAsyncRedisPipelineManagerUncovered:
 
+class TestAsyncRedisPipelineManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, pipeline_manager_verbose):
         with patch("wredis.async_api.pipeline.logger") as mock_logger:
@@ -249,8 +250,8 @@ class TestAsyncRedisPipelineManagerUncovered:
 # Sets — uncovered branches (lines 31, 64-71)
 # ============================================================
 
-class TestAsyncRedisSetManagerUncovered:
 
+class TestAsyncRedisSetManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, sets_manager_verbose):
         with patch("wredis.async_api.sets.logger") as mock_logger:
@@ -282,8 +283,8 @@ class TestAsyncRedisSetManagerUncovered:
 # SortedSet — uncovered branches (lines 31, 54-61)
 # ============================================================
 
-class TestAsyncRedisSortedSetManagerUncovered:
 
+class TestAsyncRedisSortedSetManagerUncovered:
     @pytest.mark.asyncio
     async def test_log_called_when_verbose(self, zset_manager_verbose):
         with patch("wredis.async_api.sortedset.logger") as mock_logger:
@@ -316,8 +317,8 @@ class TestAsyncRedisSortedSetManagerUncovered:
 #                             148->151, 178)
 # ============================================================
 
-class TestAsyncRedisQueueManagerUncovered:
 
+class TestAsyncRedisQueueManagerUncovered:
     @pytest.mark.asyncio
     async def test_publish_re_raises_validation_error(self, queue_manager):
         """Cover `except (ValidationError, QueueError): raise` in publish (line 178)."""
@@ -376,6 +377,7 @@ class TestAsyncRedisQueueManagerUncovered:
     @pytest.mark.asyncio
     async def test_stop_with_tasks_gathers(self, queue_manager):
         """Cover `if self._tasks: await asyncio.gather(...)` in stop (lines 148->151)."""
+
         @queue_manager.on_message("test_queue")
         async def handler(data):
             pass
@@ -396,8 +398,8 @@ class TestAsyncRedisQueueManagerUncovered:
 #                               145-146, 152-153)
 # ============================================================
 
-class TestAsyncRedisPubSubManagerUncovered:
 
+class TestAsyncRedisPubSubManagerUncovered:
     @pytest.mark.asyncio
     async def test_message_delivery_bytes_decode(self, async_client, pubsub_manager):
         """Cover bytes decode path in _listen_channel (lines 137->139)."""
@@ -484,8 +486,8 @@ class TestAsyncRedisPubSubManagerUncovered:
 #                                157-167, 169-170, 172, 174, 220)
 # ============================================================
 
-class TestAsyncRedisStreamManagerUncovered:
 
+class TestAsyncRedisStreamManagerUncovered:
     @pytest.mark.asyncio
     async def test_add_to_stream_re_raises_validation_error(self):
         """Cover `except (ValidationError, StreamError): raise` in add_to_stream (line 75)."""
@@ -516,6 +518,7 @@ class TestAsyncRedisStreamManagerUncovered:
         mock_client.xack = AsyncMock()
 
         call_count = 0
+
         async def mock_xreadgroup(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -551,6 +554,7 @@ class TestAsyncRedisStreamManagerUncovered:
         mock_client.xack = AsyncMock()
 
         call_count = 0
+
         async def mock_xreadgroup(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -589,6 +593,7 @@ class TestAsyncRedisStreamManagerUncovered:
         mock_client.xgroup_create = AsyncMock()
 
         call_count = 0
+
         async def mock_xreadgroup(*args, **kwargs):
             nonlocal call_count
             call_count += 1

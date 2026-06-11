@@ -129,9 +129,7 @@ class TestRedisPubSubManagerFull:
         manager = RedisPubSubManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
         mock_pubsub = MagicMock()
-        mock_pubsub.listen.return_value = [
-            {"type": "message", "data": b'{"foo": "bar"}'}
-        ]
+        mock_pubsub.listen.return_value = [{"type": "message", "data": b'{"foo": "bar"}'}]
         manager.redis_client.pubsub = MagicMock(return_value=mock_pubsub)
         received = []
         manager.subscribers["ch"] = lambda msg: received.append(msg)
@@ -147,9 +145,7 @@ class TestRedisPubSubManagerFull:
         manager = RedisPubSubManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
         mock_pubsub = MagicMock()
-        mock_pubsub.listen.return_value = [
-            {"type": "message", "data": 12345}
-        ]
+        mock_pubsub.listen.return_value = [{"type": "message", "data": 12345}]
         manager.redis_client.pubsub = MagicMock(return_value=mock_pubsub)
         received = []
         manager.subscribers["ch"] = lambda msg: received.append(msg)
@@ -165,9 +161,7 @@ class TestRedisPubSubManagerFull:
         def failing(_msg):
             raise Exception("callback error")
 
-        mock_pubsub.listen.return_value = [
-            {"type": "message", "data": b'"hello"'}
-        ]
+        mock_pubsub.listen.return_value = [{"type": "message", "data": b'"hello"'}]
         manager.redis_client.pubsub = MagicMock(return_value=mock_pubsub)
         manager.subscribers["ch"] = failing
         manager._start_listener("ch")

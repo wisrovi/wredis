@@ -22,6 +22,7 @@ class TestImports:
             RedisTransactionManager,
             cache,
         )
+
         assert BaseManager is not None
         assert cache is not None
         assert CacheMetrics is not None
@@ -44,6 +45,7 @@ class TestImports:
             RedisTransactionManager,
             cache,
         )
+
         assert BaseManager is not None
         assert cache is not None
         assert CacheMetrics is not None
@@ -59,6 +61,7 @@ class TestImports:
             ValidationError,
             WRedisError,
         )
+
         assert OperationError is not None
         assert PubSubError is not None
         assert QueueError is not None
@@ -82,10 +85,12 @@ class TestImports:
             AsyncRedisStreamManager,
             AsyncRedisTransactionManager,
         )
+
         assert AsyncRedisBitmapManager is not None
 
     def test_ha_init(self):
         """Test wredis.ha.__init__ imports."""
         from wredis.ha import ClusterRedisManager, SentinelRedisManager
+
         assert ClusterRedisManager is not None
         assert SentinelRedisManager is not None
