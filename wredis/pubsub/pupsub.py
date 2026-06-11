@@ -1,4 +1,7 @@
+"""Redis Pub/Sub management implementation."""
+
 from __future__ import annotations
+
 import contextlib
 import json
 import signal
@@ -17,7 +20,9 @@ from wredis._validation import validate_key
 
 
 class RedisPubSubManager(BaseManager):
-    """Manages Redis Pub/Sub functionality, including publishing messages and subscribing to channels.
+    """Manages Redis Pub/Sub functionality.
+
+    Includes publishing messages and subscribing to channels.
 
     Attributes:
         redis_client: Redis client instance.
@@ -70,20 +75,16 @@ class RedisPubSubManager(BaseManager):
             elif isinstance(message, str):
                 payload = message
             else:
-                raise ValidationError(
-                    "Message must be a string or a JSON-serializable dictionary."
-                )
+                raise ValidationError("Message must be a string or a JSON-serializable dictionary.")
 
             self._execute("publish", channel, payload)
             self.log(f"Message published to channel '{channel}': {payload}")
         except (ValidationError, PubSubError):
             raise
         except Exception as e:
-            raise PubSubError(
-                f"Error publishing message to channel '{channel}': {e}"
-            ) from e
+            raise PubSubError(f"Error publishing message to channel '{channel}': {e}") from e
 
-    def on_message(self, channel: str):
+    def on_message(self, channel: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator to register a callback function for a specific Redis channel.
 
         Args:
@@ -98,15 +99,13 @@ class RedisPubSubManager(BaseManager):
         """
         validate_key(channel)
 
-        def decorator(callback):
+        def decorator(callback: Callable[..., Any]) -> Callable[..., Any]:
             if channel in self.subscribers:
                 raise PubSubError(f"Handler already registered for channel '{channel}'")
 
             self.subscribers[channel] = callback
             self._start_listener(channel)
-            self.log(
-                f"Subscribed to channel '{channel}' with handler '{callback.__name__}'"
-            )
+            self.log(f"Subscribed to channel '{channel}' with handler '{callback.__name__}'")
             return callback
 
         return decorator
@@ -121,7 +120,7 @@ class RedisPubSubManager(BaseManager):
             PubSubError: If the listener thread fails to start.
         """
 
-        def listener():
+        def listener() -> None:
             local_pubsub = self.redis_client.pubsub()
             try:
                 local_pubsub.subscribe(channel)
@@ -163,9 +162,7 @@ class RedisPubSubManager(BaseManager):
         try:
             thread.start()
         except RuntimeError as e:
-            raise PubSubError(
-                f"Failed to start listener for channel '{channel}': {e}"
-            ) from e
+            raise PubSubError(f"Failed to start listener for channel '{channel}': {e}") from e
 
     def stop_listeners(self) -> None:
         """Stop all listener threads and unsubscribe from all channels."""
@@ -182,14 +179,16 @@ if __name__ == "__main__":
     pubsub_manager = RedisPubSubManager(host="localhost", verbose=True)
 
     @pubsub_manager.on_message("channel_1")
-    def handle_channel_1(message):
+    def handle_channel_1(message: Any) -> None:
+        """Handle messages from channel_1."""
         if isinstance(message, dict):
             logger.info(f"[channel_1] Received message (JSON): {message}")
         else:
             logger.info(f"[channel_1] Received message (String): {message}")
 
     @pubsub_manager.on_message("channel_2")
-    def handle_channel_2(message):
+    def handle_channel_2(message: Any) -> None:
+        """Handle messages from channel_2."""
         if isinstance(message, dict):
             logger.info(f"[channel_2] Received message (JSON): {message}")
         else:
@@ -198,7 +197,8 @@ if __name__ == "__main__":
     pubsub_manager.publish_message("channel_1", "Hello from channel_1!")
     pubsub_manager.publish_message("channel_2", {"greeting": "Hello from channel_2!"})
 
-    def signal_handler(sig, frame):
+    def signal_handler(sig: int, frame: Any) -> None:
+        """Handle SIGINT signal."""
         logger.info("\nStopping program...")
         pubsub_manager.stop_listeners()
         logger.info("Program stopped.")
