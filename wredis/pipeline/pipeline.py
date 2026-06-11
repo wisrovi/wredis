@@ -1,4 +1,5 @@
 """Redis Pipeline Manager - batch command execution."""
+
 from __future__ import annotations
 
 from typing import Any
