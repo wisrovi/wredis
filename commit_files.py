@@ -1,8 +1,18 @@
+"""Git helper script for individual file commits."""
+
 import os
 import subprocess
 
 
-def run_command(command):
+def run_command(command: str | list[str]) -> str:
+    """Run a shell command and return its output.
+
+    Args:
+        command: Command to run.
+
+    Returns:
+        Command output.
+    """
     if isinstance(command, str):
         import shlex
 
@@ -13,7 +23,8 @@ def run_command(command):
     return result.stdout.strip()
 
 
-def main():
+def main() -> None:
+    """Commit each modified file individually."""
     # Obtener el status de git
     status_output = run_command("git status --short")
     if not status_output:
