@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wredis"
-version = "1.0.1"
+version = "1.0.3"
 authors = [{ name = "wisrovi", email = "wisrovi.rodriguez@gmail.com" }]
 description = "Redis control with Python - Async support, decorators, and high availability"
 readme = "README.md"
