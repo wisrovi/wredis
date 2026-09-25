@@ -27,6 +27,23 @@ Requires Python 3.9+ and a running Redis server (local or remote).
 
 ---
 
+## Key Technologies & Dependencies
+
+`wredis` is built on modern, high-performance Python database standards:
+- **Redis & redis-py**: Primary client driver supporting sync, async, Sentinel, and Cluster.
+- **Loguru**: Structured, thread-safe diagnostic logging.
+- **Pytest & Fakeredis**: Mocked and live test suite execution.
+
+---
+
+## Enterprise Forensic Audit & Key Space Management
+
+`wredis` provides an automated stream-based audit trail (`_forensic_audit_log`) for monitoring mutations across key-spaces.
+
+- **Disabled by default**: Pass `forensic=True` when instantiating managers (e.g. `RedisHashManager(..., forensic=True)`) to enable automatic audit logging.
+- **Stream-based Audit Trail**: Append-only stream recording action, target key, pre-state, and post-state JSON snapshots.
+- **Zero Overhead**: Completely isolated log streams.
+
 ## Features
 
 | Feature | Description |
@@ -71,7 +88,7 @@ print(bm.get_bit("my_bitmap", 0))   # 0
 print(bm.count_bits("my_bitmap"))    # 1
 ```
 
-**Methods:** `set_bit`, `get_bit`, `exist`, `count_bits`, `get_ttl`, `extend_ttl`
+**Methods:** `set_bit`, `get_bit`, `exist`, `count_bits`, `get_ttl`, `extend_ttl`, `delete_bitmap`
 
 ---
 
@@ -86,10 +103,11 @@ user = hm.read_hash("users", "user:1")
 all_users = hm.read_all_hash("users")
 hm.update_hash("users", "user:1", {"age": 31})
 hm.delete_hash_field("users", "user:2")
+hm.delete_hash("users")
 exists = hm.exist("users")
 ```
 
-**Methods:** `create_hash`, `read_hash`, `exist`, `update_hash`, `delete_hash_field`, `read_all_hash`, `get_ttl`, `extend_ttl`
+**Methods:** `create_hash`, `read_hash`, `exist`, `update_hash`, `delete_hash_field`, `delete_hash`, `read_all_hash`, `get_ttl`, `extend_ttl`
 
 ---
 
@@ -104,7 +122,7 @@ qm.publish("tasks", {"id": 1, "task": "process_image"}, ttl=30)
 exists = qm.exist("tasks")
 ```
 
-**Methods:** `publish`, `on_message`, `exist`, `start`, `stop`, `wait`, `get_queue_length`
+**Methods:** `publish`, `on_message`, `exist`, `start`, `stop`, `wait`, `get_queue_length`, `delete_queue`
 
 ---
 
@@ -151,7 +169,7 @@ def process(data):
 sm.wait()
 ```
 
-**Methods:** `add_to_stream`, `on_message`, `exist`, `read_from_stream`, `wait`
+**Methods:** `add_to_stream`, `on_message`, `exist`, `read_from_stream`, `wait`, `delete_stream`
 
 ---
 
@@ -168,7 +186,7 @@ sm.remove_from_set("tags", "redis")
 exists = sm.exist("tags")
 ```
 
-**Methods:** `add_to_set`, `get_set_members`, `exist`, `is_member`, `remove_from_set`, `get_ttl`, `extend_ttl`
+**Methods:** `add_to_set`, `get_set_members`, `exist`, `is_member`, `remove_from_set`, `get_ttl`, `extend_ttl`, `delete_set`
 
 ---
 
@@ -204,7 +222,7 @@ dist = gm.distance("places", "Central Park", "Times Square")
 exists = gm.exist("places")
 ```
 
-**Methods:** `add_location`, `exist`, `distance`, `geo_radius`, `get_location`
+**Methods:** `add_location`, `exist`, `distance`, `geo_radius`, `get_location`, `delete_geo`
 
 ---
 
@@ -233,7 +251,7 @@ hll.merge("all_visitors", "visitors")
 exists = hll.exist("visitors")
 ```
 
-**Methods:** `add`, `exist`, `count`, `merge`, `get_all`
+**Methods:** `add`, `exist`, `count`, `merge`, `get_all`, `delete_hyperloglog`
 
 ---
 
