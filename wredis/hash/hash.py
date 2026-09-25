@@ -25,6 +25,7 @@ class RedisHashManager:
         port: int = 6379,
         db: int = 0,
         verbose: bool = True,
+        forensic: bool = False,
     ):
         """Initializes the RedisHashManager with connection details.
 
@@ -33,9 +34,11 @@ class RedisHashManager:
             port (int): Port number of the Redis server.
             db (int): Redis database index.
             verbose (bool): Enable detailed logging if True.
+            forensic (bool): Enables automatic forensic audit logging if True.
         """
         self.redis_client = redis.StrictRedis(host=host, port=port, db=db)
         self.verbose = verbose
+        self.forensic = forensic
 
     def log(self, message: str, level: str = "info") -> None:
         """Logs a message if verbose mode is enabled.
@@ -60,6 +63,11 @@ class RedisHashManager:
             json_value = json.dumps(value) if isinstance(value, dict) else value
             self.redis_client.hset(hash_name, key, json_value)
             self.log(f"Written to hash '{hash_name}' -> {key}: {value}")
+
+            if self.forensic:
+                from wredis.forensic import record_forensic_entry
+                val_dict = value if isinstance(value, dict) else {key: value}
+                record_forensic_entry(self.redis_client, hash_name, "INSERT", before=None, after=val_dict)
 
             if ttl > 0:
                 self.redis_client.expire(hash_name, ttl)
@@ -152,6 +160,30 @@ class RedisHashManager:
                 )
         except Exception as e:
             logger.error(f"Error deleting field '{key}' from hash '{hash_name}': {e}")
+
+    def delete_hash(self, hash_name: str) -> bool:
+        """Deletes the entire hash (all fields and the key itself).
+
+        Args:
+            hash_name (str): Name of the hash in Redis.
+
+        Returns:
+            bool: True if the hash was deleted, False otherwise.
+        """
+        try:
+            result = self.redis_client.delete(hash_name)
+            deleted = result > 0
+            if deleted:
+                self.log(f"Deleted entire hash '{hash_name}'.")
+            else:
+                self.log(
+                    f"Hash '{hash_name}' does not exist.",
+                    level="warning",
+                )
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting hash '{hash_name}': {e}")
+            return False
 
     def read_all_hash(self, hash_name: str) -> dict | None:
         """Reads all fields and values from a Redis hash.
