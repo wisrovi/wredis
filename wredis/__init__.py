@@ -19,12 +19,13 @@ For more: from wredis.sync import ... or from wredis.aio import ...
 
 from __future__ import annotations
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from collections.abc import Callable
 from typing import Any
 
 from wredis.bitmap import RedisBitmapManager
+from wredis.forensic import record_forensic_entry
 from wredis.hash import RedisHashManager
 from wredis.pubsub import RedisPubSubManager
 from wredis.queue import RedisQueueManager
@@ -40,6 +41,7 @@ __all__ = [
     "RedisSetManager",
     "RedisSortedSetManager",
     "RedisStreamManager",
+    "record_forensic_entry",
     "enqueue",
     "publish",
     "subscribe",
