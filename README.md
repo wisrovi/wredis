@@ -1,13 +1,16 @@
 
 
-# WRedis
+<p align="center">
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/v/wredis?style=for-the-badge&logo=pypi&color=3b82f6" alt="PyPI version" /></a>
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/dm/wredis?style=for-the-badge&color=blue" alt="PyPI Downloads" /></a>
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/pyversions/wredis.svg?style=for-the-badge&logo=python&color=3775A9" alt="Python versions" /></a>
+  <a href="https://linkedin.com/in/wisrovi-rodriguez"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+  <a href="https://wisrovi.dev"><img src="https://img.shields.io/badge/Author-wisrovi.dev-111827?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Portal" /></a>
+  <a href="https://orcid.org/0009-0005-0710-1861"><img src="https://img.shields.io/badge/ORCID-0009--0005--0710--1861-A6CE39?style=for-the-badge&logo=orcid&logoColor=white" alt="ORCID" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" /></a>
+</p>
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Coverage: 95%+](https://img.shields.io/badge/coverage-95%25%2B-brightgreen.svg)]()
-[![Ruff](https://img.shields.io/badge/style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![PyPI](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/wredis/)
-[![LTS](https://img.shields.io/badge/LTS-v1.0.0-orange.svg)]()
+# 🚀 WRedis — Ultra-Fast Redis Cache, Distributed Locks & Streaming
 
 **WRedis v1.0.0 LTS** — Production-ready Python library for Redis with real async/await, cache decorators, high availability, and comprehensive type safety.
 
@@ -501,3 +504,17 @@ examples/
    python read.py
    python write.py
    ```
+
+---
+
+## 👤 Autor & Afiliación Oficial
+
+* **William Steve Rodriguez Villamizar (Wisrovi)**
+* **Cargo:** Principal AI Engineer & Applied AI Solutions Architect | Scientific Researcher
+* 📧 **Email:** [wisrovi.rodriguez@gmail.com](mailto:wisrovi.rodriguez@gmail.com) / [wisrovi@wisrovi.dev](mailto:wisrovi@wisrovi.dev)
+* 🌐 **Portal Oficial:** [wisrovi.dev](https://wisrovi.dev)
+* 💼 **LinkedIn:** [wisrovi-rodriguez](https://www.linkedin.com/in/wisrovi-rodriguez/)
+* 🆔 **ORCID:** [0009-0005-0710-1861](https://orcid.org/0009-0005-0710-1861)
+* 📦 **PyPI:** [pypi.org/user/wisrovi/](https://pypi.org/user/wisrovi/)
+* 🐙 **GitHub:** [@wisrovi](https://github.com/wisrovi)
+
