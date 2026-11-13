@@ -265,6 +265,40 @@ class TestAsyncStreamClose:
         await manager.close()
 
 
+class TestAsyncStreamDeleteStream:
+    """Tests for delete_stream method."""
+
+    @pytest.mark.asyncio
+    async def test_delete_stream_existing(self, async_client, manager):
+        manager.redis_client = async_client
+        await manager.add_to_stream("mystream", {"field": "value"})
+
+        result = await manager.delete_stream("mystream")
+        assert result is True
+        exists = await async_client.exists("mystream")
+        assert exists == 0
+
+    @pytest.mark.asyncio
+    async def test_delete_stream_nonexistent(self, async_client, manager):
+        manager.redis_client = async_client
+        result = await manager.delete_stream("nonexistent")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_delete_stream_invalid_key(self, manager):
+        with pytest.raises(ValidationError, match="Redis key cannot be empty"):
+            await manager.delete_stream("")
+
+    @pytest.mark.asyncio
+    async def test_delete_stream_redis_error(self, manager):
+        mock_client = AsyncMock()
+        mock_client.delete.side_effect = aredis.RedisError("Redis error")
+        manager.redis_client = mock_client
+
+        with pytest.raises(StreamError, match="Failed to delete stream"):
+            await manager.delete_stream("mystream")
+
+
 class TestAsyncStreamIntegration:
     """Integration-style tests for stream operations."""
 
