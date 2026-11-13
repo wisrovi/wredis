@@ -139,12 +139,49 @@ class TestRedisQueueManagerGetQueueLength:
     def test_get_queue_length_redis_error(self, queue_manager):
         """Test get_queue_length raises QueueError on Redis failure."""
         original_llen = queue_manager.redis_client.llen
-        queue_manager.redis_client.llen = MagicMock(side_effect=redis.RedisError("Redis error"))
+        queue_manager.redis_client.llen = MagicMock(
+            side_effect=redis.RedisError("Redis error")
+        )
 
         with pytest.raises(QueueError, match="Failed to get length of queue"):
             queue_manager.get_queue_length("myqueue")
 
         queue_manager.redis_client.llen = original_llen
+
+
+class TestRedisQueueManagerDeleteQueue:
+    """Test delete_queue method."""
+
+    def test_delete_queue_existing(self, queue_manager):
+        """Test deleting an existing queue."""
+        queue_manager.publish("myqueue", {"msg": "1"})
+        queue_manager.publish("myqueue", {"msg": "2"})
+
+        deleted = queue_manager.delete_queue("myqueue")
+        assert deleted is True
+        assert queue_manager.redis_client.exists("myqueue") == 0
+
+    def test_delete_queue_nonexistent(self, queue_manager):
+        """Test deleting a non-existent queue."""
+        deleted = queue_manager.delete_queue("nonexistent")
+        assert deleted is False
+
+    def test_delete_queue_invalid_key(self, queue_manager):
+        """Test delete_queue raises ValidationError for empty key."""
+        with pytest.raises(ValidationError, match="Redis key cannot be empty"):
+            queue_manager.delete_queue("")
+
+    def test_delete_queue_redis_error(self, queue_manager):
+        """Test delete_queue raises QueueError on Redis failure."""
+        original_delete = queue_manager.redis_client.delete
+        queue_manager.redis_client.delete = MagicMock(
+            side_effect=redis.RedisError("Redis error")
+        )
+
+        with pytest.raises(QueueError, match="Failed to delete queue"):
+            queue_manager.delete_queue("myqueue")
+
+        queue_manager.redis_client.delete = original_delete
 
 
 class TestRedisQueueManagerStart:
