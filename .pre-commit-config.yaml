@@ -59,6 +59,7 @@ repos:
     hooks:
       - id: ruff
         verbose: true
+        exclude: ^(tests|examples)/
         args:
           - --select=D
           - --config=lint.pydocstyle.convention="google"
