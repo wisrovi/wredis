@@ -22,7 +22,9 @@ class AsyncRedisHyperLogLogManager:
         verbose: bool = True,
     ):
         """Initialize the AsyncRedisHyperLogLogManager."""
-        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.redis_client = redis.Redis(
+            host=host, port=port, db=db, decode_responses=True
+        )
         self.verbose = verbose
 
     async def log(self, message: str, level: str = "info") -> None:
@@ -54,6 +56,27 @@ class AsyncRedisHyperLogLogManager:
             return exists
         except Exception as e:
             logger.error(f"Error checking existence of HLL key '{key}': {e}")
+            return False
+
+    async def delete_hyperloglog(self, key: str) -> bool:
+        """Delete the entire HyperLogLog key.
+
+        Args:
+            key (str): The Redis key for the HyperLogLog.
+
+        Returns:
+            bool: True if the HyperLogLog was deleted, False otherwise.
+        """
+        try:
+            result = await self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                await self.log(f"Deleted HyperLogLog '{key}'.")
+            else:
+                await self.log(f"HyperLogLog '{key}' does not exist.", level="warning")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting HyperLogLog '{key}': {e}")
             return False
 
     async def count(self, *keys: str) -> int:
