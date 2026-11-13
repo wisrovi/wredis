@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>wredis v1.0.0 | Enterprise-Grade Python Redis Library</title>
+    <title>wredis v1.1.0 | Enterprise-Grade Python Redis Library</title>
 
     <!-- SEO & Meta Tags -->
-    <meta name="description" content="wredis v1.0.0: Production-ready Python library for Redis with sync/async APIs, 12 data structures, cache decorators, HA Sentinel/Cluster, and 95%+ test coverage.">
-    <meta name="keywords" content="python, redis, cache, async, sentinel, cluster, bitmap, hash, queue, pubsub, streams, hyperloglog, pipeline, transaction, wisrovi">
+    <meta name="description" content="wredis v1.1.0: Production-ready Python library for Redis with sync/async APIs, 13 data structures including direct Key-Value RAM storage, cache decorators, HA Sentinel/Cluster, and 95%+ test coverage.">
+    <meta name="keywords" content="python, redis, keyvalue, cache, async, sentinel, cluster, bitmap, hash, queue, pubsub, streams, hyperloglog, pipeline, transaction, wisrovi">
     <meta name="author" content="William Steve Rodriguez Villamizar (wisrovi)">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content="wredis — The Python Redis Swiss Army Knife">
-    <meta property="og:description" content="12 Redis data structures, dual sync/async APIs, cache decorators with metrics, Redis Sentinel & Cluster HA. Zero boilerplate.">
+    <meta property="og:description" content="13 Redis data structures, dual sync/async APIs, cache decorators with metrics, Redis Sentinel & Cluster HA. Zero boilerplate.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://github.com/wisrovi/wredis">
     <meta property="og:image" content="https://github.com/user-attachments/assets/ec5277c7-ec3d-4df2-88a3-37937a318133">
@@ -636,16 +636,24 @@
         </div>
     </section>
 
-    <!-- 12 Data Structures -->
+    <!-- 13 Data Structures -->
     <section id="structures">
         <div class="container">
             <div class="section-header">
                 <span class="gradient-text" style="font-weight: 800; text-transform: uppercase;">Full Coverage</span>
-                <h2>12 Data Structures, <span class="gradient-text">One Library</span></h2>
-                <p>From Bitmaps to Streams — every Redis data type has a dedicated manager with CRUD + TTL + existence checks.</p>
+                <h2>13 Data Structures, <span class="gradient-text">One Library</span></h2>
+                <p>From Key-Value and Bitmaps to Streams — every Redis data type has a dedicated manager with CRUD + TTL + existence checks.</p>
             </div>
 
             <div class="data-structures">
+                <div class="ds-card">
+                    <div class="ds-icon"><i class="fas fa-key"></i></div>
+                    <div>
+                        <h4>Key-Value</h4>
+                        <p>Direct binary, JSON & TTL</p>
+                        <span class="ds-tag">RedisKeyValueManager</span>
+                    </div>
+                </div>
                 <div class="ds-card">
                     <div class="ds-icon"><i class="fas fa-hashtag"></i></div>
                     <div>
