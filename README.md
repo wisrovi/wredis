@@ -27,12 +27,13 @@ Requires Python 3.9+ and a running Redis server (local or remote).
 
 ---
 
-## Key Technologies & Dependencies
+## Key Technologies and Libraries
 
 `wredis` is built on modern, high-performance Python database standards:
 - **Redis & redis-py**: Primary client driver supporting sync, async, Sentinel, and Cluster.
 - **Loguru**: Structured, thread-safe diagnostic logging.
 - **Pytest & Fakeredis**: Mocked and live test suite execution.
+- **Python 3.9+**: Modern synchronous and asynchronous runtime.
 
 ---
 
@@ -51,7 +52,7 @@ Requires Python 3.9+ and a running Redis server (local or remote).
 | **Sync & Async** | Full support for both synchronous and asynchronous (`asyncio`) APIs |
 | **Cache Decorators** | `@cache` / `@async_cache` with hit/miss metrics and TTL management |
 | **High Availability** | Redis Sentinel and Cluster support |
-| **12 Data Structures** | Bitmap, Hash, Set, SortedSet, Stream, Queue, Pub/Sub, Geo, HyperLogLog, Pipeline, Transaction |
+| **13 Data Structures** | KeyValue, Bitmap, Hash, Set, SortedSet, Stream, Queue, Pub/Sub, Geo, HyperLogLog, Pipeline, Transaction |
 | **Error Handling** | Proper exception hierarchy, no silent failures |
 | **Type Safety** | Fully type-hinted, mypy clean |
 | **Compression** | Optional gzip compression for queue messages |
@@ -76,6 +77,28 @@ data = expensive_function("hello")  # cached for 60s
 ---
 
 ## Modules
+
+### Key-Value (Direct Ephemeral RAM Storage)
+
+```python
+from wredis.keyvalue import RedisKeyValueManager
+
+kv = RedisKeyValueManager(host="localhost", port=6379)
+
+# Store raw binary bytes with 5-second TTL (ideal for high-throughput multimedia offload & claim-check)
+kv.setex("frame:1001", ttl=5, value=raw_bytes)
+
+# Retrieve raw bytes without string encoding conversion
+payload = kv.get_bytes("frame:1001")
+
+# Also supports dictionaries/JSON and strings:
+kv.set("user:meta", {"id": 101, "role": "admin"})
+meta = kv.get("user:meta")  # Automatically parsed as dict
+```
+
+**Methods:** `set`, `setex`, `get`, `get_bytes`, `delete`, `exist`, `exists`, `close`
+
+---
 
 ### Bitmap
 
