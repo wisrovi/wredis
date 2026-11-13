@@ -71,7 +71,9 @@ class AsyncRedisQueueManager(AsyncBaseManager):
 
         def decorator(func: Callable) -> Callable:
             if queue_name in self.callbacks:
-                raise QueueError(f"Callback already registered for queue '{queue_name}'")
+                raise QueueError(
+                    f"Callback already registered for queue '{queue_name}'"
+                )
             self.callbacks[queue_name] = func
             return func
 
@@ -89,7 +91,9 @@ class AsyncRedisQueueManager(AsyncBaseManager):
 
         while self.running:
             try:
-                item = await self.redis_client.brpop(queue_name, timeout=self.poll_interval)
+                item = await self.redis_client.brpop(
+                    queue_name, timeout=self.poll_interval
+                )
                 if item:
                     data = json.loads(item[1])
                     await self.log(f"Consumed from '{queue_name}': {data}")
@@ -99,16 +103,24 @@ class AsyncRedisQueueManager(AsyncBaseManager):
                         callback(data)
                     retries = 0
             except json.JSONDecodeError as e:
-                await self.log(f"Invalid JSON in queue '{queue_name}': {e}", level="error")
+                await self.log(
+                    f"Invalid JSON in queue '{queue_name}': {e}", level="error"
+                )
                 retries += 1
                 if retries >= self.max_retries:
-                    await self.log(f"Max retries for queue '{queue_name}'", level="error")
+                    await self.log(
+                        f"Max retries for queue '{queue_name}'", level="error"
+                    )
                     break
             except aredis.RedisError as e:
-                await self.log(f"Redis error on queue '{queue_name}': {e}", level="error")
+                await self.log(
+                    f"Redis error on queue '{queue_name}': {e}", level="error"
+                )
                 retries += 1
                 if retries >= self.max_retries:
-                    await self.log(f"Max retries for queue '{queue_name}'", level="error")
+                    await self.log(
+                        f"Max retries for queue '{queue_name}'", level="error"
+                    )
                     break
             except asyncio.CancelledError:
                 await self.log(f"Consumer for queue '{queue_name}' cancelled")
@@ -125,13 +137,17 @@ class AsyncRedisQueueManager(AsyncBaseManager):
             return
 
         if not self.callbacks:
-            raise QueueError("No callbacks registered. Use @on_message decorator first.")
+            raise QueueError(
+                "No callbacks registered. Use @on_message decorator first."
+            )
 
         self.running = True
         self._tasks = {}
 
         for queue_name, callback in self.callbacks.items():
-            self._tasks[queue_name] = asyncio.create_task(self._consume_queue(queue_name, callback))
+            self._tasks[queue_name] = asyncio.create_task(
+                self._consume_queue(queue_name, callback)
+            )
             await self.log(f"Task started for queue '{queue_name}'")
 
     async def stop(self) -> None:
@@ -199,7 +215,35 @@ class AsyncRedisQueueManager(AsyncBaseManager):
             await self.log(f"Queue '{queue_name}' length: {length}")
             return length
         except aredis.RedisError as e:
-            raise QueueError(f"Failed to get length of queue '{queue_name}': {e}") from e
+            raise QueueError(
+                f"Failed to get length of queue '{queue_name}': {e}"
+            ) from e
+
+    async def delete_queue(self, queue_name: str) -> bool:
+        """Delete the entire queue key (all pending messages).
+
+        Args:
+            queue_name: Name of the queue.
+
+        Returns:
+            True if the queue was deleted, False if it did not exist.
+
+        Raises:
+            ValidationError: If queue_name is invalid.
+            QueueError: If the operation fails.
+        """
+        validate_key(queue_name)
+
+        try:
+            result = await self.redis_client.delete(queue_name)
+            deleted = result > 0
+            if deleted:
+                await self.log(f"Deleted queue '{queue_name}'")
+            else:
+                await self.log(f"Queue '{queue_name}' does not exist.", level="warning")
+            return deleted
+        except aredis.RedisError as e:
+            raise QueueError(f"Failed to delete queue '{queue_name}': {e}") from e
 
     async def close(self) -> None:
         """Stop consumers and close connection pool."""
