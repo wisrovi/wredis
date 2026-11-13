@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-08-14
+
+### Added
+
+- **Unified `delete_*` API** across all Redis data structure managers (sync and async):
+  - `delete_hash(hash_name)` in `RedisHashManager` / `AsyncRedisHashManager`
+  - `delete_bitmap(key)` in `RedisBitmapManager` / `AsyncRedisBitmapManager`
+  - `delete_set(key)` in `RedisSetManager` / `AsyncRedisSetManager`
+  - `delete_sorted_set(key)` in `RedisSortedSetManager` / `AsyncRedisSortedSetManager`
+  - `delete_geo(key)` in `RedisGeoManager` / `AsyncRedisGeoManager`
+  - `delete_hyperloglog(key)` in `RedisHyperLogLogManager` / `AsyncRedisHyperLogLogManager`
+  - `delete_queue(queue_name)` in `RedisQueueManager` / `AsyncRedisQueueManager`
+  - `delete_stream(key)` in `RedisStreamManager` / `AsyncRedisStreamManager`
+- All `delete_*` methods return `bool`: `True` if the key was deleted, `False` if it did not exist.
+
+### Changed
+
+- `RedisSortedSetManager.delete_sorted_set` and `AsyncRedisSortedSetManager.delete_sorted_set` now return `bool` instead of `None`.
+
+---
+
 ## [1.0.0] - 2026-06-10
 
 ### LTS Release
