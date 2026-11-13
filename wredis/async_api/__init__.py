@@ -6,6 +6,7 @@ from wredis.async_api.bitmap import AsyncRedisBitmapManager
 from wredis.async_api.geo import AsyncRedisGeoManager
 from wredis.async_api.hash import AsyncRedisHashManager
 from wredis.async_api.hyperloglog import AsyncRedisHyperLogLogManager
+from wredis.async_api.keyvalue import AsyncRedisKeyValueManager
 from wredis.async_api.pipeline import AsyncRedisPipelineManager
 from wredis.async_api.pubsub import AsyncRedisPubSubManager
 from wredis.async_api.queue import AsyncRedisQueueManager
@@ -19,6 +20,7 @@ __all__ = [
     "AsyncRedisGeoManager",
     "AsyncRedisHashManager",
     "AsyncRedisHyperLogLogManager",
+    "AsyncRedisKeyValueManager",
     "AsyncRedisPipelineManager",
     "AsyncRedisPubSubManager",
     "AsyncRedisQueueManager",
