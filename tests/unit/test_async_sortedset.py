@@ -228,21 +228,24 @@ class TestAsyncRedisSortedSetManagerDeleteSortedSet:
     async def test_delete_sorted_set(self, async_client, manager):
         manager.redis_client = async_client
         await async_client.zadd("myzset", {"a": 1.0})
-        await manager.delete_sorted_set("myzset")
+        result = await manager.delete_sorted_set("myzset")
+        assert result is True
         exists = await async_client.exists("myzset")
         assert exists == 0
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent(self, async_client, manager):
         manager.redis_client = async_client
-        await manager.delete_sorted_set("nonexistent")
+        result = await manager.delete_sorted_set("nonexistent")
+        assert result is False
 
     @pytest.mark.asyncio
     async def test_delete_error(self, manager):
         mock_client = AsyncMock()
         mock_client.delete.side_effect = Exception("error")
         manager.redis_client = mock_client
-        await manager.delete_sorted_set("myzset")
+        result = await manager.delete_sorted_set("myzset")
+        assert result is False
 
 
 class TestAsyncRedisSortedSetManagerSetTTL:
