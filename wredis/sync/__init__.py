@@ -40,6 +40,7 @@ from wredis.decorators import CacheMetrics, cache
 from wredis.geo import RedisGeoManager
 from wredis.hash import RedisHashManager
 from wredis.hyperloglog import RedisHyperLogLogManager
+from wredis.keyvalue import RedisKeyValueManager
 from wredis.pipeline import RedisPipelineManager
 from wredis.pubsub import RedisPubSubManager
 from wredis.queue import RedisQueueManager
@@ -55,6 +56,7 @@ __all__ = [
     "RedisGeoManager",
     "RedisHashManager",
     "RedisHyperLogLogManager",
+    "RedisKeyValueManager",
     "RedisPipelineManager",
     "RedisPubSubManager",
     "RedisQueueManager",
