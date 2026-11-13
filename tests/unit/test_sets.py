@@ -59,7 +59,9 @@ class TestRedisSetManager:
         manager = RedisSetManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "smembers", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "smembers", side_effect=Exception("Redis error")
+        ):
             result = manager.get_set_members("my_set")
             assert result == set()
 
@@ -84,7 +86,9 @@ class TestRedisSetManager:
         manager = RedisSetManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "sismember", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "sismember", side_effect=Exception("Redis error")
+        ):
             result = manager.is_member("my_set", "value")
             assert result is False
 
@@ -115,6 +119,33 @@ class TestRedisSetManager:
 
         with patch.object(redis_client, "srem", side_effect=Exception("Redis error")):
             manager.remove_from_set("my_set", "value1")
+
+    def test_delete_set(self, redis_client):
+        """Test deleting the entire set."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        redis_client.sadd("my_set", "a", "b")
+        deleted = manager.delete_set("my_set")
+        assert deleted is True
+        assert redis_client.exists("my_set") == 0
+
+    def test_delete_set_not_exists(self, redis_client):
+        """Test deleting a non-existent set."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        deleted = manager.delete_set("nonexistent")
+        assert deleted is False
+
+    def test_delete_set_error(self, redis_client):
+        """Test delete_set with error handling."""
+        manager = RedisSetManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "delete", side_effect=Exception("Redis error")):
+            result = manager.delete_set("my_set")
+            assert result is False
 
     def test_get_ttl_exists(self, redis_client):
         """Test getting TTL."""
