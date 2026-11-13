@@ -36,8 +36,39 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "pfadd", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "pfadd", side_effect=Exception("Redis error")
+        ):
             manager.add("visitors", "user1")
+
+    def test_delete_hyperloglog(self, redis_client):
+        """Test deleting a HyperLogLog key."""
+        manager = RedisHyperLogLogManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        manager.add("visitors", "user1", "user2")
+        deleted = manager.delete_hyperloglog("visitors")
+        assert deleted is True
+        assert redis_client.exists("visitors") == 0
+
+    def test_delete_hyperloglog_not_exists(self, redis_client):
+        """Test deleting a non-existent HyperLogLog key."""
+        manager = RedisHyperLogLogManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        deleted = manager.delete_hyperloglog("nonexistent")
+        assert deleted is False
+
+    def test_delete_hyperloglog_error(self, redis_client):
+        """Test delete_hyperloglog with error handling."""
+        manager = RedisHyperLogLogManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(
+            manager.redis_client, "delete", side_effect=Exception("Redis error")
+        ):
+            result = manager.delete_hyperloglog("visitors")
+            assert result is False
 
     def test_count(self, redis_client):
         """Test counting unique elements."""
@@ -74,7 +105,9 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "pfcount", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "pfcount", side_effect=Exception("Redis error")
+        ):
             result = manager.count("key")
             assert result == 0
 
@@ -97,7 +130,9 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "pfmerge", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "pfmerge", side_effect=Exception("Redis error")
+        ):
             manager.merge("dest", "src1", "src2")
 
     def test_get_all(self, redis_client):
@@ -122,6 +157,8 @@ class TestRedisHyperLogLogManager:
         manager = RedisHyperLogLogManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "get", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "get", side_effect=Exception("Redis error")
+        ):
             result = manager.get_all("key")
             assert result is None
