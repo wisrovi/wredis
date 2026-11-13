@@ -36,8 +36,39 @@ class TestRedisGeoManager:
         manager = RedisGeoManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "geoadd", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "geoadd", side_effect=Exception("Redis error")
+        ):
             manager.add_location("cities", "test", 0, 0)
+
+    def test_delete_geo(self, redis_client):
+        """Test deleting a geo key."""
+        manager = RedisGeoManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        manager.add_location("cities", "new_york", -74.006, 40.7128)
+        deleted = manager.delete_geo("cities")
+        assert deleted is True
+        assert redis_client.exists("cities") == 0
+
+    def test_delete_geo_not_exists(self, redis_client):
+        """Test deleting a non-existent geo key."""
+        manager = RedisGeoManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        deleted = manager.delete_geo("nonexistent")
+        assert deleted is False
+
+    def test_delete_geo_error(self, redis_client):
+        """Test delete_geo with error."""
+        manager = RedisGeoManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(
+            manager.redis_client, "delete", side_effect=Exception("Redis error")
+        ):
+            result = manager.delete_geo("cities")
+            assert result is False
 
     def test_get_distance(self, redis_client):
         """Test getting distance between two locations."""
@@ -69,7 +100,9 @@ class TestRedisGeoManager:
         manager = RedisGeoManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "geodist", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "geodist", side_effect=Exception("Redis error")
+        ):
             result = manager.get_distance("cities", "a", "b")
             assert result is None
 
@@ -98,7 +131,9 @@ class TestRedisGeoManager:
         manager = RedisGeoManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "geopos", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "geopos", side_effect=Exception("Redis error")
+        ):
             result = manager.get_positions("cities", "a")
             assert result == []
 
@@ -121,7 +156,9 @@ class TestRedisGeoManager:
         manager.add_location("places", "store_a", -122.4194, 37.7749)
         manager.add_location("places", "store_b", -122.4084, 37.7849)
 
-        nearby = manager.search_nearby_with_distance("places", -122.4194, 37.7749, 5, unit="km")
+        nearby = manager.search_nearby_with_distance(
+            "places", -122.4194, 37.7749, 5, unit="km"
+        )
         assert len(nearby) > 0
 
     def test_search_nearby_empty(self, redis_client):
@@ -138,7 +175,9 @@ class TestRedisGeoManager:
         manager = RedisGeoManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "georadius", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "georadius", side_effect=Exception("Redis error")
+        ):
             result = manager.search_nearby("places", 0, 0, 1)
             assert result == []
 
@@ -147,6 +186,8 @@ class TestRedisGeoManager:
         manager = RedisGeoManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(manager.redis_client, "georadius", side_effect=Exception("Redis error")):
+        with patch.object(
+            manager.redis_client, "georadius", side_effect=Exception("Redis error")
+        ):
             result = manager.search_nearby_with_distance("places", 0, 0, 1)
             assert result == []
