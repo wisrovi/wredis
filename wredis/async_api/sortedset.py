@@ -30,7 +30,9 @@ class AsyncRedisSortedSetManager:
         if self.verbose:
             getattr(logger, level)(message)
 
-    async def add_to_sorted_set(self, key: str, score: float, member: str, ttl: int = -1) -> None:
+    async def add_to_sorted_set(
+        self, key: str, score: float, member: str, ttl: int = -1
+    ) -> None:
         """Add an element to the sorted set with its score."""
         try:
             await self.redis_client.zadd(key, {member: score})
@@ -65,7 +67,9 @@ class AsyncRedisSortedSetManager:
     ) -> list[str] | list[tuple[str, float]]:
         """Retrieve elements from the sorted set in a given range."""
         try:
-            result = await self.redis_client.zrange(key, start, stop, withscores=with_scores)
+            result = await self.redis_client.zrange(
+                key, start, stop, withscores=with_scores
+            )
 
             if with_scores:
                 result = [(member.decode(), score) for member, score in result]
@@ -83,16 +87,22 @@ class AsyncRedisSortedSetManager:
     ) -> list[str] | list[tuple[str, float]]:
         """Retrieve elements from the sorted set in reverse order."""
         try:
-            result = await self.redis_client.zrevrange(key, start, stop, withscores=with_scores)
+            result = await self.redis_client.zrevrange(
+                key, start, stop, withscores=with_scores
+            )
             if with_scores:
                 result = [(member.decode(), score) for member, score in result]
             else:
                 result = [member.decode() for member in result]
 
-            await self.log(f"Retrieved elements in reverse order from sorted set '{key}': {result}")
+            await self.log(
+                f"Retrieved elements in reverse order from sorted set '{key}': {result}"
+            )
             return result
         except Exception as e:
-            logger.error(f"Error retrieving elements in reverse from sorted set '{key}': {e}")
+            logger.error(
+                f"Error retrieving elements in reverse from sorted set '{key}': {e}"
+            )
             return []
 
     async def remove_from_sorted_set(self, key: str, member: str) -> None:
@@ -110,7 +120,9 @@ class AsyncRedisSortedSetManager:
             await self.log(f"Rank of '{member}' in sorted set '{key}': {rank}")
             return rank
         except Exception as e:
-            logger.error(f"Error retrieving rank of '{member}' in sorted set '{key}': {e}")
+            logger.error(
+                f"Error retrieving rank of '{member}' in sorted set '{key}': {e}"
+            )
             return None
 
     async def get_score(self, key: str, member: str) -> float | None:
@@ -120,16 +132,31 @@ class AsyncRedisSortedSetManager:
             await self.log(f"Score of '{member}' in sorted set '{key}': {score}")
             return score
         except Exception as e:
-            logger.error(f"Error retrieving score of '{member}' in sorted set '{key}': {e}")
+            logger.error(
+                f"Error retrieving score of '{member}' in sorted set '{key}': {e}"
+            )
             return None
 
-    async def delete_sorted_set(self, key: str) -> None:
-        """Delete the entire sorted set."""
+    async def delete_sorted_set(self, key: str) -> bool:
+        """Delete the entire sorted set.
+
+        Args:
+            key: Name of the sorted set in Redis.
+
+        Returns:
+            True if the sorted set was deleted, False otherwise.
+        """
         try:
-            await self.redis_client.delete(key)
-            await self.log(f"Deleted entire sorted set '{key}'")
+            result = await self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                await self.log(f"Deleted entire sorted set '{key}'")
+            else:
+                await self.log(f"Sorted set '{key}' does not exist.", level="warning")
+            return deleted
         except Exception as e:
             logger.error(f"Error deleting sorted set '{key}': {e}")
+            return False
 
     async def set_ttl(self, key: str, ttl: int) -> None:
         """Set a TTL for an existing sorted set."""
@@ -161,24 +188,34 @@ class AsyncRedisSortedSetManager:
         """Increment the score of a member."""
         try:
             await self.redis_client.zincrby(key, increment, member)
-            await self.log(f"Incremented score of '{member}' by {increment} in sorted set '{key}'")
+            await self.log(
+                f"Incremented score of '{member}' by {increment} in sorted set '{key}'"
+            )
         except Exception as e:
-            logger.error(f"Error incrementing score of '{member}' in sorted set '{key}': {e}")
+            logger.error(
+                f"Error incrementing score of '{member}' in sorted set '{key}': {e}"
+            )
 
     async def get_sorted_set_by_score(
         self, key: str, min_score: float, max_score: float, with_scores: bool = False
     ) -> list[str] | list[tuple[str, float]]:
         """Retrieve members within a specific score range."""
         try:
-            result = await self.redis_client.zrangebyscore(key, min_score, max_score, withscores=with_scores)
+            result = await self.redis_client.zrangebyscore(
+                key, min_score, max_score, withscores=with_scores
+            )
             if with_scores:
                 result = [(member.decode(), score) for member, score in result]
             else:
                 result = [member.decode() for member in result]
-            await self.log(f"Retrieved elements by score from sorted set '{key}': {result}")
+            await self.log(
+                f"Retrieved elements by score from sorted set '{key}': {result}"
+            )
             return result
         except Exception as e:
-            logger.error(f"Error retrieving elements by score from sorted set '{key}': {e}")
+            logger.error(
+                f"Error retrieving elements by score from sorted set '{key}': {e}"
+            )
             return []
 
     async def set_json(self, key: str, value: dict | list, ttl: int = -1) -> None:
