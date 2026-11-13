@@ -158,6 +158,33 @@ class TestRedisHashManager:
         with patch.object(redis_client, "hdel", side_effect=Exception("Redis error")):
             m.delete_hash_field("my_hash", "key1")
 
+    def test_delete_hash_exists(self, redis_client):
+        """Test deleting the entire hash."""
+        m = RedisHashManager(host="localhost", verbose=False)
+        m.redis_client = redis_client
+
+        redis_client.hset("my_hash", "key1", b"value")
+        deleted = m.delete_hash("my_hash")
+        assert deleted is True
+        assert redis_client.exists("my_hash") == 0
+
+    def test_delete_hash_not_exists(self, redis_client):
+        """Test deleting a non-existent hash."""
+        m = RedisHashManager(host="localhost", verbose=False)
+        m.redis_client = redis_client
+
+        deleted = m.delete_hash("nonexistent")
+        assert deleted is False
+
+    def test_delete_hash_error(self, redis_client):
+        """Test delete_hash with error."""
+        m = RedisHashManager(host="localhost", verbose=False)
+        m.redis_client = redis_client
+
+        with patch.object(redis_client, "delete", side_effect=Exception("Redis error")):
+            result = m.delete_hash("my_hash")
+            assert result is False
+
     def test_read_all_hash_exists(self, redis_client):
         """Test reading all hash fields."""
         m = RedisHashManager(host="localhost", verbose=False)
@@ -182,7 +209,9 @@ class TestRedisHashManager:
         m = RedisHashManager(host="localhost", verbose=False)
         m.redis_client = redis_client
 
-        with patch.object(redis_client, "hgetall", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "hgetall", side_effect=Exception("Redis error")
+        ):
             result = m.read_all_hash("my_hash")
             assert result is None
 
