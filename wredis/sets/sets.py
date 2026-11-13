@@ -109,7 +109,9 @@ class RedisSetManager:
         """
         try:
             result = self.redis_client.sismember(key, value)
-            self.log(f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'")
+            self.log(
+                f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'"
+            )
             return result
         except Exception as e:
             logger.error(f"Error checking membership in set '{key}': {e}")
@@ -127,6 +129,27 @@ class RedisSetManager:
             self.log(f"Removed from set '{key}': {values}")
         except Exception as e:
             logger.error(f"Error removing from set '{key}': {e}")
+
+    def delete_set(self, key: str) -> bool:
+        """Deletes the entire set key.
+
+        Args:
+            key (str): Name of the set in Redis.
+
+        Returns:
+            bool: True if the set was deleted, False otherwise.
+        """
+        try:
+            result = self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                self.log(f"Deleted entire set '{key}'.")
+            else:
+                self.log(f"Set '{key}' does not exist.", level="warning")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting set '{key}': {e}")
+            return False
 
     def get_ttl(self, key: str) -> int | None:
         """Retrieves the remaining TTL (Time-to-Live) of a set.
