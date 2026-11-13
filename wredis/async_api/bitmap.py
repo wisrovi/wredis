@@ -116,6 +116,27 @@ class AsyncRedisBitmapManager:
             logger.error(f"Error counting bits in '{key}': {e}")
             return 0
 
+    async def delete_bitmap(self, key: str) -> bool:
+        """Delete the entire bitmap key.
+
+        Args:
+            key: The Redis key for the bitmap.
+
+        Returns:
+            True if the bitmap was deleted, False otherwise.
+        """
+        try:
+            result = await self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                await self.log(f"Deleted bitmap '{key}'.")
+            else:
+                await self.log(f"Bitmap '{key}' does not exist.", level="warning")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting bitmap '{key}': {e}")
+            return False
+
     async def get_ttl(self, key: str) -> int:
         """Retrieve the time-to-live (TTL) for a bitmap key.
 
