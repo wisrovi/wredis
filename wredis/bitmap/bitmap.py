@@ -1,3 +1,5 @@
+"""Redis bitmap manager module."""
+
 from __future__ import annotations
 
 import redis
@@ -5,8 +7,10 @@ from loguru import logger
 
 
 class RedisBitmapManager:
-    """Manages Redis bitmap operations, including setting, retrieving, and counting bits,
-    as well as managing TTL (Time-to-Live) for bitmap keys.
+    """Manages Redis bitmap operations.
+
+    Includes setting, retrieving, and counting bits, as well as managing
+    TTL (Time-to-Live) for bitmap keys.
 
     Attributes:
         redis_client (redis.StrictRedis): Redis client instance.
@@ -94,6 +98,27 @@ class RedisBitmapManager:
             return exists
         except Exception as e:
             logger.error(f"Error checking existence of bitmap '{key}': {e}")
+            return False
+
+    def delete_bitmap(self, key: str) -> bool:
+        """Deletes the entire bitmap key.
+
+        Args:
+            key (str): The Redis key for the bitmap.
+
+        Returns:
+            bool: True if the bitmap was deleted, False otherwise.
+        """
+        try:
+            result = self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                self.log(f"Deleted bitmap '{key}'.")
+            else:
+                self.log(f"Bitmap '{key}' does not exist.", level="warning")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting bitmap '{key}': {e}")
             return False
 
     def count_bits(self, key: str) -> int:
