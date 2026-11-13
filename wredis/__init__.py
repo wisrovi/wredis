@@ -27,6 +27,7 @@ from typing import Any
 from wredis.bitmap import RedisBitmapManager
 from wredis.forensic import record_forensic_entry
 from wredis.hash import RedisHashManager
+from wredis.keyvalue import RedisKeyValueManager
 from wredis.pubsub import RedisPubSubManager
 from wredis.queue import RedisQueueManager
 from wredis.sets import RedisSetManager
@@ -36,6 +37,7 @@ from wredis.streams import RedisStreamManager
 __all__ = [
     "RedisBitmapManager",
     "RedisHashManager",
+    "RedisKeyValueManager",
     "RedisPubSubManager",
     "RedisQueueManager",
     "RedisSetManager",
