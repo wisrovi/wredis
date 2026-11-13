@@ -177,3 +177,30 @@ class TestAsyncRedisHyperLogLogManagerMerge:
         manager.redis_client = mock_client
         await manager.merge("merged", "hll1", "hll2")
         mock_client.pfmerge.assert_called_once_with("merged", "hll1", "hll2")
+
+
+class TestAsyncRedisHyperLogLogManagerDeleteHyperLogLog:
+    """Tests for delete_hyperloglog method."""
+
+    @pytest.mark.asyncio
+    async def test_delete_hyperloglog_existing(self, async_client, manager):
+        manager.redis_client = async_client
+        await manager.add("myhll", "user1", "user2")
+        result = await manager.delete_hyperloglog("myhll")
+        assert result is True
+        exists = await async_client.exists("myhll")
+        assert exists == 0
+
+    @pytest.mark.asyncio
+    async def test_delete_hyperloglog_nonexistent(self, async_client, manager):
+        manager.redis_client = async_client
+        result = await manager.delete_hyperloglog("nonexistent")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_delete_hyperloglog_error(self, manager):
+        mock_client = AsyncMock()
+        mock_client.delete.side_effect = Exception("error")
+        manager.redis_client = mock_client
+        result = await manager.delete_hyperloglog("myhll")
+        assert result is False
