@@ -38,6 +38,33 @@ class TestRedisBitmapManager:
         with patch.object(redis_client, "setbit", side_effect=Exception("Redis error")):
             manager.set_bit("my_bitmap", 0, 1)
 
+    def test_delete_bitmap(self, redis_client):
+        """Test deleting a bitmap."""
+        manager = RedisBitmapManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        redis_client.setbit("my_bitmap", 5, 1)
+        deleted = manager.delete_bitmap("my_bitmap")
+        assert deleted is True
+        assert redis_client.exists("my_bitmap") == 0
+
+    def test_delete_bitmap_not_exists(self, redis_client):
+        """Test deleting a non-existent bitmap."""
+        manager = RedisBitmapManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        deleted = manager.delete_bitmap("nonexistent")
+        assert deleted is False
+
+    def test_delete_bitmap_error(self, redis_client):
+        """Test delete_bitmap with error handling."""
+        manager = RedisBitmapManager(host="localhost", verbose=False)
+        manager.redis_client = redis_client
+
+        with patch.object(redis_client, "delete", side_effect=Exception("Redis error")):
+            result = manager.delete_bitmap("my_bitmap")
+            assert result is False
+
     def test_get_bit(self, redis_client):
         """Test getting a bit from a bitmap."""
         manager = RedisBitmapManager(host="localhost", verbose=False)
@@ -90,7 +117,9 @@ class TestRedisBitmapManager:
         manager = RedisBitmapManager(host="localhost", verbose=False)
         manager.redis_client = redis_client
 
-        with patch.object(redis_client, "bitcount", side_effect=Exception("Redis error")):
+        with patch.object(
+            redis_client, "bitcount", side_effect=Exception("Redis error")
+        ):
             result = manager.count_bits("my_bitmap")
             assert result == 0
 
