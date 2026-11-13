@@ -45,7 +45,9 @@ class AsyncRedisSetManager:
     async def get_set_members(self, key: str) -> set:
         """Retrieve all members of a set."""
         try:
-            members = {member.decode() for member in await self.redis_client.smembers(key)}
+            members = {
+                member.decode() for member in await self.redis_client.smembers(key)
+            }
             await self.log(f"Members of set '{key}': {members}")
             return members
         except Exception as e:
@@ -74,7 +76,9 @@ class AsyncRedisSetManager:
         """Check if an element is a member of the set."""
         try:
             result = await self.redis_client.sismember(key, value)
-            await self.log(f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'")
+            await self.log(
+                f"Element '{value}' {'is' if result else 'is not'} a member of set '{key}'"
+            )
             return result
         except Exception as e:
             logger.error(f"Error checking membership in set '{key}': {e}")
@@ -87,6 +91,27 @@ class AsyncRedisSetManager:
             await self.log(f"Removed from set '{key}': {values}")
         except Exception as e:
             logger.error(f"Error removing from set '{key}': {e}")
+
+    async def delete_set(self, key: str) -> bool:
+        """Delete the entire set key.
+
+        Args:
+            key: Name of the set in Redis.
+
+        Returns:
+            True if the set was deleted, False otherwise.
+        """
+        try:
+            result = await self.redis_client.delete(key)
+            deleted = result > 0
+            if deleted:
+                await self.log(f"Deleted entire set '{key}'.")
+            else:
+                await self.log(f"Set '{key}' does not exist.", level="warning")
+            return deleted
+        except Exception as e:
+            logger.error(f"Error deleting set '{key}': {e}")
+            return False
 
     async def get_ttl(self, key: str) -> int | None:
         """Retrieve the TTL of a set."""
