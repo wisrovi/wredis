@@ -347,3 +347,37 @@ class TestAsyncQueueClose:
         await manager.stop()
         assert len(received) >= 1
         assert received[0] == {"roundtrip": True}
+
+
+class TestAsyncQueueDeleteQueue:
+    """Tests for delete_queue method."""
+
+    @pytest.mark.asyncio
+    async def test_delete_queue_existing(self, async_client, manager):
+        manager.redis_client = async_client
+        await manager.publish("test_queue", {"msg": "1"})
+
+        result = await manager.delete_queue("test_queue")
+        assert result is True
+        exists = await async_client.exists("test_queue")
+        assert exists == 0
+
+    @pytest.mark.asyncio
+    async def test_delete_queue_nonexistent(self, async_client, manager):
+        manager.redis_client = async_client
+        result = await manager.delete_queue("nonexistent")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_delete_queue_invalid_key(self, manager):
+        with pytest.raises(ValidationError, match="Redis key cannot be empty"):
+            await manager.delete_queue("")
+
+    @pytest.mark.asyncio
+    async def test_delete_queue_redis_error(self, manager):
+        mock_client = AsyncMock()
+        mock_client.delete.side_effect = aredis.RedisError("Redis error")
+        manager.redis_client = mock_client
+
+        with pytest.raises(QueueError, match="Failed to delete queue"):
+            await manager.delete_queue("test_queue")
