@@ -306,3 +306,30 @@ class TestAsyncRedisSetManagerDeleteKey:
         manager.redis_client = mock_client
         result = await manager.delete_key("myset")
         assert result is False
+
+
+class TestAsyncRedisSetManagerDeleteSet:
+    """Tests for delete_set method."""
+
+    @pytest.mark.asyncio
+    async def test_delete_set_existing(self, async_client, manager):
+        manager.redis_client = async_client
+        await async_client.sadd("myset", "a", "b")
+        result = await manager.delete_set("myset")
+        assert result is True
+        exists = await async_client.exists("myset")
+        assert exists == 0
+
+    @pytest.mark.asyncio
+    async def test_delete_set_nonexistent(self, async_client, manager):
+        manager.redis_client = async_client
+        result = await manager.delete_set("nonexistent")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_delete_set_error(self, manager):
+        mock_client = AsyncMock()
+        mock_client.delete.side_effect = Exception("error")
+        manager.redis_client = mock_client
+        result = await manager.delete_set("myset")
+        assert result is False
