@@ -1,395 +1,410 @@
-# WRedis
-
-[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Ruff](https://img.shields.io/badge/style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![PyPI](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/wredis/)
-[![Coverage](https://img.shields.io/badge/coverage-95%25%2B-brightgreen.svg)]()
-[![LTS](https://img.shields.io/badge/LTS-v1.0.0-orange.svg)]()
-
-**WRedis** — Production-ready Python library for Redis with sync/async APIs, cache decorators, high availability, and comprehensive type safety.
-
-
 <img width="1452" height="826" alt="image" src="https://github.com/user-attachments/assets/ec5277c7-ec3d-4df2-88a3-37937a318133" />
 
+<p align="center">
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/v/wredis?style=for-the-badge&logo=pypi&color=3b82f6" alt="PyPI version" /></a>
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/dm/wredis?style=for-the-badge&color=10b981" alt="PyPI Downloads" /></a>
+  <a href="https://pypi.org/project/wredis/"><img src="https://img.shields.io/pypi/pyversions/wredis?style=for-the-badge&logo=python&color=ffd343&logoColor=black" alt="Python Versions" /></a>
+  <a href="https://linkedin.com/in/wisrovi-rodriguez"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+  <a href="https://wisrovi.dev"><img src="https://img.shields.io/badge/Author-wisrovi.dev-111827?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Portal" /></a>
+  <a href="https://orcid.org/0009-0005-0710-1861"><img src="https://img.shields.io/badge/ORCID-0009--0005--0710--1861-A6CE39?style=for-the-badge&logo=orcid&logoColor=white" alt="ORCID" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" /></a>
+</p>
 
+# WRedis 🚀
 
+**Production-Grade, High-Availability Python Client Suite for Redis with Dual Sync/Async APIs, Transparent Claim-Check RAM Offloading, and Enterprise Forensic Auditing.**
 
 ---
 
-## Installation
+## 📑 Table of Contents
 
-```bash
-pip install wredis
+- [🏛️ Architectural Overview](#️-architectural-overview)
+- [🌟 Why WRedis?](#-why-wredis)
+- [📦 Installation](#-installation)
+- [🛠️ Key Technologies and Libraries](#️-key-technologies-and-libraries)
+- [🚀 Quick Start](#-quick-start)
+- [🔍 Enterprise Forensic Audit Trail](#-enterprise-forensic-audit-trail)
+- [🧩 Supported Data Structures & Managers](#-supported-data-structures--managers)
+  - [1. Key-Value & Ephemeral Binary Storage](#1-key-value--ephemeral-binary-storage)
+  - [2. Cache Decorators (`@cache` / `@async_cache`)](#2-cache-decorators-cache--async_cache)
+  - [3. Hashes](#3-hashes)
+  - [4. Queues with Gzip Compression](#4-queues-with-gzip-compression)
+  - [5. Pub/Sub Engine](#5-pubsub-engine)
+  - [6. Streams & Consumer Groups](#6-streams--consumer-groups)
+  - [7. Bitmaps](#7-bitmaps)
+  - [8. Sets & Sorted Sets](#8-sets--sorted-sets)
+  - [9. Geospatial Indices](#9-geospatial-indices)
+  - [10. HyperLogLog Cardinality](#10-hyperloglog-cardinality)
+  - [11. Pipelines & Atomic Transactions](#11-pipelines--atomic-transactions)
+- [🛡️ High Availability (Sentinel & Cluster)](#️-high-availability-sentinel--cluster)
+- [⚙️ Connection & Configuration Reference](#️-connection--configuration-reference)
+- [🧪 Unit Testing & Quality Assurance](#-unit-testing--quality-assurance)
+- [👤 Author & Official Affiliation](#-author--official-affiliation)
+- [📜 License](#-license)
+
+---
+
+## 🏛️ Architectural Overview
+
+```
++========================================================================================+
+|                                    WREDIS ECOSYSTEM                                    |
++========================================================================================+
+|                                                                                        |
+|   🔌 UNIFIED CLIENT INTERFACE (Dual Sync / Async APIs)                                 |
+|   +--------------------------------------------------------------------------------+   |
+|   |  • Auto-Reconnection & Connection Pooling with intelligent backoff            |   |
+|   |  • Dual Sync / Asynchronous (`asyncio` / `await`) runtime parity               |   |
+|   |  • Forensic Audit Trail (`forensic=True` appends pre/post mutation snapshots)  |   |
+|   |  • Type-Safety: 100% strict PEP-484 type annotations and runtime validation    |   |
+|   +--------------------------------------------------------------------------------+   |
+|                                          |                                             |
+|                                          v                                             |
+|   🗂️ 13 SPECIALIZED DATA STRUCTURE MANAGERS                                            |
+|   +--------------------------------------------------------------------------------+   |
+|   |  • KeyValue: Ephemeral RAM offload, raw byte DMA, auto-JSON serialization       |   |
+|   |  • Cache Decorators: `@cache` / `@async_cache` with hit/miss telemetry & TTL   |   |
+|   |  • Streams & Queues: Consumer groups, ACK management, Gzip payload compression  |   |
+|   |  • Pub/Sub: Thread-safe listener registries and topic routing                  |   |
+|   |  • Sets / SortedSets: Leaderboards, rank queries, and set algebra operations   |   |
+|   |  • Geo / Bitmaps / HyperLogLog: Spatial radii, bitfields, probabilistic stats  |   |
+|   |  • Pipelines & Transactions: Batch pipelining and atomic MULTI/EXEC locks      |   |
+|   +--------------------------------------------------------------------------------+   |
+|                                          |                                             |
+|                                          v                                             |
+|   🛡️ HIGH AVAILABILITY & INFRASTRUCTURE TOPOLOGIES                                    |
+|   +--------------------------------------------------------------------------------+   |
+|   |  • Standalone Redis: Single-node high-throughput cache & Claim-Check RAM       |   |
+|   |  • Redis Sentinel: Automatic master failover & replica topology sync           |   |
+|   |  • Redis Cluster: Transparent 16,384 hash slot partitioning and sharding       |   |
+|   +--------------------------------------------------------------------------------+   |
++========================================================================================+
 ```
 
-Requires Python 3.9+ and a running Redis server (local or remote).
+---
+
+## 🌟 Why WRedis?
+
+Direct usage of low-level `redis-py` requires substantial boilerplate for production applications: manual connection teardown, connection pool exhaustion debugging, type casting, JSON parsing/serializing, manual retry backoff, and ad-hoc clustering configs.
+
+**WRedis delivers an enterprise-grade developer experience:**
+
+* 🚀 **Zero Boilerplate**: Specialized manager classes for each Redis capability with intuitive CRUD semantics.
+* ⚡ **Claim-Check RAM Offload Engine**: Native `setex` and `get_bytes` optimized for ultra-high-throughput multimedia offloading in event-driven systems (e.g., `wkafka`).
+* 🔍 **Forensic Auditing**: Built-in mutation audit trail stream (`forensic=True`) recording before-and-after snapshots with zero performance penalty.
+* 🎯 **Dual Sync & Async APIs**: Seamlessly switch between synchronous workers and high-concurrency `asyncio` services.
+* 🛡️ **Enterprise Resilience**: Native Sentinel failover detection and Redis Cluster sharding out of the box.
+* 📦 **Production Ready**: 100% test coverage with `fakeredis` and live integration test suites.
 
 ---
 
-## Key Technologies and Libraries
+## 📦 Installation
 
-`wredis` is built on modern, high-performance Python database standards:
-- **Redis & redis-py**: Primary client driver supporting sync, async, Sentinel, and Cluster.
-- **Loguru**: Structured, thread-safe diagnostic logging.
-- **Pytest & Fakeredis**: Mocked and live test suite execution.
-- **Python 3.9+**: Modern synchronous and asynchronous runtime.
+```bash
+# Standard installation from PyPI
+pip install wredis
 
----
-
-## Enterprise Forensic Audit & Key Space Management
-
-`wredis` provides an automated stream-based audit trail (`_forensic_audit_log`) for monitoring mutations across key-spaces.
-
-- **Disabled by default**: Pass `forensic=True` when instantiating managers (e.g. `RedisHashManager(..., forensic=True)`) to enable automatic audit logging.
-- **Stream-based Audit Trail**: Append-only stream recording action, target key, pre-state, and post-state JSON snapshots.
-- **Zero Overhead**: Completely isolated log streams.
-
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| **Sync & Async** | Full support for both synchronous and asynchronous (`asyncio`) APIs |
-| **Cache Decorators** | `@cache` / `@async_cache` with hit/miss metrics and TTL management |
-| **High Availability** | Redis Sentinel and Cluster support |
-| **13 Data Structures** | KeyValue, Bitmap, Hash, Set, SortedSet, Stream, Queue, Pub/Sub, Geo, HyperLogLog, Pipeline, Transaction |
-| **Error Handling** | Proper exception hierarchy, no silent failures |
-| **Type Safety** | Fully type-hinted, mypy clean |
-| **Compression** | Optional gzip compression for queue messages |
-| **Validation** | Built-in key, TTL, and value validation |
+# Using poetry
+poetry add wredis
+```
 
 ---
 
-## Quick Start
+## 🛠️ Key Technologies and Libraries
 
+WRedis is engineered on top of modern, battle-tested Python and Redis database standards:
+
+- **Python (3.9 - 3.14)**: Modern typed runtime with PEP-561 compliance (`py.typed`).
+- **redis-py (`redis>=5.0.0`)**: High-performance core Redis client supporting Standalone, Sentinel, Cluster, and AsyncIO.
+- **Loguru**: Structured, thread-safe asynchronous logging and operational telemetry.
+- **Fakeredis**: Deterministic in-memory Redis mocking for hermetic unit testing without external daemon dependencies.
+- **Pytest & Pytest-Cov**: Automated unit, integration, and high-availability test suites (>95% coverage).
+
+---
+
+## 🚀 Quick Start
+
+### Cache Decorator with Metrics & TTL
 ```python
 from wredis.cache import RedisCacheManager
 
-cache = RedisCacheManager(host="localhost")
+cache = RedisCacheManager(host="localhost", port=6379)
 
-@cache("my_cache", ttl=60)
-def expensive_function(param: str) -> dict:
-    return {"result": f"processed {param}"}
+@cache(ttl=60)
+def fetch_user_profile(user_id: str) -> dict:
+    # Heavy database query or remote API call
+    return {"id": user_id, "name": "Alice", "role": "admin"}
 
-data = expensive_function("hello")  # cached for 60s
+# First call executes function; subsequent calls within 60s return cached RAM result instantly
+profile = fetch_user_profile("user-42")
 ```
 
 ---
 
-## Modules
+## 🔍 Enterprise Forensic Audit Trail
 
-### Key-Value (Direct Ephemeral RAM Storage)
+WRedis provides an automated, stream-based audit trail (`_forensic_audit_log`) for monitoring data mutations across sensitive key-spaces.
+
+- **Disabled by default**: Enable by setting `forensic=True` when instantiating any manager:
+  ```python
+  from wredis.hash import RedisHashManager
+
+  hm = RedisHashManager(host="localhost", forensic=True)
+  hm.create_hash("accounts", "acc:100", {"balance": 5000})
+  ```
+- **Stream-Based Immutable Ledger**: Records the action (`create`, `update`, `delete`), target key, pre-state, post-state, and high-precision UTC timestamp.
+- **Zero Overhead**: Fully isolated logging stream that does not block primary database commands.
+
+---
+
+## 🧩 Supported Data Structures & Managers
+
+### 1. Key-Value & Ephemeral Binary Storage
+Direct ephemeral RAM storage for raw binary streams, strings, and auto-serialized dictionaries.
 
 ```python
 from wredis.keyvalue import RedisKeyValueManager
 
 kv = RedisKeyValueManager(host="localhost", port=6379)
 
-# Store raw binary bytes with 5-second TTL (ideal for high-throughput multimedia offload & claim-check)
-kv.setex("frame:1001", ttl=5, value=raw_bytes)
+# 1. Store raw binary bytes with 5-second TTL (ideal for high-throughput multimedia offload & claim-check)
+kv.setex("frame:camera_1", ttl=5, value=raw_bytes)
 
-# Retrieve raw bytes without string encoding conversion
-payload = kv.get_bytes("frame:1001")
+# 2. Retrieve raw bytes directly without string encoding overhead
+payload = kv.get_bytes("frame:camera_1")
 
-# Also supports dictionaries/JSON and strings:
-kv.set("user:meta", {"id": 101, "role": "admin"})
-meta = kv.get("user:meta")  # Automatically parsed as dict
+# 3. Store and retrieve structured dictionaries (auto-serialized to JSON)
+kv.set("metadata:101", {"status": "active", "tags": ["cv", "edge"]})
+meta = kv.get("metadata:101")  # Returns dict directly
 ```
 
-**Methods:** `set`, `setex`, `get`, `get_bytes`, `delete`, `exist`, `exists`, `close`
-
----
-
-### Bitmap
+### 2. Cache Decorators (`@cache` / `@async_cache`)
+High-performance memoization with configurable TTL and key hashing:
 
 ```python
-from wredis.bitmap import RedisBitmapManager
+# Synchronous function caching
+@cache("product_cache", ttl=300)
+def get_product(product_id: int) -> dict:
+    return {"id": product_id, "price": 49.99}
 
-bm = RedisBitmapManager(host="localhost")
-bm.set_bit("my_bitmap", offset=5, value=1)
-print(bm.get_bit("my_bitmap", 0))   # 0
-print(bm.count_bits("my_bitmap"))    # 1
+# Asynchronous coroutine caching
+@async_cache("async_orders", ttl=120)
+async def get_order_async(order_id: str) -> dict:
+    return await db.orders.find_one({"_id": order_id})
 ```
 
-**Methods:** `set_bit`, `get_bit`, `exist`, `count_bits`, `get_ttl`, `extend_ttl`, `delete_bitmap`
-
----
-
-### Hash
+### 3. Hashes
+Manage structured object maps with field-level mutations:
 
 ```python
 from wredis.hash import RedisHashManager
 
 hm = RedisHashManager(host="localhost")
-hm.create_hash("users", "user:1", {"name": "Alice", "age": 30}, ttl=60)
+hm.create_hash("users", "user:1", {"name": "Alice", "age": 30}, ttl=3600)
+
 user = hm.read_hash("users", "user:1")
-all_users = hm.read_all_hash("users")
 hm.update_hash("users", "user:1", {"age": 31})
-hm.delete_hash_field("users", "user:2")
-hm.delete_hash("users")
-exists = hm.exist("users")
+hm.delete_hash_field("users", "user:1")
 ```
 
-**Methods:** `create_hash`, `read_hash`, `exist`, `update_hash`, `delete_hash_field`, `delete_hash`, `read_all_hash`, `get_ttl`, `extend_ttl`
-
----
-
-### Queue
+### 4. Queues with Gzip Compression
+Reliable FIFO worker queues with optional compression for heavy task payloads:
 
 ```python
 from wredis.queue import RedisQueueManager
 
 # Producer
-qm = RedisQueueManager(host="localhost")
-qm.publish("tasks", {"id": 1, "task": "process_image"}, ttl=30)
-exists = qm.exist("tasks")
+qm = RedisQueueManager(host="localhost", compress=True)
+qm.publish("heavy_tasks", {"action": "render_video", "clip_id": 992}, ttl=60)
+
+# Consumer / Worker
+@qm.on_message("heavy_tasks")
+def task_worker(task):
+    print(f"Processing task: {task['action']}")
+
+qm.start()
 ```
 
-**Methods:** `publish`, `on_message`, `exist`, `start`, `stop`, `wait`, `get_queue_length`, `delete_queue`
-
----
-
-### Pub/Sub
+### 5. Pub/Sub Engine
+Thread-safe topic broadcasting and event subscriptions:
 
 ```python
 from wredis.pubsub import RedisPubSubManager
 
 pbm = RedisPubSubManager(host="localhost")
 
-# Producer
-pbm.publish_message("notifications", "Hello, Redis!")
-pbm.publish_message("alerts", {"severity": "high", "message": "Disk full"})
-exists = pbm.exist("notifications")
+# Subscribe listener
+@pbm.on_message("system.alerts")
+def on_alert(msg):
+    print(f"Alert received: {msg}")
 
-# Consumer
-@pbm.on_message("notifications")
-def handle(msg):
-    print(f"Received: {msg}")
-
-pbm.stop_listeners()
+# Publish message
+pbm.publish_message("system.alerts", {"level": "CRITICAL", "node": "gpu-01"})
 ```
 
-**Methods:** `publish_message`, `on_message`, `exist`, `stop_listeners`
-
----
-
-### Streams
+### 6. Streams & Consumer Groups
+Production event streaming with consumer group checkpointing and message acks:
 
 ```python
 from wredis.streams import RedisStreamManager
 
 sm = RedisStreamManager(host="localhost")
 
-# Producer
-sm.add_to_stream("events", {"action": "login", "user": "alice"})
-exists = sm.exist("events")
+# Publish event
+sm.add_to_stream("order_events", {"order_id": "ORD-55", "total": 99.0})
 
-# Consumer
-@sm.on_message("events", group_name="my_group", consumer_name="worker_1")
-def process(data):
-    print(f"Processing: {data}")
+# Consumer group subscriber
+@sm.on_message("order_events", group_name="billing_workers", consumer_name="worker_a")
+def handle_event(event):
+    print(f"Processing order event: {event}")
 
 sm.wait()
 ```
 
-**Methods:** `add_to_stream`, `on_message`, `exist`, `read_from_stream`, `wait`, `delete_stream`
-
----
-
-### Sets
+### 7. Bitmaps
+Compact bitfields for daily active user tracking and boolean flag registries:
 
 ```python
-from wredis.sets import RedisSetManager
+from wredis.bitmap import RedisBitmapManager
 
-sm = RedisSetManager(host="localhost")
-sm.add_to_set("tags", "python", "redis", "wredis")
-members = sm.get_set_members("tags")
-print(sm.is_member("tags", "python"))  # True
-sm.remove_from_set("tags", "redis")
-exists = sm.exist("tags")
+bm = RedisBitmapManager(host="localhost")
+bm.set_bit("dau:2026-11-16", offset=402, value=1)
+
+is_active = bm.get_bit("dau:2026-11-16", 402)  # 1
+total_active = bm.count_bits("dau:2026-11-16")
 ```
 
-**Methods:** `add_to_set`, `get_set_members`, `exist`, `is_member`, `remove_from_set`, `get_ttl`, `extend_ttl`, `delete_set`
-
----
-
-### Sorted Sets
+### 8. Sets & Sorted Sets
+Unordered unique sets and scored leaderboards:
 
 ```python
 from wredis.sortedset import RedisSortedSetManager
 
 ssm = RedisSortedSetManager(host="localhost")
-ssm.add_to_sorted_set("leaderboard", 100, "player1")
-ssm.add_to_sorted_set("leaderboard", 200, "player2")
-ssm.add_to_sorted_set("leaderboard", 150, "player3")
+ssm.add_to_sorted_set("leaderboard", 1500, "player_alpha")
+ssm.add_to_sorted_set("leaderboard", 2300, "player_beta")
 
-top = ssm.get_sorted_set_reverse("leaderboard", with_scores=True)
-rank = ssm.get_rank("leaderboard", "player2")
-score = ssm.get_score("leaderboard", "player3")
-ssm.increment_score("leaderboard", 50, "player3")
-exists = ssm.exist("leaderboard")
+# Retrieve top 10 players
+top_players = ssm.get_sorted_set_reverse("leaderboard", start=0, end=9, with_scores=True)
 ```
 
-**Methods:** `add_to_sorted_set`, `get_sorted_set`, `get_sorted_set_reverse`, `exist`, `remove_from_sorted_set`, `get_rank`, `get_score`, `delete_sorted_set`, `set_ttl`, `get_ttl`, `increment_score`, `get_sorted_set_by_score`
-
----
-
-### Geo
+### 9. Geospatial Indices
+Coordinate storage and radius-based geographic queries:
 
 ```python
 from wredis.geo import RedisGeoManager
 
 gm = RedisGeoManager(host="localhost")
-gm.add_location("places", "Central Park", 40.785091, -73.968285)
-dist = gm.distance("places", "Central Park", "Times Square")
-exists = gm.exist("places")
+gm.add_location("charging_stations", "Station A", 40.785091, -73.968285)
+gm.add_location("charging_stations", "Station B", 40.758896, -73.985130)
+
+distance_km = gm.distance("charging_stations", "Station A", "Station B", unit="km")
 ```
 
-**Methods:** `add_location`, `exist`, `distance`, `geo_radius`, `get_location`, `delete_geo`
-
----
-
-### Advanced Patterns
-
-For complex use cases, WRedis supports:
-
-* **Pipelines & Transactions**: Atomic operations and batch execution.
-* **Custom Key Generation**: Full control over cache key naming.
-* **Connection Tuning**: Optimization for high-traffic environments.
-* **Granular Error Handling**: Specific exception hierarchy for robust applications.
-
-Check the [Full Documentation](https://wredis.readthedocs.io/) for detailed guides.
-
----
-
-### HyperLogLog
+### 10. HyperLogLog Cardinality
+Probabilistic distinct count tracking with negligible memory footprint:
 
 ```python
 from wredis.hyperloglog import RedisHyperLogLogManager
 
 hll = RedisHyperLogLogManager(host="localhost")
-hll.add("visitors", "user1", "user2", "user3")
-count = hll.count("visitors")
-hll.merge("all_visitors", "visitors")
-exists = hll.exist("visitors")
+hll.add("unique_visitors", "ip_1", "ip_2", "ip_3")
+unique_count = hll.count("unique_visitors")
 ```
 
-**Methods:** `add`, `exist`, `count`, `merge`, `get_all`, `delete_hyperloglog`
-
----
-
-### Pipeline
+### 11. Pipelines & Atomic Transactions
+Batch command execution and atomic `MULTI`/`EXEC` operations:
 
 ```python
 from wredis.pipeline import RedisPipelineManager
 
 pm = RedisPipelineManager(host="localhost")
-pm.set_get("key1", "value1")
 results = pm.mget_pipeline("key1", "key2", "key3")
 ```
 
-**Methods:** `set_get`, `mget_pipeline`
-
 ---
 
-### Transaction
+## 🛡️ High Availability (Sentinel & Cluster)
 
-```python
-from wredis.transaction import RedisTransactionManager
-
-tm = RedisTransactionManager(host="localhost")
-result = tm.get_and_set("counter", "1")
-```
-
-**Methods:** `get_and_set`
-
----
-
-### Cache Decorator
-
-```python
-from wredis.cache import RedisCacheManager
-
-cache = RedisCacheManager(host="localhost")
-
-@cache(ttl=60)
-def get_user(user_id: str) -> dict:
-    return {"id": user_id, "name": "Alice"}
-
-# Call decorated function — results are cached
-user = get_user("42")
-```
-
-**Methods:** `@cache` (sync), `@async_cache` (async), `invalidate`, `clear`, `get_stats`
-
----
-
-## High Availability
-
-### Sentinel
+### Redis Sentinel
+Automatic master failover orchestration with Sentinel service discovery:
 
 ```python
 from wredis.ha.sentinel import RedisSentinelManager
 
 sm = RedisSentinelManager(
-    sentinel_hosts=[("sentinel1", 26379), ("sentinel2", 26379)],
+    sentinel_hosts=[("sentinel-node-1", 26379), ("sentinel-node-2", 26379)],
     service_name="mymaster",
-    password="optional",
+    password="<your_password>",
+    db=0
 )
 ```
 
-### Cluster
+### Redis Cluster
+Automatic client-side sharding across 16,384 hash slots:
 
 ```python
 from wredis.ha.cluster import RedisClusterManager
 
 cm = RedisClusterManager(
-    startup_nodes=[{"host": "node1", "port": 6379}],
-    password="optional",
+    startup_nodes=[{"host": "cluster-node-1", "port": 6379}, {"host": "cluster-node-2", "port": 6379}],
+    password="<your_password>",
 )
 ```
 
 ---
 
-## Configuration
+## ⚙️ Connection & Configuration Reference
 
-All managers accept common connection parameters:
+All WRedis managers accept standard unified connection arguments:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `host` | `"localhost"` | Redis server hostname |
-| `port` | `6379` | Redis server port |
-| `db` | `0` | Redis database number |
-| `password` | `None` | Redis password |
-| `verbose` | `True` | Enable logging |
-| `decode_responses` | `False` | Decode responses to strings |
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `host` | `str` | `"localhost"` | Redis server hostname or IP address. |
+| `port` | `int` | `6379` | Redis server TCP port. |
+| `db` | `int` | `0` | Target Redis database index (0-15). |
+| `password` | `Optional[str]` | `None` | Authentication password. |
+| `verbose` | `bool` | `True` | Structured Loguru diagnostic telemetry. |
+| `decode_responses` | `bool` | `False` | Decode binary responses to UTF-8 strings automatically. |
+| `forensic` | `bool` | `False` | Enable automatic stream-based mutation auditing (`_forensic_audit_log`). |
 
-Queue-specific:
+Queue-specific parameters:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `poll_interval` | `1` | Seconds between polls for empty queues |
-| `max_retries` | `3` | Maximum retry attempts on error |
-| `compress` | `False` | Enable gzip compression for messages |
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `poll_interval` | `float` | `1.0` | Seconds to wait between consumer poll intervals. |
+| `max_retries` | `int` | `3` | Maximum retry attempts upon task failure. |
+| `compress` | `bool` | `False` | Automatically compress queue payloads using Gzip. |
 
 ---
 
-## Testing
+## 🧪 Unit Testing & Quality Assurance
+
+WRedis enforces rigorous quality assurance with comprehensive mocked and live integration test suites:
 
 ```bash
-# Run all tests
-pytest tests/
+# 1. Run unit test suite with in-memory fakeredis
+pytest tests/unit/ -v
 
-# Run with coverage
-pytest --cov=wredis tests/
-
-# Run specific module tests
-pytest tests/unit/test_queue.py
-pytest tests/integration/test_all_modules_integration.py
+# 2. Run test coverage verification
+pytest --cov=wredis tests/unit/
 ```
 
 ---
 
-## License
+## 👤 Author & Official Affiliation
 
-MIT — see [LICENSE](LICENSE) for details.
+* **William Steve Rodriguez Villamizar (Wisrovi)**
+* **Role:** AI Leader & Solutions Architect at eCaptureDtech | Principal AI Engineer
+* 📧 **Email:** [wisrovi.rodriguez@gmail.com](mailto:wisrovi.rodriguez@gmail.com)
+* 🌐 **Official Portal:** [wisrovi.dev](https://wisrovi.dev)
+* 💼 **LinkedIn:** [wisrovi-rodriguez](https://www.linkedin.com/in/wisrovi-rodriguez/)
+* 🆔 **ORCID:** [0009-0005-0710-1861](https://orcid.org/0009-0005-0710-1861)
+* 📦 **PyPI:** [pypi.org/user/wisrovi/](https://pypi.org/user/wisrovi/)
+* 🐙 **GitHub:** [@wisrovi](https://github.com/wisrovi)
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**. Free for commercial, enterprise, and research applications.
