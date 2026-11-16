@@ -19,7 +19,7 @@ For more: from wredis.sync import ... or from wredis.aio import ...
 
 from __future__ import annotations
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 from collections.abc import Callable
 from typing import Any
